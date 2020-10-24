@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TCP_Client", "Client\Client.vcxproj", "{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TCP_Server", "Server\Server.vcxproj", "{57751015-22A3-4892-B5DA-AA5F363F76C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TCP", "TCP", "{D6D3FB4E-0BFA-4C73-A1FD-7A76365F6F4A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UDP", "UDP", "{1EFCE798-D8BB-4217-B726-128EB1E58CC9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UDP_Client", "UDP_Client\UDP_Client.vcxproj", "{128BA52B-5441-40D3-BE22-FBB6564ACFCC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UDP_Server", "UDP_Server\UDP_Server.vcxproj", "{83632450-806D-4377-A478-02F2B4688963}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Debug|x64.ActiveCfg = Debug|x64
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Debug|x64.Build.0 = Debug|x64
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Debug|x86.ActiveCfg = Debug|Win32
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Debug|x86.Build.0 = Debug|Win32
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Release|x64.ActiveCfg = Release|x64
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Release|x64.Build.0 = Release|x64
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Release|x86.ActiveCfg = Release|Win32
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54}.Release|x86.Build.0 = Release|Win32
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Debug|x64.ActiveCfg = Debug|x64
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Debug|x64.Build.0 = Debug|x64
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Debug|x86.ActiveCfg = Debug|Win32
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Debug|x86.Build.0 = Debug|Win32
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Release|x64.ActiveCfg = Release|x64
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Release|x64.Build.0 = Release|x64
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Release|x86.ActiveCfg = Release|Win32
+		{57751015-22A3-4892-B5DA-AA5F363F76C9}.Release|x86.Build.0 = Release|Win32
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Debug|x64.ActiveCfg = Debug|x64
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Debug|x64.Build.0 = Debug|x64
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Debug|x86.ActiveCfg = Debug|Win32
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Debug|x86.Build.0 = Debug|Win32
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Release|x64.ActiveCfg = Release|x64
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Release|x64.Build.0 = Release|x64
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Release|x86.ActiveCfg = Release|Win32
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC}.Release|x86.Build.0 = Release|Win32
+		{83632450-806D-4377-A478-02F2B4688963}.Debug|x64.ActiveCfg = Debug|x64
+		{83632450-806D-4377-A478-02F2B4688963}.Debug|x64.Build.0 = Debug|x64
+		{83632450-806D-4377-A478-02F2B4688963}.Debug|x86.ActiveCfg = Debug|Win32
+		{83632450-806D-4377-A478-02F2B4688963}.Debug|x86.Build.0 = Debug|Win32
+		{83632450-806D-4377-A478-02F2B4688963}.Release|x64.ActiveCfg = Release|x64
+		{83632450-806D-4377-A478-02F2B4688963}.Release|x64.Build.0 = Release|x64
+		{83632450-806D-4377-A478-02F2B4688963}.Release|x86.ActiveCfg = Release|Win32
+		{83632450-806D-4377-A478-02F2B4688963}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A685CFC-7B85-4B5A-A680-7E3E7A155C54} = {D6D3FB4E-0BFA-4C73-A1FD-7A76365F6F4A}
+		{57751015-22A3-4892-B5DA-AA5F363F76C9} = {D6D3FB4E-0BFA-4C73-A1FD-7A76365F6F4A}
+		{128BA52B-5441-40D3-BE22-FBB6564ACFCC} = {1EFCE798-D8BB-4217-B726-128EB1E58CC9}
+		{83632450-806D-4377-A478-02F2B4688963} = {1EFCE798-D8BB-4217-B726-128EB1E58CC9}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED462DF5-B956-43A2-8EBC-0C8483C12BE5}
+	EndGlobalSection
+EndGlobal
