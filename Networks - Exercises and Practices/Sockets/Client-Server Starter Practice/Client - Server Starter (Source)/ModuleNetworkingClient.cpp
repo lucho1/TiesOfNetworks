@@ -1,6 +1,6 @@
 #include "ModuleNetworkingClient.h"
 
-
+// ------------------ ModuleNetworkingClient public methods ------------------
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
 	playerName = pplayerName;
@@ -22,6 +22,9 @@ bool ModuleNetworkingClient::isRunning() const
 	return state != ClientState::Stopped;
 }
 
+
+
+// ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingClient::update()
 {
 	if (state == ClientState::Start)
@@ -51,6 +54,9 @@ bool ModuleNetworkingClient::gui()
 	return true;
 }
 
+
+
+// ----------------- Virtual functions of ModuleNetworking -------------------
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 {
 	state = ClientState::Stopped;
@@ -60,4 +66,3 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
 	state = ClientState::Stopped;
 }
-

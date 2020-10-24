@@ -1,12 +1,7 @@
 #include "ModuleNetworkingServer.h"
 
 
-
-
-//////////////////////////////////////////////////////////////////////
-// ModuleNetworkingServer public methods
-//////////////////////////////////////////////////////////////////////
-
+// ------------------ ModuleNetworkingServer public methods ------------------
 bool ModuleNetworkingServer::start(int port)
 {
 	// TODO(jesus): TCP listen socket stuff
@@ -28,10 +23,7 @@ bool ModuleNetworkingServer::isRunning() const
 
 
 
-//////////////////////////////////////////////////////////////////////
-// Module virtual methods
-//////////////////////////////////////////////////////////////////////
-
+// ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingServer::update()
 {
 	return true;
@@ -71,10 +63,7 @@ bool ModuleNetworkingServer::gui()
 
 
 
-//////////////////////////////////////////////////////////////////////
-// ModuleNetworking virtual methods
-//////////////////////////////////////////////////////////////////////
-
+// ----------------- Virtual functions of ModuleNetworking -------------------
 bool ModuleNetworkingServer::isListenSocket(SOCKET socket) const
 {
 	return socket == listenSocket;
@@ -114,4 +103,3 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 		}
 	}
 }
-

@@ -4,22 +4,17 @@
 
 static uint8 NumModulesUsingWinsock = 0;
 
-
-
 void ModuleNetworking::reportError(const char* inOperationDesc)
 {
 	LPVOID lpMsgBuf;
 	DWORD errorNum = WSAGetLastError();
 
 	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		errorNum,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf,
-		0, NULL);
+					FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+					NULL, errorNum,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf,
+					0, NULL
+				  );
 
 	ERROR_LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
@@ -55,7 +50,8 @@ bool ModuleNetworking::init()
 
 bool ModuleNetworking::preUpdate()
 {
-	if (sockets.empty()) return true;
+	if (sockets.empty())
+		return true;
 
 	// NOTE(jesus): You can use this temporary buffer to store data from recv()
 	const uint32 incomingDataBufferSize = Kilobytes(1);
@@ -92,7 +88,6 @@ bool ModuleNetworking::cleanUp()
 	NumModulesUsingWinsock--;
 	if (NumModulesUsingWinsock == 0)
 	{
-
 		if (WSACleanup() != 0)
 		{
 			reportError("ModuleNetworking::cleanUp() - WSACleanup");

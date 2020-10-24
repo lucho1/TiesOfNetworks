@@ -6,42 +6,25 @@ class ModuleNetworkingClient : public ModuleNetworking
 {
 public:
 
-	//////////////////////////////////////////////////////////////////////
 	// ModuleNetworkingClient public methods
-	//////////////////////////////////////////////////////////////////////
-
 	bool start(const char *serverAddress, int serverPort, const char *playerName);
-
 	bool isRunning() const;
-
 
 
 private:
 
-	//////////////////////////////////////////////////////////////////////
-	// Module virtual methods
-	//////////////////////////////////////////////////////////////////////
-
+	// Virtual functions of Modules
 	bool update() override;
-
 	bool gui() override;
 
-
-
-	//////////////////////////////////////////////////////////////////////
-	// ModuleNetworking virtual methods
-	//////////////////////////////////////////////////////////////////////
-
+	// Virtual functions of ModuleNetworking
 	void onSocketReceivedData(SOCKET socket, byte * data) override;
-
 	void onSocketDisconnected(SOCKET socket) override;
 
 
+private:
 
-	//////////////////////////////////////////////////////////////////////
 	// Client state
-	//////////////////////////////////////////////////////////////////////
-
 	enum class ClientState
 	{
 		Stopped,
@@ -49,11 +32,11 @@ private:
 		Logging
 	};
 
+	// Variables
+	std::string playerName;
 	ClientState state = ClientState::Stopped;
-
-	sockaddr_in serverAddress = {};
 	SOCKET socket = INVALID_SOCKET;
 
-	std::string playerName;
+	sockaddr_in serverAddress = {};
 };
 
