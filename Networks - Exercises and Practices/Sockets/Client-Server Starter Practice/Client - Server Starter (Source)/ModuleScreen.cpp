@@ -21,7 +21,6 @@ bool ModuleScreen::update()
 	for (int i = 0; i < screenCount; ++i)
 	{
 		auto screen = screens[i];
-
 		if (!screen->enabled && screen->wasEnabled)
 		{
 			screen->disable();
@@ -33,7 +32,6 @@ bool ModuleScreen::update()
 	for (int i = 0; i < screenCount; ++i)
 	{
 		auto screen = screens[i];
-
 		if (screen->enabled && !screen->wasEnabled)
 		{
 			screen->enable();
@@ -44,13 +42,10 @@ bool ModuleScreen::update()
 	for (int i = 0; i < screenCount; ++i)
 	{
 		auto screen = screens[i];
-
 		bool screenIsFullyEnabled = screen->enabled && screen->wasEnabled;
 
 		if (screenIsFullyEnabled && screen->shouldUpdate)
-		{
 			screen->update();
-		}
 	}
 
 	return true;
@@ -61,11 +56,8 @@ bool ModuleScreen::gui()
 	for (int i = 0; i < screenCount; ++i)
 	{
 		auto scene = screens[i];
-
 		if (scene->enabled)
-		{
 			scene->gui();
-		}
 	}
 
 	return true;

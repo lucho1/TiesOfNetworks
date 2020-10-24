@@ -4,9 +4,9 @@
 // Data
 const char *windowClassStr = "Networks and Online Games";
 const char *windowTitleStr = "Networks and Online Games";
-HINSTANCE instance = NULL;                           // Application instance
-HWND hwnd = NULL;                                    // Window handle
-WNDCLASSEX windowClass = {};                         // Window class
+HINSTANCE instance = NULL;									// Application instance
+HWND hwnd = NULL;											// Window handle
+WNDCLASSEX windowClass = {};								// Window class
 
 static InputController GamepadInput;
 static InputController KeyboardInput;
@@ -65,34 +65,34 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
-	case WM_SIZE:
-		if (wParam != SIZE_MINIMIZED && wParam != SIZE_MAXSHOW)
-		{
-			Window.width = (UINT)LOWORD(lParam);
-			Window.height = (UINT)HIWORD(lParam);
-			App->modRender->resizeBuffers(Window.width, Window.height);
-		}
-		return 0;
-
-	case WM_KILLFOCUS:
-		Input = {};
-		GamepadInput = {};
-		KeyboardInput = {};
-		IsFocused = false;
-		return 0;
-
-	case WM_SETFOCUS:
-		IsFocused = true;
-		return 0;
-
-	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+		case WM_SIZE:
+			if (wParam != SIZE_MINIMIZED && wParam != SIZE_MAXSHOW)
+			{
+				Window.width = (UINT)LOWORD(lParam);
+				Window.height = (UINT)HIWORD(lParam);
+				App->modRender->resizeBuffers(Window.width, Window.height);
+			}
 			return 0;
-		break;
 
-	case WM_DESTROY:
-		::PostQuitMessage(0);
-		return 0;
+		case WM_KILLFOCUS:
+			Input = {};
+			GamepadInput = {};
+			KeyboardInput = {};
+			IsFocused = false;
+			return 0;
+
+		case WM_SETFOCUS:
+			IsFocused = true;
+			return 0;
+
+		case WM_SYSCOMMAND:
+			if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+				return 0;
+			break;
+
+		case WM_DESTROY:
+			::PostQuitMessage(0);
+			return 0;
 	}
 
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
@@ -101,27 +101,18 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 static void Win32ProcessKeyboardButton(ButtonState *NewState, bool IsDown)
 {
 	// Maybe control half transition counts?
-
 	if (IsDown)
-	{
 		*NewState = Press;
-	}
 	else
-	{
 		*NewState = Release;
-	}
 }
 
 static void Win32ProcessMouseButton(ButtonState *NewState, bool IsDown)
 {
 	if (*NewState == Idle && IsDown)
-	{
 		*NewState = Press;
-	}
 	else if (*NewState == Pressed && !IsDown)
-	{
 		*NewState = Release;
-	}
 }
 
 static void Win32ProcessGamepadButton(ButtonState *NewState, XINPUT_GAMEPAD *pad, int button_flag)
@@ -130,24 +121,16 @@ static void Win32ProcessGamepadButton(ButtonState *NewState, XINPUT_GAMEPAD *pad
 	if (IsPressed)
 	{
 		if (*NewState == Idle)
-		{
 			*NewState = Press;
-		}
 		else
-		{
 			*NewState = Pressed;
-		}
 	}
 	else
 	{
 		if (*NewState == Pressed || *NewState == Press)
-		{
 			*NewState = Release;
-		}
 		else
-		{
 			*NewState = Idle;
-		}
 	}
 }
 
@@ -162,13 +145,9 @@ static float Win32ProcessGamepadThumb(SHORT value, SHORT deadZoneThreshold)
 	float res = 0;
 
 	if (value < -deadZoneThreshold)
-	{
 		res = (float)((value + deadZoneThreshold) / (32768.0f - deadZoneThreshold));
-	}
 	else if (value > deadZoneThreshold)
-	{
 		res = (float)((value - deadZoneThreshold) / (32767.0f - deadZoneThreshold));
-	}
 
 	return(res);
 }
@@ -208,14 +187,20 @@ bool ModulePlatform::init()
 	// Init XInput
 	HMODULE XInputLibrary = LoadLibraryA("xinput1_4.dll");
 
-	if (!XInputLibrary) { XInputLibrary = LoadLibraryA("xinput9_1_0.dll"); }
-	if (!XInputLibrary) { XInputLibrary = LoadLibraryA("xinput1_3.dll"); }
+	if (!XInputLibrary)
+		XInputLibrary = LoadLibraryA("xinput9_1_0.dll");
+	if (!XInputLibrary)
+		XInputLibrary = LoadLibraryA("xinput1_3.dll");
+
 	if (XInputLibrary)
 	{
 		XInputGetState = (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
-		if (!XInputGetState) { XInputGetState = XInputGetStateStub; }
+		if (!XInputGetState)
+			XInputGetState = XInputGetStateStub;
+
 		XInputSetState = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
-		if (!XInputSetState) { XInputSetState = XInputSetStateStub; }
+		if (!XInputSetState)
+			XInputSetState = XInputSetStateStub;
 	}
 	else
 	{
@@ -235,10 +220,10 @@ bool ModulePlatform::init()
 	HDC RefreshDC = GetDC(hwnd);
 	int Win32RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
 	ReleaseDC(hwnd, RefreshDC);
+
 	if (Win32RefreshRate > 1)
-	{
 		MonitorRefreshHz = Win32RefreshRate;
-	}
+
 	GameUpdateHz = (MonitorRefreshHz / 1.0f);
 	TargetSecondsPerFrame = 1.0f / (real32)GameUpdateHz;
 
@@ -284,77 +269,58 @@ bool ModulePlatform::preUpdate()
 		{
 			GotMessage = ::PeekMessage(&msg, 0, LastMessage, Skip - 1, PM_REMOVE);
 			LastMessage = Skip + 1;
+
 			if (GotMessage)
-			{
 				break;
-			}
 		}
 
 		if (!GotMessage)
-		{
 			break;
-		}
 
 		switch (msg.message)
 		{
-		case WM_QUIT:
-			App->exit();
-			return false;
-
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-			if (ImGui::GetIO().WantCaptureKeyboard == false)
-			{
-				unsigned int VKCode = (unsigned int)msg.wParam;
-
-				bool AltKeyWasDown = (msg.lParam & (1 << 29));
-				bool ShiftKeyWasDown = (GetKeyState(VK_SHIFT) & (1 << 15));
-
-				bool WasDown = ((msg.lParam & (1UL << 30)) != 0);
-				bool IsDown = ((msg.lParam & (1UL << 31)) == 0);
-
-				if (WasDown != IsDown)
+			case WM_QUIT:
+				App->exit();
+				return false;
+			
+			case WM_SYSKEYDOWN:
+			case WM_SYSKEYUP:
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+				if (ImGui::GetIO().WantCaptureKeyboard == false)
 				{
-					if (VKCode == 'Q')
+					unsigned int VKCode = (unsigned int)msg.wParam;
+			
+					bool AltKeyWasDown = (msg.lParam & (1 << 29));
+					bool ShiftKeyWasDown = (GetKeyState(VK_SHIFT) & (1 << 15));
+			
+					bool WasDown = ((msg.lParam & (1UL << 30)) != 0);
+					bool IsDown = ((msg.lParam & (1UL << 31)) == 0);
+			
+					if (WasDown != IsDown)
 					{
-						Win32ProcessKeyboardButton(&KeyboardInput.leftShoulder, IsDown);
-					}
-					else if (VKCode == 'E')
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.rightShoulder, IsDown);
-					}
-					else if (VKCode == VK_UP)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.actionUp, IsDown);
-					}
-					else if (VKCode == VK_LEFT)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.actionLeft, IsDown);
-					}
-					else if (VKCode == VK_DOWN)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.actionDown, IsDown);
-					}
-					else if (VKCode == VK_RIGHT)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.actionRight, IsDown);
-					}
-					else if (VKCode == VK_ESCAPE)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.back, IsDown);
-					}
-					else if (VKCode == VK_RETURN)
-					{
-						Win32ProcessKeyboardButton(&KeyboardInput.start, IsDown);
+						if (VKCode == 'Q')
+							Win32ProcessKeyboardButton(&KeyboardInput.leftShoulder, IsDown);
+						else if (VKCode == 'E')
+							Win32ProcessKeyboardButton(&KeyboardInput.rightShoulder, IsDown);
+						else if (VKCode == VK_UP)
+							Win32ProcessKeyboardButton(&KeyboardInput.actionUp, IsDown);
+						else if (VKCode == VK_LEFT)
+							Win32ProcessKeyboardButton(&KeyboardInput.actionLeft, IsDown);
+						else if (VKCode == VK_DOWN)
+							Win32ProcessKeyboardButton(&KeyboardInput.actionDown, IsDown);
+						else if (VKCode == VK_RIGHT)
+							Win32ProcessKeyboardButton(&KeyboardInput.actionRight, IsDown);
+						else if (VKCode == VK_ESCAPE)
+							Win32ProcessKeyboardButton(&KeyboardInput.back, IsDown);
+						else if (VKCode == VK_RETURN)
+							Win32ProcessKeyboardButton(&KeyboardInput.start, IsDown);
 					}
 				}
-			}
-			::TranslateMessage(&msg);
-			break;
-
-		default:;
+				::TranslateMessage(&msg);
+				break;
+			
+			default:;
 		}
 
 		::DispatchMessage(&msg);
@@ -420,10 +386,7 @@ bool ModulePlatform::preUpdate()
 			Input = GamepadInput;
 		}
 		else
-		{
-			// NOTE(jesus): No controller was found
-			Input = KeyboardInput;
-		}
+			Input = KeyboardInput; // NOTE(jesus): No controller was found
 	}
 
 	return true;
@@ -435,25 +398,17 @@ bool ModulePlatform::postUpdate()
 	for (auto &buttonState : Input.buttons)
 	{
 		if (buttonState == Press)
-		{
 			buttonState = Pressed;
-		}
 		else if (buttonState == Release)
-		{
 			buttonState = Idle;
-		}
 	}
 
 	for (auto &buttonState : Mouse.buttons)
 	{
 		if (buttonState == Press)
-		{
 			buttonState = Pressed;
-		}
 		else if (buttonState == Release)
-		{
 			buttonState = Idle;
-		}
 	}
 
 	return true;

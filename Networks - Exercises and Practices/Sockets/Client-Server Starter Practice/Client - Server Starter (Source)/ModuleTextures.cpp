@@ -53,7 +53,8 @@ Texture* ModuleTextures::loadTexture(const char *filename)
 Texture * ModuleTextures::loadTexture(void * pixels, int width, int height)
 {
 	ID3D11ShaderResourceView *shaderResource = loadD3DTextureFromPixels(pixels, width, height);
-	if (shaderResource == nullptr) { return nullptr; }
+	if (shaderResource == nullptr)
+		return nullptr;
 
 	Texture & texture = getTextureSlotForFilename("###EMPTY_TEXTURE###");
 	texture.shaderResource = shaderResource;
@@ -61,6 +62,7 @@ Texture * ModuleTextures::loadTexture(void * pixels, int width, int height)
 	texture.width = width;
 	texture.height = height;
 	texture.used = true;
+
 	return &texture;
 }
 
@@ -92,7 +94,9 @@ ID3D11ShaderResourceView* ModuleTextures::loadD3DTextureFromFile(const char * fi
 	int nchannels;           // NOTE(jesus): nchanels would be the number of channels without forcing bytes_per_pixel
 	int bytes_per_pixel = 4; // NOTE(jesus): 4 is the desired (and final) number of channels
 	unsigned char *pixels = stbi_load((char *)filename, width, height, &nchannels, bytes_per_pixel);
-	if (pixels == nullptr) {
+	
+	if (pixels == nullptr)
+	{
 		LOG("ModuleTextures::loadTexture() - stbi_load() failed.");
 		return NULL;
 	}
@@ -138,7 +142,9 @@ ID3D11ShaderResourceView * ModuleTextures::loadD3DTextureFromPixels(void * pixel
 	subResource.pSysMem = pixels;
 	subResource.SysMemPitch = desc.Width * 4;
 	subResource.SysMemSlicePitch = 0;
-	if (g_pd3dDevice->CreateTexture2D(&desc, &subResource, &handle) < 0) {
+	
+	if (g_pd3dDevice->CreateTexture2D(&desc, &subResource, &handle) < 0)
+	{
 		LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateTexture() failed.");
 		return NULL;
 	}
@@ -150,11 +156,14 @@ ID3D11ShaderResourceView * ModuleTextures::loadD3DTextureFromPixels(void * pixel
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = desc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip = 0;
-	if (g_pd3dDevice->CreateShaderResourceView(handle, &srvDesc, &shaderResourceView) != S_OK) {
+	
+	if (g_pd3dDevice->CreateShaderResourceView(handle, &srvDesc, &shaderResourceView) != S_OK)
+	{
 		LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateShaderResourceView() failed.");
 		handle->Release();
 		return NULL;
 	}
+
 	handle->Release();
 
 	return shaderResourceView;
@@ -170,9 +179,7 @@ Texture & ModuleTextures::getTextureSlotForFilename(const char *filename)
 	for (auto &texture : _textures)
 	{
 		if (strcmp(texture.filename, filename) == 0)
-		{
 			return texture;
-		}
 	}
 
 	// Find the first empty slot

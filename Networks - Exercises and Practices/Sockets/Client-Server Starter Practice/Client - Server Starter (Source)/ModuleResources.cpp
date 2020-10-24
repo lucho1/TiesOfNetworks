@@ -8,11 +8,7 @@ public:
 
 	const char *filename = nullptr;
 	Texture *texture = nullptr;
-
-	void execute() override
-	{
-		texture = App->modTextures->loadTexture(filename);
-	}
+	void execute() override { texture = App->modTextures->loadTexture(filename); }
 };
 #endif
 
@@ -53,7 +49,6 @@ void ModuleResources::loadTextureAsync(const char * filename, Texture **textureP
 void ModuleResources::onTaskFinished(Task * task)
 {
 	ASSERT(task != nullptr);
-
 	TaskLoadTexture *taskLoadTexture = dynamic_cast<TaskLoadTexture*>(task);
 
 	for (int i = 0; i < taskCount; ++i)
@@ -69,11 +64,8 @@ void ModuleResources::onTaskFinished(Task * task)
 	}
 
 	ASSERT(task == nullptr);
-
 	if (finishedTaskCount == taskCount)
-	{
 		finishedLoading = true;
-	}
 }
 
 #endif

@@ -1,6 +1,5 @@
 #include "Networks.h"
 
-
 void ScreenBackground::enable()
 {
 	background = new GameObject;

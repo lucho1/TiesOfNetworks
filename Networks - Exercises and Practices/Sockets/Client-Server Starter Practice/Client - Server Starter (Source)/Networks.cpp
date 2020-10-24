@@ -1,14 +1,12 @@
 #include "Networks.h"
 
 WindowStruct Window = {};
-
 TimeStruct Time = {};
-
 InputController Input = {};
-
 MouseController Mouse = {};
 
 std::vector<LogEntry> logLines;
+
 
 void log(const char file[], int line, int type, const char* format, ...)
 {
@@ -18,11 +16,10 @@ void log(const char file[], int line, int type, const char* format, ...)
 
 	const char *basefile = file;
 	const size_t filelen = strlen(file);
-	for (size_t i = 0; i < filelen; ++i) {
-		if (file[i] == '\\' || file[i] == '/') {
+
+	for (size_t i = 0; i < filelen; ++i)
+		if (file[i] == '\\' || file[i] == '/')
 			basefile = file + i + 1;
-		}
-	}
 
 	// Construct the string from variable arguments
 	va_start(ap, format);

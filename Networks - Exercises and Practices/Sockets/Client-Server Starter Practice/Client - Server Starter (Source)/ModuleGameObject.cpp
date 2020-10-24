@@ -46,15 +46,14 @@ bool ModuleGameObject::postUpdate()
 			gameObject = nullptr;
 		}
 	}
+
 	return true;
 }
 
 bool ModuleGameObject::cleanUp()
 {
 	for (auto gameObject : gameObjects)
-	{
 		delete gameObject;
-	}
 
 	return true;
 }

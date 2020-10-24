@@ -25,22 +25,20 @@ void ScreenOverlay::update()
 
 	overlay->width = (float)Window.width;
 	overlay->height = (float)Window.height;
-
 	transitionTimeElapsed += Time.deltaTime;
 
 	const float halfTransitionTime = transitionTimeMax * 0.5f;
 
 	if (transitionTimeElapsed < halfTransitionTime)
-	{
 		overlay->color[3] = transitionTimeElapsed / halfTransitionTime;
-	}
 	else
 	{
 		oldScene->enabled = false;
 		newScene->enabled = true;
-
 		overlay->color[3] = 1.0f - (transitionTimeElapsed - halfTransitionTime) / halfTransitionTime;
-		if (overlay->color[3] < 0.0f) { overlay->color[3] = 0.0f; }
+
+		if (overlay->color[3] < 0.0f)
+			overlay->color[3] = 0.0f;
 	}
 
 	if (transitionTimeElapsed > transitionTimeMax)

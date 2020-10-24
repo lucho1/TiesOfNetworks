@@ -24,7 +24,6 @@ bool ModuleUI::init()
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 	banner = App->modTextures->loadTexture("banner.jpg");
-
 	return true;
 }
 

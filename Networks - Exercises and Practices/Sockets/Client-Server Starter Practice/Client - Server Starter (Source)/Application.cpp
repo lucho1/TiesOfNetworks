@@ -24,55 +24,35 @@ Application::~Application()
 {
 	// Destroy modules
 	for (int i = 0; i < numModules; ++i)
-	{
-		auto module = modules[i];
-
-		delete module;
-	}
+		delete modules[i];
 }
 
 
 bool Application::init()
 {
 	for (int i = 0; i < numModules; ++i)
-	{
-		auto module = modules[i];
-
-		if (module->init() == false)
-		{
+		if (!modules[i]->init())
 			return false;
-		}
-	}
 
 	return true;
 }
 
 bool Application::update()
 {
-	if (doPreUpdate() == false) return false;
-	
-	if (doUpdate() == false) return false;
-
-	if (doGui() == false) return false;
-
-	if (doPostUpdate() == false) return false;
+	if (!doPreUpdate())		return false;	
+	if (!doUpdate())		return false;
+	if (!doGui())			return false;
+	if (!doPostUpdate())	return false;
 
 	modRender->present();
-
 	return true;
 }
 
 bool Application::cleanUp()
 {
 	for (int i = numModules; i > 0; --i)
-	{
-		Module *module = modules[i - 1];
-
-		if (module->cleanUp() == false)
-		{
+		if (!modules[i - 1]->cleanUp())
 			return false;
-		}
-	}
 
 	return true;
 }
@@ -80,22 +60,17 @@ bool Application::cleanUp()
 bool Application::doPreUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
-	{
-		auto module = modules[i];
-
-		if (module->preUpdate() == false) return false;
-	}
+		if (!modules[i]->preUpdate())
+			return false;
 
 	return true;
 }
 
 bool Application::doUpdate()
 {
-	static float accumulator = 0.0f;
-
-	accumulator += Time.frameTime;
-
 	unsigned int count = 0;
+	static float accumulator = 0.0f;
+	accumulator += Time.frameTime;
 
 	while (accumulator >= Time.deltaTime)
 	{
@@ -103,11 +78,8 @@ bool Application::doUpdate()
 		count++;
 
 		for (int i = 0; i < numModules; ++i)
-		{
-			auto module = modules[i];
-
-			if (module->update() == false) return false;
-		}
+			if (!modules[i]->update())
+				return false;
 	}
 
 	// Interpolation of world values.
@@ -124,11 +96,8 @@ bool Application::doUpdate()
 bool Application::doGui()
 {
 	for (int i = 0; i < numModules; ++i)
-	{
-		auto module = modules[i];
-
-		if (module->gui() == false) return false;
-	}
+		if (!modules[i]->gui())
+			return false;
 
 	return true;
 }
@@ -136,11 +105,8 @@ bool Application::doGui()
 bool Application::doPostUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
-	{
-		auto module = modules[i];
-
-		if (module->postUpdate() == false) return false;
-	}
+		if (!modules[i]->postUpdate())
+			return false;
 
 	return true;
 }

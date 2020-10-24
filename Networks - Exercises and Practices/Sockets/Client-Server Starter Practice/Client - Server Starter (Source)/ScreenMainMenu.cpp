@@ -14,12 +14,14 @@ void ScreenMainMenu::gui()
 {
 	ImGui::Begin("Main Menu");
 	
+	// --- Top Image ---
 	Texture *banner = App->modResources->banner;
 	ImVec2 bannerSize(400.0f, 400.0f * banner->height / banner->width);
 	ImGui::Image(banner->shaderResource, bannerSize);
 
 	ImGui::Spacing();
 
+	// --- Server UI ---
 	ImGui::Text("Server");
 
 	static int localServerPort = 8888;
@@ -36,6 +38,7 @@ void ScreenMainMenu::gui()
 	ImGui::Separator();
 	ImGui::Spacing();
 
+	// --- Client UI ---
 	ImGui::Text("Client");
 
 	static char serverAddressStr[64] = "127.0.0.1";

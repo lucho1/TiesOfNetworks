@@ -67,7 +67,6 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// Direct3D initialization
 	/////////////////////////////////////////////////////////////
-
 	if (!CreateDeviceD3D(hwnd))
 	{
 		LOG("ModuleRender::init() - CreateDeviceD3D() failed");
@@ -83,7 +82,6 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// QUAD VERTICES
 	/////////////////////////////////////////////////////////////
-
 	CUSTOMVERTEX vertices[] =
 	{
 		{ -0.5f, -0.5f,    0.f, 0.f, },
@@ -108,15 +106,9 @@ bool ModuleRender::init()
 	}
 
 
-
-
-
-
-
 	/////////////////////////////////////////////////////////////
 	// VERTEX SHADER
 	/////////////////////////////////////////////////////////////
-
 	int shaderSourceLength;
 	LoadShaderFile("vertex_shader.hlsl", shaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
@@ -124,18 +116,22 @@ bool ModuleRender::init()
 		LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
 		return false;
 	}
-	ID3DBlob *errorBlob = NULL;
 
+	ID3DBlob *errorBlob = NULL;
 	D3DCompile(shaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, &errorBlob);
-	if (errorBlob) {
+
+	if (errorBlob)
+	{
 		LOG("D3DCompile(\"vertex_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		SAFE_RELEASE(errorBlob);
 	}
-	if (g_pVertexShaderBlob == NULL) {
+	if (g_pVertexShaderBlob == NULL)
+	{
 		LOG("D3DCompile(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
-	if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK) {
+	if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
+	{
 		LOG("d3d->CreateVertexShader(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
@@ -146,6 +142,7 @@ bool ModuleRender::init()
 		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((CUSTOMVERTEX*)0)->x), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((CUSTOMVERTEX*)0)->u), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
+
 	if (g_pd3dDevice->CreateInputLayout(
 		local_layout,
 		2,
@@ -165,18 +162,17 @@ bool ModuleRender::init()
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		desc.MiscFlags = 0;
 		desc.StructureByteStride = 0;
-		if (g_pd3dDevice->CreateBuffer(&desc, NULL, &g_pConstantBuffer) != S_OK) {
+		if (g_pd3dDevice->CreateBuffer(&desc, NULL, &g_pConstantBuffer) != S_OK)
+		{
 			LOG("d3d->CreateBuffer() failed (CONSTANT_BUFFER)");
 			return false;
 		}
 	}
 
 
-
 	/////////////////////////////////////////////////////////////
 	// FRAGMENT SHADER
 	/////////////////////////////////////////////////////////////
-
 	LoadShaderFile("pixel_shader.hlsl", shaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
@@ -185,15 +181,18 @@ bool ModuleRender::init()
 	}
 
 	D3DCompile(shaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, &errorBlob);
-	if (errorBlob) {
+	if (errorBlob)
+	{
 		LOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		errorBlob->Release();
 	}
-	if (g_pPixelShaderBlob == NULL) {
+	if (g_pPixelShaderBlob == NULL)
+	{
 		LOG("D3DCompile(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
-	if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK) {
+	if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
+	{
 		LOG("d3d->CreatePixelShader(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
@@ -202,7 +201,6 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// RENDERING STATE
 	/////////////////////////////////////////////////////////////
-
 	// Create the blending setup
 	{
 		D3D11_BLEND_DESC desc = {};
@@ -215,7 +213,8 @@ bool ModuleRender::init()
 		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-		if (g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState) != S_OK) {
+		if (g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState) != S_OK)
+		{
 			LOG("d3d->CreateBlendState() failed");
 			return false;
 		}
@@ -228,7 +227,8 @@ bool ModuleRender::init()
 		desc.CullMode = D3D11_CULL_NONE;
 		desc.ScissorEnable = false;
 		desc.DepthClipEnable = true;
-		if (g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState) != S_OK) {
+		if (g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState) != S_OK)
+		{
 			LOG("d3d->CreateRasterizerState() failed");
 			return false;
 		}
@@ -244,7 +244,8 @@ bool ModuleRender::init()
 		desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 		desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 		desc.BackFace = desc.FrontFace;
-		if (g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState) != S_OK) {
+		if (g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState) != S_OK)
+		{
 			LOG("d3d->CreateDepthStencilState() failed");
 			return false;
 		}
@@ -254,7 +255,6 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// TEXTURE SAMPLER
 	/////////////////////////////////////////////////////////////
-
 	// Create texture sampler
 	{
 		D3D11_SAMPLER_DESC desc = {};
@@ -273,7 +273,6 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// DEFAULT TEXTURES
 	/////////////////////////////////////////////////////////////
-
 	unsigned char white[] = { 255, 255, 255, 255 };
 	unsigned char black[] = { 0, 0, 0, 255 };
 	whitePixel = App->modTextures->loadTexture(white, 1, 1);
@@ -375,12 +374,9 @@ static void quicksort(GameObject **objects, int begin, int end)
 static bool needsSorting(GameObject *objects[MAX_GAME_OBJECTS], int numElems)
 {
 	for (int i = 0; i < numElems - 1; ++i)
-	{
 		if (objects[i]->order > objects[i + 1]->order)
-		{
 			return true;
-		}
-	}
+
 	return false;
 }
 
@@ -397,9 +393,7 @@ static void selectAndSortObjects(GameObject *toSort[MAX_GAME_OBJECTS], GameObjec
 	}
 
 	if (needsSorting(result, *numElems))
-	{
 		quicksort(result, 0, *numElems - 1);
-	}
 }
 
 void ModuleRender::renderScene(int minOrder, int maxOrder)
@@ -416,9 +410,8 @@ void ModuleRender::renderScene(int minOrder, int maxOrder)
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = vp.TopLeftY = 0;
 	if (vp.Width <= 0.0f || vp.Height <= 0.0f)
-	{
 		return;
-	}
+
 	ctx->RSSetViewports(1, &vp);
 
 	// Setup shader and vertex buffers
@@ -453,7 +446,7 @@ void ModuleRender::renderScene(int minOrder, int maxOrder)
 		GameObject *gameObject = orderedGameObjects[i];
 
 		if (gameObject->order < minOrder || gameObject->order > maxOrder) continue;
-
+		
 		// Setup matrices into our constant buffer
 		{
 			// Projection matrix
@@ -484,10 +477,12 @@ void ModuleRender::renderScene(int minOrder, int maxOrder)
 
 			// Copy matrices into the constant buffer
 			D3D11_MAPPED_SUBRESOURCE mapped_resource;
-			if (ctx->Map(g_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK) {
+			if (ctx->Map(g_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+			{
 				LOG("d3d->Map() failed (CONSTANT BUFFER)");
 				return;
 			}
+
 			CONSTANT_BUFFER* constant_buffer = (CONSTANT_BUFFER*)mapped_resource.pData;
 			memcpy(&constant_buffer->ProjectionMatrix, &ProjectionMatrix, sizeof(ProjectionMatrix));
 			memcpy(&constant_buffer->ViewMatrix, &ViewMatrix, sizeof(ViewMatrix));

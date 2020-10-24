@@ -26,6 +26,7 @@ void ScreenLoading::enable()
 void ScreenLoading::update()
 {
 	const float ROUND_TIME = 3.0f;
+
 	for (int i = 0; i < BAR_COUNT; ++i)
 	{
 		float progressRatio = (float)i / (float)BAR_COUNT;
@@ -34,19 +35,11 @@ void ScreenLoading::update()
 	}
 
 	if (App->modResources->finishedLoading)
-	{
-		App->modScreen->swapScreensWithTransition(this, App->modScreen->screenMainMenu);
-
-		// NOTE(jesus): The following is equivalent to the previous line but without transition.
-		//this->enabled = false;
-		//App->modScene->scenePingPong->enabled = true;
-	}
+		App->modScreen->swapScreensWithTransition(this, App->modScreen->screenMainMenu); // NOTE(jesus): This is equivalent to this line (without transition): this->enabled = false; App->modScene->scenePingPong->enabled = true;
 }
 
 void ScreenLoading::disable()
 {
 	for (int i = 0; i < BAR_COUNT; ++i)
-	{
 		loadingBars[i]->deleteFlag = true;
-	}
 }
