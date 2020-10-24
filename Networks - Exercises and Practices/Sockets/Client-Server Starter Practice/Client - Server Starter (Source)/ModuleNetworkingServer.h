@@ -37,12 +37,12 @@ private:
 	{
 		sockaddr_in address;
 		SOCKET socket;
-		std::string playerName;
+		std::string client_name;
 	};
 
 	// Variables
-	ServerState state = ServerState::Stopped;
-	SOCKET listenSocket;
-	std::vector<ConnectedSocket> connectedSockets;
+	ServerState m_ServerState = ServerState::Stopped;
+	SOCKET m_ListeningSocket;
+	std::vector<ConnectedSocket> m_ConnectedSockets;
 };
 

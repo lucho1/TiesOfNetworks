@@ -7,7 +7,7 @@ class ModuleNetworkingClient : public ModuleNetworking
 public:
 
 	// ModuleNetworkingClient public methods
-	bool start(const char *serverAddress, int serverPort, const char *playerName);
+	bool start(const char *serverAddress, int serverPort, const char *clientName);
 	bool isRunning() const;
 
 
@@ -33,10 +33,10 @@ private:
 	};
 
 	// Variables
-	std::string playerName;
-	ClientState state = ClientState::Stopped;
-	SOCKET socket = INVALID_SOCKET;
+	std::string m_ClientName;
+	ClientState m_ClientState = ClientState::Stopped;
+	SOCKET m_Socket = INVALID_SOCKET;
 
-	sockaddr_in serverAddress = {};
+	sockaddr_in m_ServerAddress = {};
 };
 

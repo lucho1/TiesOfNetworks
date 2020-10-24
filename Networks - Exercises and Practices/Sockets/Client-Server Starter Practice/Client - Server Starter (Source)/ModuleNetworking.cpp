@@ -21,13 +21,13 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 
 void ModuleNetworking::disconnect()
 {
-	for (SOCKET socket : sockets)
+	for (SOCKET socket : m_SocketsVec)
 	{
 		shutdown(socket, 2);
 		closesocket(socket);
 	}
 
-	sockets.clear();
+	m_SocketsVec.clear();
 }
 
 bool ModuleNetworking::init()
@@ -50,7 +50,7 @@ bool ModuleNetworking::init()
 
 bool ModuleNetworking::preUpdate()
 {
-	if (sockets.empty())
+	if (m_SocketsVec.empty())
 		return true;
 
 	// NOTE(jesus): You can use this temporary buffer to store data from recv()
@@ -100,5 +100,5 @@ bool ModuleNetworking::cleanUp()
 
 void ModuleNetworking::addSocket(SOCKET socket)
 {
-	sockets.push_back(socket);
+	m_SocketsVec.push_back(socket);
 }

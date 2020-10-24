@@ -1,9 +1,9 @@
 #include "ModuleNetworkingClient.h"
 
 // ------------------ ModuleNetworkingClient public methods ------------------
-bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
+bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char * clientName)
 {
-	playerName = pplayerName;
+	m_ClientName = clientName;
 
 	// TODO(jesus): TCP connection stuff
 	// - Create the socket
@@ -12,14 +12,14 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	// - Add the created socket to the managed list of sockets using addSocket()
 
 	// If everything was ok... change the state
-	state = ClientState::Start;
+	m_ClientState = ClientState::Start;
 
 	return true;
 }
 
 bool ModuleNetworkingClient::isRunning() const
 {
-	return state != ClientState::Stopped;
+	return m_ClientState != ClientState::Stopped;
 }
 
 
@@ -27,7 +27,7 @@ bool ModuleNetworkingClient::isRunning() const
 // ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingClient::update()
 {
-	if (state == ClientState::Start)
+	if (m_ClientState == ClientState::Start)
 	{
 		// TODO(jesus): Send the player name to the server
 	}
@@ -37,7 +37,7 @@ bool ModuleNetworkingClient::update()
 
 bool ModuleNetworkingClient::gui()
 {
-	if (state != ClientState::Stopped)
+	if (m_ClientState != ClientState::Stopped)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Client Window");
@@ -46,7 +46,7 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("%s connected to the server...", playerName.c_str());
+		ImGui::Text("%s connected to the server...", m_ClientName.c_str());
 
 		ImGui::End();
 	}
@@ -59,10 +59,10 @@ bool ModuleNetworkingClient::gui()
 // ----------------- Virtual functions of ModuleNetworking -------------------
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 {
-	state = ClientState::Stopped;
+	m_ClientState = ClientState::Stopped;
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	state = ClientState::Stopped;
+	m_ClientState = ClientState::Stopped;
 }

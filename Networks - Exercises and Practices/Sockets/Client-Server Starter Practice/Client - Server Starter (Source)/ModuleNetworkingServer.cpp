@@ -11,14 +11,13 @@ bool ModuleNetworkingServer::start(int port)
 	// - Enter in listen mode
 	// - Add the listenSocket to the managed list of sockets using addSocket()
 
-	state = ServerState::Listening;
-
+	m_ServerState = ServerState::Listening;
 	return true;
 }
 
 bool ModuleNetworkingServer::isRunning() const
 {
-	return state != ServerState::Stopped;
+	return m_ServerState != ServerState::Stopped;
 }
 
 
@@ -31,7 +30,7 @@ bool ModuleNetworkingServer::update()
 
 bool ModuleNetworkingServer::gui()
 {
-	if (state != ServerState::Stopped)
+	if (m_ServerState != ServerState::Stopped)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Server Window");
@@ -42,7 +41,7 @@ bool ModuleNetworkingServer::gui()
 
 		ImGui::Text("List of connected sockets:");
 
-		for (auto &connectedSocket : connectedSockets)
+		for (auto &connectedSocket : m_ConnectedSockets)
 		{
 			ImGui::Separator();
 			ImGui::Text("Socket ID: %d", connectedSocket.socket);
@@ -52,7 +51,7 @@ bool ModuleNetworkingServer::gui()
 				connectedSocket.address.sin_addr.S_un.S_un_b.s_b3,
 				connectedSocket.address.sin_addr.S_un.S_un_b.s_b4,
 				ntohs(connectedSocket.address.sin_port));
-			ImGui::Text("Player name: %s", connectedSocket.playerName.c_str());
+			ImGui::Text("Player name: %s", connectedSocket.client_name.c_str());
 		}
 
 		ImGui::End();
@@ -66,7 +65,7 @@ bool ModuleNetworkingServer::gui()
 // ----------------- Virtual functions of ModuleNetworking -------------------
 bool ModuleNetworkingServer::isListenSocket(SOCKET socket) const
 {
-	return socket == listenSocket;
+	return socket == m_ListeningSocket;
 }
 
 void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress)
@@ -75,17 +74,17 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	ConnectedSocket connectedSocket;
 	connectedSocket.socket = socket;
 	connectedSocket.address = socketAddress;
-	connectedSockets.push_back(connectedSocket);
+	m_ConnectedSockets.push_back(connectedSocket);
 }
 
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
 {
 	// Set the player name of the corresponding connected socket proxy
-	for (auto &connectedSocket : connectedSockets)
+	for (auto &connectedSocket : m_ConnectedSockets)
 	{
 		if (connectedSocket.socket == socket)
 		{
-			connectedSocket.playerName = (const char *)data;
+			connectedSocket.client_name = (const char *)data;
 		}
 	}
 }
@@ -93,12 +92,12 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 {
 	// Remove the connected socket from the list
-	for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+	for (auto it = m_ConnectedSockets.begin(); it != m_ConnectedSockets.end(); ++it)
 	{
 		auto &connectedSocket = *it;
 		if (connectedSocket.socket == socket)
 		{
-			connectedSockets.erase(it);
+			m_ConnectedSockets.erase(it);
 			break;
 		}
 	}

@@ -27,6 +27,6 @@ protected:
 protected:
 
 	// Variables
-	std::vector<SOCKET> sockets;
+	std::vector<SOCKET> m_SocketsVec;
 };
 
