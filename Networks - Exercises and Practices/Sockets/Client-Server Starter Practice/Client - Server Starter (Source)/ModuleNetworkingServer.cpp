@@ -83,9 +83,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
 	for (auto &connectedSocket : m_ConnectedSockets)
 	{
 		if (connectedSocket.socket == socket)
-		{
 			connectedSocket.client_name = (const char *)data;
-		}
 	}
 }
 
