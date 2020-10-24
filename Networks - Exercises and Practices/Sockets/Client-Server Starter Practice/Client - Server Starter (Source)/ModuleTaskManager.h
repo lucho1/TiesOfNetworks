@@ -3,9 +3,7 @@
 class Task
 {
 public:
-
 	virtual void execute() = 0;
-
 	Module *owner = nullptr;
 };
 
@@ -13,20 +11,15 @@ class ModuleTaskManager : public Module
 {
 public:
 
-	// Virtual method
-
+	// Virtual functions of Module
 	bool init() override;
-
 	bool update() override;
-
 	bool cleanUp() override;
 
-
 	// To schedule new tasks
-
 	void scheduleTask(Task *task, Module *owner);
-
 	void threadMain();
+
 
 private:
 

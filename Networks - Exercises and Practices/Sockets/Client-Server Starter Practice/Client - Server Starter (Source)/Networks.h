@@ -1,7 +1,7 @@
 #pragma once
 
+// Libraries
 #pragma comment(lib, "Ws2_32.lib")
-
 #pragma comment (lib, "D3D11.lib")
 
 

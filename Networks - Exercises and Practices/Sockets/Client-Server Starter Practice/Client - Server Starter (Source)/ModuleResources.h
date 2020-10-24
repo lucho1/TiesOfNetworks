@@ -14,17 +14,24 @@ public:
 	Texture *server = nullptr;
 
 	bool finishedLoading = false;
+
+
 private:
 
+	// Virtual functions of Module
 	bool init() override;
+
+
+private:
 
 #if defined(USE_TASK_MANAGER)
 	void onTaskFinished(Task *task) override;
-
 	void loadTextureAsync(const char *filename, Texture **texturePtrAddress);
 #endif
 
-	struct LoadTextureResult {
+
+	struct LoadTextureResult
+	{
 		Texture **texturePtr = nullptr;
 		Task *task = nullptr;
 	};
@@ -33,4 +40,3 @@ private:
 	int taskCount = 0;
 	int finishedTaskCount = 0;
 };
-

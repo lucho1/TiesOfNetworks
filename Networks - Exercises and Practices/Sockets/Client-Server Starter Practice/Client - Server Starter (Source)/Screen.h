@@ -5,22 +5,20 @@ class Screen
 public:
 
 	// Enable / disable screens
-
 	bool enabled = false;
 	bool shouldUpdate = true;
 
 
 private:
 
-	// Virtual methods
-
+	// Virtual functions of Module
 	virtual void enable() { }  // Called each time the screen is enabled
-
 	virtual void update() { }  // Called at each frame (if enabled)
-
 	virtual void gui() { }     // Called at each frame (if enabled)
-
 	virtual void disable() { } // Called each time the screen is disabled
+
+
+private:
 
 	bool wasEnabled = false;
 	friend class ModuleScreen;

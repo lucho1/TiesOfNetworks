@@ -26,21 +26,14 @@ class ModuleGameObject : public Module
 {
 public:
 
-	// Virtual functions
-
+	// Virtual functions of Modules
 	bool init() override;
-
 	bool preUpdate() override;
-
 	bool update() override;
-
 	bool postUpdate() override;
-
 	bool cleanUp() override;
 
 
 	//void deleteGameObjectsInScene(Screen *);
-
 	GameObject* gameObjects[MAX_GAME_OBJECTS] = {};
 };
-

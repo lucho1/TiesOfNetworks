@@ -4,13 +4,9 @@ class ModulePlatform : public Module
 {
 public:
 
-	// Virtual functions
-
+	// Virtual functions of Modules
 	bool init() override;
-
 	bool preUpdate() override;
-
 	bool postUpdate() override;
-
 	bool cleanUp() override;
 };

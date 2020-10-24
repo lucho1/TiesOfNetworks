@@ -10,21 +10,25 @@ class ModuleScreen : public Module
 {
 public:
 
+	// Virtual functions of Module
 	bool init() override;
-
 	bool update() override;
-
 	bool gui() override;
-
 	bool cleanUp() override;
 
+
+public:
+
+	// Screens
 	ScreenOverlay    *screenOverlay = nullptr;
 	ScreenLoading    *screenLoading = nullptr;
 	ScreenBackground *screenBackground = nullptr;
 	ScreenMainMenu   *screenMainMenu = nullptr;
 	ScreenGame *screenGame = nullptr;
+
 	Screen *screens[MAX_SCREENS];
 	int screenCount = 0;
 
+	// Private Methods
 	void swapScreensWithTransition(Screen *oldScene, Screen *newScene);
 };

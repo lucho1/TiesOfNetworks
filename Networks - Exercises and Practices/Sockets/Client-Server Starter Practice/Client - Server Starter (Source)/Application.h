@@ -5,38 +5,25 @@ class Application
 public:
 
 	// Constructor and destructor
-
 	Application();
-
 	~Application();
 
-
 	// Application methods
-
 	bool wantsToExit() const { return wannaExit; }
-
 	void exit() { wannaExit = true; }
 
-
 	// Application lifetime methods
-
 	bool init();
-
 	bool update();
-
 	bool cleanUp();
 
 
 private:
 
 	// Private lifetime methods
-
 	bool doPreUpdate();
-
 	bool doUpdate();
-
-	bool doGui();
-	
+	bool doGui();	
 	bool doPostUpdate();
 
 
