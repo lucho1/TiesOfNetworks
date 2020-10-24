@@ -41,30 +41,26 @@ bool ModuleUI::gui()
 {
 	ImGui::Begin("Logging window");
 
-	uint32 logEntryCount = getLogEntryCount();
-	for (uint32 entryIndex = 0; entryIndex < logEntryCount; ++entryIndex)
+	for (uint32 entryIndex = 0; entryIndex < getLogEntryCount(); ++entryIndex)
 	{
 		LogEntry entry = getLogEntry(entryIndex);
-		if (entry.type == LOG_TYPE_WARN) {
+
+		if (entry.type == LOG_TYPE_WARN)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-		}
-		else if (entry.type == LOG_TYPE_ERROR) {
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-		}
-		else if (entry.type == LOG_TYPE_DEBUG) {
+		else if (entry.type == LOG_TYPE_ERROR)
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));		
+		else if (entry.type == LOG_TYPE_DEBUG)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.3f, 1.0f, 1.0f));
-		}
+		else if (entry.type == LOG_TYPE_TEXT)
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+
+
 		ImGui::TextWrapped("%s", entry.message);
-		if (entry.type == LOG_TYPE_WARN ||
-			entry.type == LOG_TYPE_ERROR ||
-			entry.type == LOG_TYPE_DEBUG)
-		{
+		if (entry.type == LOG_TYPE_WARN || entry.type == LOG_TYPE_ERROR || entry.type == LOG_TYPE_DEBUG || entry.type == LOG_TYPE_TEXT)
 			ImGui::PopStyleColor();
-		}
 	}
 
 	ImGui::End();
-
 	return true;
 }
 

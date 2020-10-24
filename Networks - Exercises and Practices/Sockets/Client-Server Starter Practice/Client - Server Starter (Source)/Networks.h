@@ -150,11 +150,12 @@ extern MouseController Mouse;
 // NOTE(jesus):
 // Use log just like standard printf function.
 // Example: LOG("New user connected %s\n", usernameString);
-enum { LOG_TYPE_INFO, LOG_TYPE_WARN, LOG_TYPE_ERROR, LOG_TYPE_DEBUG };
+enum { LOG_TYPE_INFO, LOG_TYPE_TEXT, LOG_TYPE_WARN, LOG_TYPE_ERROR, LOG_TYPE_DEBUG };
 #define LOG(format, ...)  log(__FILE__, __LINE__, LOG_TYPE_INFO,  format, __VA_ARGS__)
-#define WLOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
-#define ELOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
-#define DLOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
+#define TEXT_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_TEXT,  format, __VA_ARGS__)
+#define WARN_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
+#define ERROR_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
+#define DEBUG_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
 void log(const char file[], int line, int type, const char* format, ...);
 uint32 getLogEntryCount();
 struct LogEntry {

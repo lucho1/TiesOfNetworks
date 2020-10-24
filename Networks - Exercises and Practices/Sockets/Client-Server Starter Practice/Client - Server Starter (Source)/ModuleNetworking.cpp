@@ -21,7 +21,7 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
 
-	ELOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	ERROR_LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
 void ModuleNetworking::disconnect()
