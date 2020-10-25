@@ -10,6 +10,7 @@ public:
 	bool start(const char *serverAddress, int serverPort, const char *clientName);
 	bool isRunning() const;
 
+	const sockaddr_in GetServerAddress() const { return m_ServerAddress; }
 
 private:
 
@@ -39,4 +40,3 @@ private:
 
 	sockaddr_in m_ServerAddress = {};
 };
-

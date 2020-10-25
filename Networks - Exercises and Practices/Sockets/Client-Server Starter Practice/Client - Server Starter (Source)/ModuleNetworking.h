@@ -1,6 +1,5 @@
 #pragma once
 
-
 class ModuleNetworking : public Module
 {
 private:
@@ -14,7 +13,6 @@ private:
 	virtual bool isListenSocket(SOCKET socket) const { return false; }
 	virtual void onSocketReceivedData(SOCKET s, byte * data) = 0;
 	virtual void onSocketDisconnected(SOCKET s) = 0;
-
 	virtual void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) {}
 
 protected:
@@ -29,4 +27,3 @@ protected:
 	// Variables
 	std::vector<SOCKET> m_SocketsVec;
 };
-

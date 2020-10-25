@@ -42,7 +42,6 @@ private:
 
 	// Variables
 	ServerState m_ServerState = ServerState::Stopped;
-	SOCKET m_ListeningSocket;
+	SOCKET m_ListeningSocket = INVALID_SOCKET;
 	std::vector<ConnectedSocket> m_ConnectedSockets;
 };
-

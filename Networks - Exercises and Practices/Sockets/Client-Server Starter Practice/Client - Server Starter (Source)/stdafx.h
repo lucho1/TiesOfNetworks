@@ -6,6 +6,7 @@
 // to change. System files and standard headers that we will
 // never edit are good examples of files to include here.
 
+#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <Ws2tcpip.h>
@@ -25,6 +26,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <list>
 #include <deque>
 #include <algorithm>
 
