@@ -90,6 +90,12 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	DEBUG_LOG("Disconnected Client %s", m_ClientName.c_str());
+	m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), socket));
+	
+	if (shutdown(socket, 2) == SOCKET_ERROR)
+		ReportErrorAndClose(socket, { "[CLIENT]: Error shuting down the socket of client " + m_ClientName}, m_ClientName + "CLIENT", "ModuleNetworkingClient::onSocketDisconnected()");
+	else if (closesocket(socket) == SOCKET_ERROR)
+		reportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
+
 	m_ClientState = ClientState::Stopped;
 }

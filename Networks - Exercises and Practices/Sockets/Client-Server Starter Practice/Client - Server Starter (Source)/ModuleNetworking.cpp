@@ -24,7 +24,7 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 					NULL, errorNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL
 				  );
 
-	ERROR_LOG("\n\n\t\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	ERROR_LOG("\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
 void ModuleNetworking::disconnect()
@@ -108,23 +108,21 @@ bool ModuleNetworking::preUpdate()
 			}
 			else
 			{
-				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
-
 				// TODO(jesus): handle disconnections. Remember that a socket has been
 				// disconnected from its remote end either when recv() returned 0,
 				// or when it generated some errors such as ECONNRESET.
 				// Communicate detected disconnections to the subclass using the callback
 				// onSocketDisconnected().					
+				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
 
 				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
 				if(recv_status == ECONNRESET || recv_status <= 0)
 				{
-					DEBUG_LOG("Disconnected Client");
 					disconnected_sockets.push_back(s);
 					onSocketDisconnected(s);
 
 					if(recv_status == SOCKET_ERROR)
-						DEBUG_LOG("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
+						LOG("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
 				else if (recv_status > 0)																
 					onSocketReceivedData(s, incomingDataBuffer);
