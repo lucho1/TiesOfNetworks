@@ -119,12 +119,10 @@ bool ModuleNetworking::preUpdate()
 				if(recv_status <= 0)
 				{
 					disconnected_sockets.push_back(s);
-					onSocketDisconnected(s);
-
 					if (recv_status == SOCKET_ERROR)
 						reportError("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
-				else if (recv_status > 0)																
+				else if (recv_status > 0)
 					onSocketReceivedData(s, incomingDataBuffer);
 			}
 		}
@@ -133,7 +131,10 @@ bool ModuleNetworking::preUpdate()
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
 	for (SOCKET s : disconnected_sockets)
-		m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));	
+	{
+		m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));
+		onSocketDisconnected(s);
+	}
 
 	disconnected_sockets.clear();
 	return true;
