@@ -13,12 +13,12 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);	
 	if (m_Socket != INVALID_SOCKET)
 	{
-		sockaddr_in remote_address;
-		remote_address.sin_family = AF_INET;
-		remote_address.sin_port = htons(serverPort);
-		inet_pton(AF_INET, serverAddressStr, &remote_address.sin_addr);
+		m_ServerAddressStr = serverAddressStr;
+		m_ServerAddress.sin_family = AF_INET;
+		m_ServerAddress.sin_port = htons(serverPort);
+		inet_pton(AF_INET, serverAddressStr, &m_ServerAddress.sin_addr);
 	
-		if (connect(m_Socket, (sockaddr*)&remote_address, sizeof(remote_address)) != SOCKET_ERROR)
+		if (connect(m_Socket, (sockaddr*)&m_ServerAddress, sizeof(m_ServerAddress)) != SOCKET_ERROR)
 		{
 			addSocket(m_Socket);
 			m_ClientState = ClientState::Start; // If everything was ok... change the state
@@ -51,11 +51,11 @@ bool ModuleNetworkingClient::update()
 		// TODO(jesus): Send the player name to the server
 		if (send(m_Socket, m_ClientName.c_str(), m_ClientName.size() + 1, 0) != SOCKET_ERROR)
 		{
-			LOG("Sent client name from client '%s'", m_ClientName.c_str());
+			LOG("Sent client name from client '%s' to server '%s'", m_ClientName.c_str(), m_ServerAddressStr);
 			m_ClientState = ClientState::Logging;
 		}
 		else
-			reportError(std::string("[CLIENT]: Error sending data to server from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+			reportError(std::string("[CLIENT]: Error sending data to server '" + std::string(m_ServerAddressStr) + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
 	}
 
 	return true;
@@ -72,7 +72,7 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("%s connected to the server...", m_ClientName.c_str());
+		ImGui::Text("'%s' connected to the server '%s'...", m_ClientName.c_str(), m_ServerAddressStr);
 
 		ImGui::End();
 	}

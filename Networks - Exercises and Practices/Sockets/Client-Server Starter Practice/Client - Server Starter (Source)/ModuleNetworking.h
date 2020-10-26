@@ -8,6 +8,7 @@ private:
 	bool init() override;
 	bool preUpdate() override;
 	bool cleanUp() override;
+	bool postUpdate() override;
 
 	// Socket event callbacks
 	virtual bool isListenSocket(SOCKET socket) const { return false; }
@@ -27,4 +28,5 @@ protected:
 
 	// Variables
 	std::vector<SOCKET> m_SocketsVec;
+	bool flagServerDisconnect = false;
 };

@@ -37,4 +37,5 @@ private:
 	SOCKET m_Socket = INVALID_SOCKET;
 
 	sockaddr_in m_ServerAddress = {};
+	const char* m_ServerAddressStr = nullptr;
 };

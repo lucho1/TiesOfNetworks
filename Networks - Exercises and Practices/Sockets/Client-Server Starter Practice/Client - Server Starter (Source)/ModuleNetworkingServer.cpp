@@ -90,6 +90,19 @@ bool ModuleNetworkingServer::gui()
 			ImGui::Text("Player name: %s", connectedSocket.client_name.c_str());
 		}
 
+		ImGui::SetCursorPos({ 145.0f, 650.0f });
+		ImGui::NewLine();
+		ImGui::Separator();
+
+		if (ImGui::Button("ADOBE DISCOTEC"))
+		{
+			for (ConnectedSocket s : m_ConnectedSockets)
+				onSocketDisconnected(s.socket);
+
+			flagServerDisconnect = true;
+			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
+		}
+
 		ImGui::End();
 	}
 

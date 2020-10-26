@@ -36,6 +36,7 @@ void ModuleNetworking::disconnect()
 	}
 
 	m_SocketsVec.clear();
+	flagServerDisconnect = false;
 }
 
 bool ModuleNetworking::init()
@@ -48,7 +49,7 @@ bool ModuleNetworking::init()
 		WSADATA data;
 		if (WSAStartup(version, &data) != 0)
 		{
-			reportError("Error on ModuleNetworking::init() with WSAStartup()");
+			reportError("[NET]: Error on ModuleNetworking::init() with WSAStartup()");
 			return false;
 		}
 	}
@@ -76,7 +77,7 @@ bool ModuleNetworking::preUpdate()
 	timeout.tv_usec = 0;
 
 	if (select(0, &readfds, nullptr, nullptr, &timeout) == SOCKET_ERROR)
-		reportError("Error on selecting sockets at ModuleNetworking::preUpdate()");
+		reportError("[NET]: Error on selecting sockets at ModuleNetworking::preUpdate()");
 
 	// TODO(jesus): for those sockets selected, check wheter or not they are
 	// a listen socket or a standard socket and perform the corresponding
@@ -122,7 +123,7 @@ bool ModuleNetworking::preUpdate()
 					onSocketDisconnected(s);
 
 					if(recv_status == SOCKET_ERROR)
-						LOG("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
+						LOG("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
 				else if (recv_status > 0)																
 					onSocketReceivedData(s, incomingDataBuffer);
@@ -133,9 +134,22 @@ bool ModuleNetworking::preUpdate()
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
 	for (SOCKET s : disconnected_sockets)
-		m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));	
+		if(!m_SocketsVec.empty())
+			m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));	
 
 	disconnected_sockets.clear();
+	return true;
+}
+
+bool ModuleNetworking::postUpdate()
+{
+	// Handle Server Disconnection
+	if (flagServerDisconnect)
+	{
+		disconnect();
+		LOG("[NET]: Server was Disconnected");
+	}
+
 	return true;
 }
 
@@ -148,7 +162,7 @@ bool ModuleNetworking::cleanUp()
 	{
 		if (WSACleanup() != 0)
 		{
-			reportError("Error on ModuleNetworking::cleanUp() with WSACleanup()");
+			reportError("[NET]: Error on ModuleNetworking::cleanUp() with WSACleanup()");
 			return false;
 		}
 	}
