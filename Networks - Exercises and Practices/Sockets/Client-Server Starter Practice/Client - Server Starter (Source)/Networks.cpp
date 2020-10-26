@@ -5,8 +5,6 @@ TimeStruct Time = {};
 InputController Input = {};
 MouseController Mouse = {};
 
-std::vector<LogEntry> logLines;
-
 
 void log(const char file[], int line, int type, const char* format, ...)
 {
