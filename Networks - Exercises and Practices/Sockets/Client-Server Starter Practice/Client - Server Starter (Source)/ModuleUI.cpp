@@ -59,6 +59,9 @@ bool ModuleUI::gui()
 			ImGui::PopStyleColor();
 	}
 
+	if (ImGui::Button("Clear Console"))
+		logLines.clear();
+
 	ImGui::End();
 	return true;
 }

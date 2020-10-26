@@ -112,19 +112,17 @@ bool ModuleNetworking::preUpdate()
 				// disconnected from its remote end either when recv() returned 0,
 				// or when it generated some errors such as ECONNRESET.
 				// Communicate detected disconnections to the subclass using the callback
-				// onSocketDisconnected().					
+				// onSocketDisconnected().
 				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
 
 				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
-				if(recv_status == ECONNRESET || recv_status <= 0)
+				if(recv_status <= 0)
 				{
 					m_DisconnectedSockets.push_back(s);
-					onSocketDisconnected(s);
-
-					if(recv_status == SOCKET_ERROR)
-						LOG("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
+					if (recv_status == SOCKET_ERROR)
+						reportError("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
-				else if (recv_status > 0)																
+				else if (recv_status > 0)
 					onSocketReceivedData(s, incomingDataBuffer);
 			}
 		}
@@ -138,7 +136,10 @@ bool ModuleNetworking::preUpdate()
 		{
 			std::vector<SOCKET>::iterator it = std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s);
 			if (it != m_SocketsVec.end())
+			{
 				m_SocketsVec.erase(it);
+				onSocketDisconnected(s);
+			}
 		}
 	}
 

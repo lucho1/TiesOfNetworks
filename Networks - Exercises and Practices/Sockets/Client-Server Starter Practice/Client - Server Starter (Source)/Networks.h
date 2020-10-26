@@ -163,7 +163,7 @@ struct LogEntry {
 	const char *message;
 };
 LogEntry getLogEntry(uint32 entryIndex);
-
+std::vector<LogEntry> logLines;
 
 ////////////////////////////////////////////////////////////////////////
 // MATH
