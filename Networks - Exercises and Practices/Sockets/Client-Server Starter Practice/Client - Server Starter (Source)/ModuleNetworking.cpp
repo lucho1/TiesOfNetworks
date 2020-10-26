@@ -88,7 +88,6 @@ bool ModuleNetworking::preUpdate()
 	// connected socket to the managed list of sockets.
 	// On recv() success, communicate the incoming data received to the
 	// subclass (use the callback onSocketReceivedData()).
-	std::list<SOCKET> disconnected_sockets = {};
 	for (auto s : m_SocketsVec)
 	{
 		if (FD_ISSET(s, &readfds))
@@ -119,7 +118,7 @@ bool ModuleNetworking::preUpdate()
 				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
 				if(recv_status == ECONNRESET || recv_status <= 0)
 				{
-					disconnected_sockets.push_back(s);
+					m_DisconnectedSockets.push_back(s);
 					onSocketDisconnected(s);
 
 					if(recv_status == SOCKET_ERROR)
@@ -133,11 +132,17 @@ bool ModuleNetworking::preUpdate()
 
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
-	for (SOCKET s : disconnected_sockets)
-		if(!m_SocketsVec.empty())
-			m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));	
+	for (SOCKET s : m_DisconnectedSockets)
+	{
+		if (!m_SocketsVec.empty())
+		{
+			std::vector<SOCKET>::iterator it = std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s);
+			if (it != m_SocketsVec.end())
+				m_SocketsVec.erase(it);
+		}
+	}
 
-	disconnected_sockets.clear();
+	m_DisconnectedSockets.clear();
 	return true;
 }
 

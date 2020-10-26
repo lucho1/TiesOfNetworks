@@ -13,7 +13,7 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);	
 	if (m_Socket != INVALID_SOCKET)
 	{
-		m_ServerAddressStr = serverAddressStr;
+		m_ServerAddressStr = serverAddressStr + std::string(":") + std::to_string(serverPort);
 		m_ServerAddress.sin_family = AF_INET;
 		m_ServerAddress.sin_port = htons(serverPort);
 		inet_pton(AF_INET, serverAddressStr, &m_ServerAddress.sin_addr);
@@ -51,11 +51,11 @@ bool ModuleNetworkingClient::update()
 		// TODO(jesus): Send the player name to the server
 		if (send(m_Socket, m_ClientName.c_str(), m_ClientName.size() + 1, 0) != SOCKET_ERROR)
 		{
-			LOG("Sent client name from client '%s' to server '%s'", m_ClientName.c_str(), m_ServerAddressStr);
+			LOG("Sent client name from client '%s' to server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
 			m_ClientState = ClientState::Logging;
 		}
 		else
-			reportError(std::string("[CLIENT]: Error sending data to server '" + std::string(m_ServerAddressStr) + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+			reportError(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
 	}
 
 	return true;
@@ -72,7 +72,19 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("'%s' connected to the server '%s'...", m_ClientName.c_str(), m_ServerAddressStr);
+		ImGui::Text("'%s' connected to the server '%s'...", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+
+		// Disconnect Button
+		ImGui::SetCursorPos({ 145.0f, 650.0f });
+		ImGui::NewLine();
+		ImGui::Separator();
+		if (ImGui::Button("ADOBE DISCOTEC"))
+		{
+			m_DisconnectedSockets.push_back(m_Socket);
+			onSocketDisconnected(m_Socket);
+
+			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
+		}
 
 		ImGui::End();
 	}
@@ -90,10 +102,11 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), socket));
+	LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)
-		ReportErrorAndClose(socket, { "[CLIENT]: Error shuting down the socket of client " + m_ClientName}, m_ClientName + "CLIENT", "ModuleNetworkingClient::onSocketDisconnected()");
+		ReportErrorAndClose(socket, { "[CLIENT]: Error shuting down the socket of client '" + m_ClientName + "'"}, m_ClientName + " CLIENT", "ModuleNetworkingClient::onSocketDisconnected()");
 	else if (closesocket(socket) == SOCKET_ERROR)
 		reportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
 

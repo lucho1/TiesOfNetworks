@@ -90,6 +90,7 @@ bool ModuleNetworkingServer::gui()
 			ImGui::Text("Player name: %s", connectedSocket.client_name.c_str());
 		}
 
+		// Disconnect Button
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
 		ImGui::NewLine();
 		ImGui::Separator();

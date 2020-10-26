@@ -27,6 +27,7 @@ protected:
 protected:
 
 	// Variables
+	std::list<SOCKET> m_DisconnectedSockets = {};
 	std::vector<SOCKET> m_SocketsVec;
 	bool flagServerDisconnect = false;
 };
