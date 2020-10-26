@@ -98,9 +98,10 @@ bool ModuleNetworkingServer::gui()
 		if (ImGui::Button("ADOBE DISCOTEC"))
 		{
 			for (ConnectedSocket s : m_ConnectedSockets)
-				onSocketDisconnected(s.socket);
+				m_DisconnectedSockets.push_back(s.socket);
 
 			flagServerDisconnect = true;
+			m_ServerState = ServerState::Stopped;
 			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
@@ -133,7 +134,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
 	for (auto &connectedSocket : m_ConnectedSockets)
 	{
 		if (connectedSocket.socket == socket)
-			connectedSocket.client_name = (const char *)data;
+		{
+			connectedSocket.client_name = (const char*)data;
+			LOG("Received client name from client '%s'", connectedSocket.client_name.c_str());
+		}
 	}
 }
 

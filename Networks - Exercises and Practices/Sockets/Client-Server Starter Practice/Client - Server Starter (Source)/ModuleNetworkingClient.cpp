@@ -81,8 +81,7 @@ bool ModuleNetworkingClient::gui()
 		if (ImGui::Button("ADOBE DISCOTEC"))
 		{
 			m_DisconnectedSockets.push_back(m_Socket);
-			onSocketDisconnected(m_Socket);
-
+			m_ClientState = ClientState::Stopped;
 			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
@@ -102,7 +101,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	DEBUG_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
 	m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)

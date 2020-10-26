@@ -40,6 +40,9 @@ bool ModuleUI::gui()
 {
 	ImGui::Begin("Logging window");
 
+	if (ImGui::Button("Clear Console"))
+		logLines.clear();
+
 	for (uint32 entryIndex = 0; entryIndex < getLogEntryCount(); ++entryIndex)
 	{
 		LogEntry entry = getLogEntry(entryIndex);
@@ -58,9 +61,6 @@ bool ModuleUI::gui()
 		if (entry.type == LOG_TYPE_WARN || entry.type == LOG_TYPE_ERROR || entry.type == LOG_TYPE_DEBUG || entry.type == LOG_TYPE_TEXT)
 			ImGui::PopStyleColor();
 	}
-
-	if (ImGui::Button("Clear Console"))
-		logLines.clear();
 
 	ImGui::End();
 	return true;
