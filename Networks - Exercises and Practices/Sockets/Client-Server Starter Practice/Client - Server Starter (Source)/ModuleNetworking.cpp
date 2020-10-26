@@ -116,13 +116,13 @@ bool ModuleNetworking::preUpdate()
 				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
 
 				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
-				if(recv_status == ECONNRESET || recv_status <= 0)
+				if(recv_status <= 0)
 				{
 					disconnected_sockets.push_back(s);
 					onSocketDisconnected(s);
 
-					if(recv_status == SOCKET_ERROR)
-						LOG("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
+					if (recv_status == SOCKET_ERROR)
+						reportError("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
 				else if (recv_status > 0)																
 					onSocketReceivedData(s, incomingDataBuffer);
