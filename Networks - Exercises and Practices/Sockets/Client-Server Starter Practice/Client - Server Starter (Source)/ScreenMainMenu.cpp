@@ -25,9 +25,9 @@ void ScreenMainMenu::gui()
 	ImGui::Text("Server");
 
 	static int localServerPort = 8888;
-	ImGui::InputInt("Server port", &localServerPort);
+	ImGui::InputInt("Server Port Opened", &localServerPort);
 
-	if (ImGui::Button("Start server"))
+	if (ImGui::Button("Start Server"))
 	{
 		App->modScreen->screenGame->isServer = true;
 		App->modScreen->screenGame->serverPort = localServerPort;
@@ -42,15 +42,15 @@ void ScreenMainMenu::gui()
 	ImGui::Text("Client");
 
 	static char serverAddressStr[64] = "127.0.0.1";
-	ImGui::InputText("Server address", serverAddressStr, sizeof(serverAddressStr));
+	ImGui::InputText("Server Address", serverAddressStr, sizeof(serverAddressStr));
 
 	static int remoteServerPort = 8888;
-	ImGui::InputInt("Server port", &remoteServerPort);
+	ImGui::InputInt("Server Port to Connect", &remoteServerPort);
 
-	static char playerNameStr[64] = "playername";
-	ImGui::InputText("Player name", playerNameStr, sizeof(playerNameStr));
+	static char playerNameStr[64] = "JesusGrandeeee";
+	ImGui::InputText("Player Name", playerNameStr, sizeof(playerNameStr));
 
-	if (ImGui::Button("Connect to server"))
+	if (ImGui::Button("Connect to Server"))
 	{
 		App->modScreen->screenGame->isServer = false;
 		App->modScreen->screenGame->serverPort = remoteServerPort;
