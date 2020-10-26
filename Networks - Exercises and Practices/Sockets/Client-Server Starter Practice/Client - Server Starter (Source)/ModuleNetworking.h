@@ -21,6 +21,7 @@ protected:
 	void addSocket(SOCKET socket);
 	void disconnect();
 	static void reportError(const char *message);
+	static void ReportErrorAndClose(const SOCKET s, const std::string& message, const std::string& socket_or_side_name, const char* function_name);
 	
 protected:
 

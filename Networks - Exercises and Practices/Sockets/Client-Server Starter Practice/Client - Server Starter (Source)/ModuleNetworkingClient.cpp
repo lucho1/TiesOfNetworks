@@ -18,50 +18,19 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 		remote_address.sin_port = htons(serverPort);
 		inet_pton(AF_INET, serverAddressStr, &remote_address.sin_addr);
 	
-		connect(m_Socket, (sockaddr*)&remote_address, sizeof(remote_address));
-		addSocket(m_Socket);
+		if (connect(m_Socket, (sockaddr*)&remote_address, sizeof(remote_address)) != SOCKET_ERROR)
+		{
+			addSocket(m_Socket);
+			m_ClientState = ClientState::Start; // If everything was ok... change the state
+		}
+		else
+		{
+			std::string msg = { "[CLIENT]: Failed connecting socket from " + m_ClientName + " to remote address " + serverAddressStr + ":" + std::to_string(serverPort) };
+			ReportErrorAndClose(m_Socket, msg, "CLIENT" + m_ClientName, "ModuleNetworkingClient::start()");
+		}
 	}
 	else
-	{
-		reportError("[CLIENT]: Error connecting m_Socket to remote_address ModuleNetworkingClient::start()");
-		if (closesocket(m_Socket) == SOCKET_ERROR)
-			reportError("[CLIENT]: Error closing m_Socket on ModuleNetworkingClient::start()");
-	}	
-	
-	m_ClientState = ClientState::Start; // If everything was ok... change the state
-	
-	//m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	//m_ClientState = ClientState::Start;
-	//bool closeSocket = false;
-	//
-	//if (m_Socket != INVALID_SOCKET)
-	//{
-	//	m_ServerAddress.sin_family = AF_INET;
-	//	m_ServerAddress.sin_port = htons(serverPort);
-	//	inet_pton(AF_INET, serverAddressStr, &m_ServerAddress.sin_addr);
-	//
-	//	if (connect(m_Socket, (sockaddr*)&m_ServerAddress, sizeof(m_ServerAddress)) != SOCKET_ERROR)
-	//	{
-	//		m_ClientState = ClientState::Start; // If everything was ok... change the state
-	//		addSocket(m_Socket);
-	//	}
-	//	else
-	//	{
-	//		closeSocket = true;
-	//		reportError("[CLIENT]: Error connecting m_Socket to remote_address ModuleNetworkingClient::start()");
-	//	}
-	//}
-	//else
-	//{
-	//	closeSocket = true;
-	//	reportError("[CLIENT]: Error connecting m_Socket to remote_address ModuleNetworkingClient::start()");
-	//}
-	//
-	//if(closeSocket)
-	//	if (closesocket(m_Socket) == SOCKET_ERROR)
-	//		reportError("[CLIENT]: Error closing m_Socket on ModuleNetworkingClient::start()");
-
-
+		ReportErrorAndClose(m_Socket, "[CLIENT]: Error opening socket m_Socket", m_ClientName, "ModuleNetworkingClient::start()");
 
 	// --- ---
 	return true;
@@ -82,17 +51,11 @@ bool ModuleNetworkingClient::update()
 		// TODO(jesus): Send the player name to the server
 		if (send(m_Socket, m_ClientName.c_str(), m_ClientName.size() + 1, 0) != SOCKET_ERROR)
 		{
-			LOG("Sent name %s", m_ClientName.c_str());
+			LOG("Sent client name from client '%s'", m_ClientName.c_str());
 			m_ClientState = ClientState::Logging;
 		}
 		else
-		{
-			char err_msg[150];
-			sprintf_s(err_msg, "[CLIENT]: Error sending data to server from %s client on ModuleNetworkingClient::update()", m_ClientName.c_str());
-			reportError(err_msg);
-		}
-
-		//m_ClientState = ClientState::Start;
+			reportError(std::string("[CLIENT]: Error sending data to server from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
 	}
 
 	return true;
