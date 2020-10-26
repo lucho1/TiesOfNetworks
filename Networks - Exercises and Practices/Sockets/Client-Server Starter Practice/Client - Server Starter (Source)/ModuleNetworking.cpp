@@ -6,7 +6,7 @@ static uint8 NumModulesUsingWinsock = 0;
 
 void ModuleNetworking::ReportErrorAndClose(const SOCKET s, const std::string& message, const std::string& socket_or_side_name, const char* function_name)
 {
-	reportError((message + " on " + function_name).c_str());
+	reportError((message + " on " + function_name + "... CLOSING SOCKET").c_str());
 	if (closesocket(s) == SOCKET_ERROR)
 	{
 		std::string str = "[NET]: Error closing '" + socket_or_side_name + "' socket on '" + function_name + "' function";
@@ -24,7 +24,7 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 					NULL, errorNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL
 				  );
 
-	ERROR_LOG("\n\t\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	ERROR_LOG("\n\n\t\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
 void ModuleNetworking::disconnect()

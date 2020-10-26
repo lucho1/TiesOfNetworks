@@ -19,83 +19,33 @@ bool ModuleNetworkingServer::start(int port)
 	{
 		// Set address reuse & check for errors -- TODO: Test if enable can be deleted or not
 		int enable = 1;
-		setsockopt(m_ListeningSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int));
+		if (setsockopt(m_ListeningSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int)) == SOCKET_ERROR)
+			reportError("[SERVER]: Couldn't set address reuse");
 	
 		// Build address
-		sockaddr_in listenerSocket;
-		listenerSocket.sin_family = AF_INET;
-		listenerSocket.sin_port = htons(port);
-		listenerSocket.sin_addr.S_un.S_addr = INADDR_ANY;
+		sockaddr_in listenerAdd;
+		listenerAdd.sin_family = AF_INET;
+		listenerAdd.sin_port = htons(port);
+		listenerAdd.sin_addr.S_un.S_addr = INADDR_ANY;
 	
 		// Bind socket to address and check for errors
-		bind(m_ListeningSocket, (sockaddr*)&listenerSocket, sizeof(listenerSocket));
-	
-		// Enter in listen mode and check for errors
-		listen(m_ListeningSocket, SOMAXCONN);
-		addSocket(m_ListeningSocket);
-		m_ServerState = ServerState::Listening;
+		if (bind(m_ListeningSocket, (sockaddr*)&listenerAdd, sizeof(listenerAdd)) != SOCKET_ERROR)
+		{
+			// Enter in listen mode and check for errors
+			if (listen(m_ListeningSocket, SOMAXCONN) != SOCKET_ERROR)
+			{
+				addSocket(m_ListeningSocket);
+				m_ServerState = ServerState::Listening;
+			}
+			else
+				ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Failed on listening mode enter in server socket", "SERVER SOCKET", "ModuleNetworkingServer::start()");
+		}
+		else
+			ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Failed binding server socket to address " + *listenerAdd.sin_zero + (":" + std::to_string(port)), "SERVER SOCKET", "ModuleNetworkingServer::start()");
 	}
 	else
-	{
-		reportError("[SERVER]: Error creating m_ListeningSocket on ModuleNetworkingServer::start()");
-		if (closesocket(m_ListeningSocket) == SOCKET_ERROR)
-			reportError("[SERVER]: Error closing m_ListeningSocket on ModuleNetworkingServer::start()");
-	}
+		ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Error opening socket m_ListeningSocket in ", "SERVER", "ModuleNetworkingServer::start()");
 
-
-
-
-
-	//m_ServerState = ServerState::Stopped;
-	//m_ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	//bool closeListenSocket = false;
-	//
-	//// If no error, set the class' socket
-	//if (m_ListeningSocket != INVALID_SOCKET)
-	//{
-	//	int enable = 1, status = 1;
-	//
-	//	// Set address reuse & check for errors -- TODO: Test if enable can be deleted or not
-	//	status = setsockopt(m_ListeningSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int));
-	//	if (status != SOCKET_ERROR)
-	//	{
-	//		// Build address
-	//		sockaddr_in listenerSocket;
-	//		listenerSocket.sin_family = AF_INET;
-	//		listenerSocket.sin_port = htons(port);
-	//		listenerSocket.sin_addr.S_un.S_addr = INADDR_ANY;
-	//
-	//		// Bind socket to address and check for errors
-	//		status = bind(m_ListeningSocket, (sockaddr*)&listenerSocket, sizeof(listenerSocket));
-	//		if (status != SOCKET_ERROR)
-	//		{
-	//			// Enter in listen mode and check for errors
-	//			status = listen(m_ListeningSocket, SOMAXCONN);
-	//
-	//			if (status != SOCKET_ERROR)
-	//			{
-	//				m_ServerState = ServerState::Listening;
-	//				addSocket(m_ListeningSocket);
-	//			}
-	//		}			
-	//	}
-	//
-	//	// If error, report & make the socket to be closed
-	//	if (status == SOCKET_ERROR)
-	//	{
-	//		closeListenSocket = true;
-	//		reportError("[SERVER]: Error operating with m_ListeningSocket on ModuleNetworkingServer::start()");
-	//	}
-	//}
-	//else
-	//{
-	//	closeListenSocket = true;
-	//	reportError("[SERVER]: Error creating m_ListeningSocket on ModuleNetworkingServer::start()");
-	//}
-	//
-	//if(closeListenSocket)
-	//	if (closesocket(m_ListeningSocket) == SOCKET_ERROR)
-	//		reportError("[SERVER]: Error closing m_ListeningSocket on ModuleNetworkingServer::start()");
 	
 	// --- ---
 	return true;

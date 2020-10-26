@@ -30,7 +30,7 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 		}
 	}
 	else
-		ReportErrorAndClose(m_Socket, "[CLIENT]: Error opening socket m_Socket", m_ClientName, "ModuleNetworkingClient::start()");
+		ReportErrorAndClose(m_Socket, "[CLIENT]: Error opening socket m_Socket in ", m_ClientName + " Client", "ModuleNetworkingClient::start()");
 
 	// --- ---
 	return true;
