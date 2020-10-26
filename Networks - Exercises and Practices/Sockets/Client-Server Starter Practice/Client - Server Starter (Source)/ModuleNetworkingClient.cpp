@@ -90,5 +90,6 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
+	DEBUG_LOG("Disconnected Client %s", m_ClientName.c_str());
 	m_ClientState = ClientState::Stopped;
 }

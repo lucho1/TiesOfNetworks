@@ -78,7 +78,6 @@ bool ModuleNetworking::preUpdate()
 	if (select(0, &readfds, nullptr, nullptr, &timeout) == SOCKET_ERROR)
 		reportError("Error on selecting sockets at ModuleNetworking::preUpdate()");
 
-
 	// TODO(jesus): for those sockets selected, check wheter or not they are
 	// a listen socket or a standard socket and perform the corresponding
 	// operation (accept() an incoming connection or recv() incoming data,
@@ -88,7 +87,7 @@ bool ModuleNetworking::preUpdate()
 	// connected socket to the managed list of sockets.
 	// On recv() success, communicate the incoming data received to the
 	// subclass (use the callback onSocketReceivedData()).
-	std::list<SOCKET> disconnected_sockets;
+	std::list<SOCKET> disconnected_sockets = {};
 	for (auto s : m_SocketsVec)
 	{
 		if (FD_ISSET(s, &readfds))
@@ -97,54 +96,48 @@ bool ModuleNetworking::preUpdate()
 			{
 				sockaddr_in add;
 				int addSize = sizeof(add);
-
 				SOCKET newSocket = accept(s, (sockaddr*)&add, &addSize);
+
 				if (newSocket != INVALID_SOCKET)
 				{
 					onSocketConnected(newSocket, add);
 					addSocket(newSocket);
 				}
-
-
-				//if (recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0) != SOCKET_ERROR)
-				//	onSocketReceivedData(s, incomingDataBuffer);
-				//else
-				//	reportError("[NET]: Error Receiving data on Server Socket");
-				
-				// accept stuff (server)
-				//onSocketConnected(s, );
-				//accept(s, );
+				else
+					ReportErrorAndClose(newSocket, "[NET]: Accept function failed to create new socket", "SERVER", "ModuleNetworking::preUpdate()");
 			}
 			else
 			{
-				// recv stuff (client)
-				if (recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0) > 0)
-					onSocketReceivedData(s, incomingDataBuffer);
-				else
+				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
+
+				// TODO(jesus): handle disconnections. Remember that a socket has been
+				// disconnected from its remote end either when recv() returned 0,
+				// or when it generated some errors such as ECONNRESET.
+				// Communicate detected disconnections to the subclass using the callback
+				// onSocketDisconnected().					
+
+				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
+				if(recv_status == ECONNRESET || recv_status <= 0)
 				{
+					DEBUG_LOG("Disconnected Client");
 					disconnected_sockets.push_back(s);
 					onSocketDisconnected(s);
-					//m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));
+
+					if(recv_status == SOCKET_ERROR)
+						DEBUG_LOG("Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
+				else if (recv_status > 0)																
+					onSocketReceivedData(s, incomingDataBuffer);
 			}
 		}
-		//else
-		//	disconnected_sockets.push_back(s);
-	}
-
-	// TODO(jesus): handle disconnections. Remember that a socket has been
-	// disconnected from its remote end either when recv() returned 0,
-	// or when it generated some errors such as ECONNRESET.
-	// Communicate detected disconnections to the subclass using the callback
-	// onSocketDisconnected().
-	for (SOCKET s : disconnected_sockets)
-	{
-		m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));
 	}
 
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
+	for (SOCKET s : disconnected_sockets)
+		m_SocketsVec.erase(std::find(m_SocketsVec.begin(), m_SocketsVec.end(), s));	
 
+	disconnected_sockets.clear();
 	return true;
 }
 
