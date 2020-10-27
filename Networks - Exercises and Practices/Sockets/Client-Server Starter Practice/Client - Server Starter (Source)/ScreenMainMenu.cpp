@@ -47,7 +47,7 @@ void ScreenMainMenu::gui()
 	static int remoteServerPort = 8888;
 	ImGui::InputInt("Server Port to Connect", &remoteServerPort);
 
-	static char playerNameStr[64] = "JesusGrandeeee";
+	static char playerNameStr[64] = "Username";
 	ImGui::InputText("Player Name", playerNameStr, sizeof(playerNameStr));
 
 	if (ImGui::Button("Connect to Server"))

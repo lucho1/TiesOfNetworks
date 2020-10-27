@@ -1,5 +1,7 @@
 #include "ModuleNetworkingServer.h"
 
+// -- Delivery by Lucho Suaya and Sergi Parra --
+
 
 // ------------------ ModuleNetworkingServer public methods ------------------
 bool ModuleNetworkingServer::start(int port)
@@ -95,7 +97,7 @@ bool ModuleNetworkingServer::gui()
 		ImGui::NewLine();
 		ImGui::Separator();
 
-		if (ImGui::Button("ADOBE DISCOTEC"))
+		if (ImGui::Button("Disconnect"))
 		{
 			for (ConnectedSocket s : m_ConnectedSockets)
 				m_DisconnectedSockets.push_back(s.socket);

@@ -1,5 +1,7 @@
 #include "ModuleNetworkingClient.h"
 
+// -- Delivery by Lucho Suaya and Sergi Parra --
+
 // ------------------ ModuleNetworkingClient public methods ------------------
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char * clientName)
 {
@@ -78,7 +80,7 @@ bool ModuleNetworkingClient::gui()
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
 		ImGui::NewLine();
 		ImGui::Separator();
-		if (ImGui::Button("ADOBE DISCOTEC"))
+		if (ImGui::Button("Disconnect"))
 		{
 			m_DisconnectedSockets.push_back(m_Socket);
 			m_ClientState = ClientState::Stopped;
