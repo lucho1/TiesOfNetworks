@@ -10,7 +10,7 @@ bool ModuleTextures::init()
 
 bool ModuleTextures::cleanUp()
 {
-	for (auto &texture : _textures)
+	for (Texture &texture : _textures)
 	{
 		if (texture.shaderResource != nullptr)
 		{
@@ -70,7 +70,7 @@ void ModuleTextures::freeTexture(Texture* tex)
 {
 	if (tex != nullptr)
 	{
-		for (auto &texture : _textures)
+		for (Texture &texture : _textures)
 		{
 			if (texture.shaderResource == tex->shaderResource)
 			{
@@ -176,14 +176,14 @@ Texture & ModuleTextures::getTextureSlotForFilename(const char *filename)
 	std::unique_lock<std::mutex> lock(mtx);
 
 	// Try to find an existing texture
-	for (auto &texture : _textures)
+	for (Texture &texture : _textures)
 	{
 		if (strcmp(texture.filename, filename) == 0)
 			return texture;
 	}
 
 	// Find the first empty slot
-	for (auto &texture : _textures)
+	for (Texture &texture : _textures)
 	{
 		if (strcmp(texture.filename, "") == 0 && !texture.used)
 		{

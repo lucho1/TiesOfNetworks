@@ -64,7 +64,7 @@ void ModuleTaskManager::threadMain()
 
 bool ModuleTaskManager::init()
 {
-	for (auto &thread : threads)
+	for (std::thread &thread : threads)
 		thread = std::thread(&ModuleTaskManager::threadMain, this);
 
 	return true;
@@ -93,7 +93,7 @@ bool ModuleTaskManager::cleanUp()
 		event.notify_all();
 	}
 
-	for (auto &thread : threads)
+	for (std::thread &thread : threads)
 		thread.join();
 
 	return true;

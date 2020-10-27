@@ -77,7 +77,7 @@ bool ModuleNetworkingServer::gui()
 
 		ImGui::Text("List of connected sockets:");
 
-		for (auto &connectedSocket : m_ConnectedSockets)
+		for (ModuleNetworkingServer::ConnectedSocket &connectedSocket : m_ConnectedSockets)
 		{
 			ImGui::Separator();
 			ImGui::Text("Socket ID: %d", connectedSocket.socket);
@@ -131,7 +131,7 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
 {
 	// Set the client name of the corresponding connected socket proxy
-	for (auto &connectedSocket : m_ConnectedSockets)
+	for (ModuleNetworkingServer::ConnectedSocket &connectedSocket : m_ConnectedSockets)
 	{
 		if (connectedSocket.socket == socket)
 		{

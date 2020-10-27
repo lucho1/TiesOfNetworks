@@ -265,7 +265,7 @@ bool ModulePlatform::preUpdate()
 			// NOTE(jesus): Add messages to skip above 0xFFFFFFFF
 			0xFFFFFFFF,
 		};
-		for (auto Skip : SkipMessages)
+		for (DWORD Skip : SkipMessages)
 		{
 			GotMessage = ::PeekMessage(&msg, 0, LastMessage, Skip - 1, PM_REMOVE);
 			LastMessage = Skip + 1;
@@ -395,7 +395,7 @@ bool ModulePlatform::preUpdate()
 bool ModulePlatform::postUpdate()
 {
 	// Update buttons state
-	for (auto &buttonState : Input.buttons)
+	for (ButtonState &buttonState : Input.buttons)
 	{
 		if (buttonState == Press)
 			buttonState = Pressed;
@@ -403,7 +403,7 @@ bool ModulePlatform::postUpdate()
 			buttonState = Idle;
 	}
 
-	for (auto &buttonState : Mouse.buttons)
+	for (ButtonState &buttonState : Mouse.buttons)
 	{
 		if (buttonState == Press)
 			buttonState = Pressed;

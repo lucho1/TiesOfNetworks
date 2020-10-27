@@ -69,7 +69,7 @@ bool ModuleNetworking::preUpdate()
 	// TODO(jesus): select those sockets that have a read operation available
 	fd_set readfds;
 	FD_ZERO(&readfds);
-	for (auto s : m_SocketsVec)
+	for (SOCKET s : m_SocketsVec)
 		FD_SET(s, &readfds);
 
 	timeval timeout;
@@ -88,7 +88,7 @@ bool ModuleNetworking::preUpdate()
 	// connected socket to the managed list of sockets.
 	// On recv() success, communicate the incoming data received to the
 	// subclass (use the callback onSocketReceivedData()).
-	for (auto s : m_SocketsVec)
+	for (SOCKET s : m_SocketsVec)
 	{
 		if (FD_ISSET(s, &readfds))
 		{
