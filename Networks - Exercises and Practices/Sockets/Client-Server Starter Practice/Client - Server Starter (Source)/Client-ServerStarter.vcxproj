@@ -95,6 +95,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Source\Core\NetStreams\MemoryStream.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Vendor\imgui\imgui.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </PrecompiledHeaderFile>
@@ -219,6 +223,9 @@
     <ClInclude Include="Source\Core\Application.h" />
     <ClInclude Include="Source\Modules\Network\ModuleNetworkingClient.h" />
     <ClInclude Include="Source\Modules\Network\ModuleNetworkingServer.h" />
+    <ClInclude Include="Source\Core\NetStreams\ByteSwap.h" />
+    <ClInclude Include="Source\Core\NetStreams\MemoryStream.h" />
+    <ClInclude Include="Source\Core\NetStreams\Messages.h" />
     <ClInclude Include="Source\Screens\Screen.h" />
     <ClInclude Include="Vendor\imgui\imconfig.h" />
     <ClInclude Include="Vendor\imgui\imgui.h" />
