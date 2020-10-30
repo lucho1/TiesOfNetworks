@@ -17,29 +17,33 @@
 #include <DirectXMath.h>
 
 #define DIRECTINPUT_VERSION 0x0800
+#include <assert.h>
+
 #include <dinput.h>
 #include <tchar.h>
 #include <xinput.h>
 
-#include <fstream>
+#include <math.h>  // ldexp, pow
+#include <algorithm>
+#include <limits.h>
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+
 #include <vector>
 #include <list>
 #include <deque>
-#include <algorithm>
+
+#include <string.h>
+#include <fstream>
+#include <sstream>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stddef.h> // ptrdiff_t on osx
 #include <stdlib.h>
-#include <string.h>
-#include <sstream>
-#include <limits.h>
-#include <assert.h>
-#include <math.h>  // ldexp, pow
 
 // dear imgui: standalone example application for DirectX 9
 // If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.

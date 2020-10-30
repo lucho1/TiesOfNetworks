@@ -185,22 +185,36 @@ inline float fractionalPart(float number)
 ////////////////////////////////////////////////////////////////////////
 // FRAMEWORK HEADERS
 ////////////////////////////////////////////////////////////////////////
+
+// --- Modules Include ---
 #include "Modules/Module.h"
+
+// Foundation
+#include "Modules/Foundation/ModulePlatform.h"
+#include "Modules/Foundation/ModuleResources.h"
+#include "Modules/Foundation/ModuleTaskManager.h"
+
+// Network
 #include "Modules/Network/ModuleNetworking.h"
 #include "Modules/Network/ModuleNetworkingClient.h"
 #include "Modules/Network/ModuleNetworkingServer.h"
-#include "Modules/Scene/ModuleGameObject.h"
-#include "Modules/Foundation/ModulePlatform.h"
+
+// Rendering
 #include "Modules/Rendering/ModuleRender.h"
-#include "Modules/Foundation/ModuleResources.h"
-#include "Modules/Scene/ModuleScreen.h"
-#include "Modules/Foundation/ModuleTaskManager.h"
 #include "Modules/Rendering/ModuleTextures.h"
+
+// Scene
+#include "Modules/Scene/ModuleGameObject.h"
+#include "Modules/Scene/ModuleScreen.h"
 #include "Modules/Scene/ModuleUI.h"
+
+// Screens Include
 #include "Screens/Screen.h"
-#include "Screens/ScreenLoading.h"
 #include "Screens/ScreenBackground.h"
-#include "Screens/ScreenOverlay.h"
-#include "Screens/ScreenMainMenu.h"
 #include "Screens/ScreenGame.h"
+#include "Screens/ScreenLoading.h"
+#include "Screens/ScreenMainMenu.h"
+#include "Screens/ScreenOverlay.h"
+
+// --- Application Include ---
 #include "Application.h"
