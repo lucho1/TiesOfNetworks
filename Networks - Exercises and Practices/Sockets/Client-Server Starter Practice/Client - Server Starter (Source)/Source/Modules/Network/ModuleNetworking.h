@@ -10,17 +10,21 @@ private:
 	bool cleanUp() override;
 	bool postUpdate() override;
 
+
 	// Socket event callbacks
 	virtual bool isListenSocket(SOCKET socket) const { return false; }
-	virtual void onSocketReceivedData(SOCKET s, byte * data) = 0;
+	virtual void onSocketReceivedData(SOCKET s, const InputMemoryStream& packet) = 0;
 	virtual void onSocketDisconnected(SOCKET s) = 0;
 	virtual void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) {}
 
 protected:
 
-	// Protected Functions
-	void addSocket(SOCKET socket);
+	// Networking Methods
+	bool SendPacket(const OutputMemoryStream& packet, SOCKET s);
 	void disconnect();
+	
+	// Other Protected Functions
+	void addSocket(SOCKET socket);
 	static void reportError(const char *message);
 	static void ReportErrorAndClose(const SOCKET s, const std::string& message, const std::string& socket_or_side_name, const char* function_name);
 	

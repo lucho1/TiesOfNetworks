@@ -50,14 +50,18 @@ bool ModuleNetworkingClient::update()
 {
 	if (m_ClientState == ClientState::Start)
 	{
-		// TODO(jesus): Send the player name to the server
-		if (send(m_Socket, m_ClientName.c_str(), m_ClientName.size() + 1, 0) != SOCKET_ERROR)
-		{
-			LOG("Sent client name from client '%s' to server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+		OutputMemoryStream packet;
+		packet << ClientMessage::HELLO;
+		packet << m_ClientName;
+
+		if (SendPacket(packet, m_Socket))
 			m_ClientState = ClientState::Logging;
-		}
 		else
-			reportError(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+		{
+			ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+			disconnect();
+			m_ClientState = ClientState::Stopped;
+		}
 	}
 
 	return true;
@@ -96,8 +100,23 @@ bool ModuleNetworkingClient::gui()
 
 
 // ----------------- Virtual functions of ModuleNetworking -------------------
-void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
+void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
+	ServerMessage serverMessage;
+	packet >> serverMessage;
+
+	std::string welcome_msg;
+	packet >> welcome_msg;	
+	std::string cName;
+	packet >> cName;
+	welcome_msg += cName;
+
+	float r, g, b;
+	packet >> r; packet >> g; packet >> b;
+
+	if (serverMessage == ServerMessage::WELCOME)
+		LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
+
 	m_ClientState = ClientState::Stopped;
 }
 

@@ -114,17 +114,21 @@ bool ModuleNetworking::preUpdate()
 				// or when it generated some errors such as ECONNRESET.
 				// Communicate detected disconnections to the subclass using the callback
 				// onSocketDisconnected().
-				int recv_status = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
+				InputMemoryStream packet;
+				int recv_bytes = recv(s, packet.GetBufferPtr(), packet.GetCapacity(), 0);
 
 				// Since len is always > 0 (as stated above), we don't need to check for recv_status == 0 && len == 0
-				if(recv_status <= 0)
+				if(recv_bytes <= 0) // -1 == SOCKET_ERROR
 				{
 					m_DisconnectedSockets.push_back(s);
-					if (recv_status == SOCKET_ERROR)
+					if (recv_bytes == SOCKET_ERROR)
 						reportError("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
-				else if (recv_status > 0)
-					onSocketReceivedData(s, incomingDataBuffer);
+				else //if (recv_status > 0)
+				{
+					packet.SetSize((uint32)recv_bytes);
+					onSocketReceivedData(s, packet);
+				}
 			}
 		}
 	}
@@ -180,4 +184,18 @@ bool ModuleNetworking::cleanUp()
 void ModuleNetworking::addSocket(SOCKET socket)
 {
 	m_SocketsVec.push_back(socket);
+}
+
+
+bool ModuleNetworking::SendPacket(const OutputMemoryStream& packet, SOCKET s)
+{
+	if (send(s, packet.GetBufferPtr(), packet.GetSize(), 0) == SOCKET_ERROR)
+	{
+		char msg[50];
+		sprintf_s(msg, "Error upon sending packet in socket '%i'", s);
+		reportError(msg);
+		return false;
+	}
+
+	return true;
 }

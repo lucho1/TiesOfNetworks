@@ -20,7 +20,7 @@ private:
 	// Virtual functions of ModuleNetworking
 	bool isListenSocket(SOCKET socket) const override;
 	void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) override;
-	void onSocketReceivedData(SOCKET socket, byte * data) override;
+	void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
 	void onSocketDisconnected(SOCKET socket) override;
 	
 

@@ -17,7 +17,7 @@ private:
 	bool gui() override;
 
 	// Virtual functions of ModuleNetworking
-	void onSocketReceivedData(SOCKET socket, byte * data) override;
+	void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
 	void onSocketDisconnected(SOCKET socket) override;
 
 

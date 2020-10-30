@@ -130,15 +130,29 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	m_ConnectedSockets.push_back(connectedSocket);
 }
 
-void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
+void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
-	// Set the client name of the corresponding connected socket proxy
-	for (ModuleNetworkingServer::ConnectedSocket &connectedSocket : m_ConnectedSockets)
+	ClientMessage clientMessage;
+	packet >> clientMessage;
+
+	if (clientMessage == ClientMessage::HELLO)
 	{
-		if (connectedSocket.socket == socket)
+		std::string clientName;
+		packet >> clientName;
+
+		for (ConnectedSocket& s : m_ConnectedSockets)
 		{
-			connectedSocket.client_name = (const char*)data;
-			LOG("Received client name from client '%s'", connectedSocket.client_name.c_str());
+			if (s.socket == socket)
+			{
+				s.client_name = clientName;
+				LOG("Received client name from client '%s'", s.client_name.c_str()); // TODO: Delete this, is just for debugging
+
+				OutputMemoryStream response;
+				response << ServerMessage::WELCOME << "WELCOME CLIENT " << s.client_name;
+				response << 0.5f << 0.2f << 0.1f;
+
+				SendPacket(response, socket);
+			}
 		}
 	}
 }
