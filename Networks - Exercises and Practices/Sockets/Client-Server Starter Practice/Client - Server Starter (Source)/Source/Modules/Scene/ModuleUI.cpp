@@ -1,4 +1,4 @@
-#include "Networks.h"
+#include "Core/Core.h"
 
 
 extern HWND hwnd;                                // Window handle
@@ -23,7 +23,7 @@ bool ModuleUI::init()
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
-	banner = App->modTextures->loadTexture("banner.jpg");
+	banner = App->modTextures->loadTexture("Assets/Textures/banner.jpg");
 	return true;
 }
 

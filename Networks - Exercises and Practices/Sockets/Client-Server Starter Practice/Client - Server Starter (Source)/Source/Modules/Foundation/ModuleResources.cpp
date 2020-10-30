@@ -1,4 +1,4 @@
-#include "Networks.h"
+#include "Core.h"
 
 
 #if defined(USE_TASK_MANAGER)
@@ -15,18 +15,18 @@ public:
 
 bool ModuleResources::init()
 {
-	background = App->modTextures->loadTexture("background.jpg");
+	background = App->modTextures->loadTexture("Assets/Textures/background.jpg");
 
 #if !defined(USE_TASK_MANAGER)
-	banner = App->modTextures->loadTexture("banner.jpg");
-	client = App->modTextures->loadTexture("client.jpg");
-	server = App->modTextures->loadTexture("server.png");
+	banner = App->modTextures->loadTexture("Assets/Textures/banner.jpg");
+	client = App->modTextures->loadTexture("Assets/Textures/client.jpg");
+	server = App->modTextures->loadTexture("Assets/Textures/server.png");
 	loadingFinished = true;
 	completionRatio = 1.0f;
 #else
-	loadTextureAsync("banner.jpg", &banner);
-	loadTextureAsync("client.jpg", &client);
-	loadTextureAsync("server.jpg", &server);
+	loadTextureAsync("Assets/Textures/banner.jpg", &banner);
+	loadTextureAsync("Assets/Textures/client.jpg", &client);
+	loadTextureAsync("Assets/Textures/server.jpg", &server);
 #endif
 
 	return true;

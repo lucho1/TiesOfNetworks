@@ -1,4 +1,4 @@
-#include "Networks.h"
+#include "Core.h"
 
 #define ADD_MODULE(ModuleClass, module) \
 	module = new ModuleClass(); \

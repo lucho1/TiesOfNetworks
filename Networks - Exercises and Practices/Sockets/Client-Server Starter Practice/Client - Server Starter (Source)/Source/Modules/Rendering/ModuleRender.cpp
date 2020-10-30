@@ -1,4 +1,4 @@
-#include "Networks.h"
+#include "Core.h"
 
 
 #define SAFE_RELEASE(lp) if (lp != nullptr) { lp->Release(); lp = nullptr; }
@@ -110,7 +110,7 @@ bool ModuleRender::init()
 	// VERTEX SHADER
 	/////////////////////////////////////////////////////////////
 	int shaderSourceLength;
-	LoadShaderFile("vertex_shader.hlsl", shaderSource, &shaderSourceLength);
+	LoadShaderFile("Assets/Shaders/vertex_shader.hlsl", shaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
 		LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
@@ -173,7 +173,7 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// FRAGMENT SHADER
 	/////////////////////////////////////////////////////////////
-	LoadShaderFile("pixel_shader.hlsl", shaderSource, &shaderSourceLength);
+	LoadShaderFile("Assets/Shaders/pixel_shader.hlsl", shaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
 		LOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
