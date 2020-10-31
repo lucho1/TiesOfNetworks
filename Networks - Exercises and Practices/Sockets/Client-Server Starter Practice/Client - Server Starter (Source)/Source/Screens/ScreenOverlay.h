@@ -11,15 +11,15 @@ public:
 private:
 
 	// Virtual functions of Screen
-	void enable() override;
-	void update() override;
-	void disable() override;
+	virtual void Enable() override;
+	virtual void Update() override;
+	virtual void Disable() override { m_Overlay->deleteFlag = true; }
 
 
 private:
 	
-	GameObject *overlay = nullptr;
+	GameObject* m_Overlay = nullptr;
 
-	float transitionTimeElapsed = 0.0f;
-	float transitionTimeMax = SCENE_TRANSITION_TIME;
+	float m_TransitionTimeElapsed = 0.0f;
+	float m_TransitionMaxTime = SCENE_TRANSITION_TIME;
 };

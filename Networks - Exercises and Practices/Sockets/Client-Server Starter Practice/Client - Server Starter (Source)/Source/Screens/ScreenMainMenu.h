@@ -3,6 +3,6 @@
 class ScreenMainMenu : public Screen
 {
 	// Virtual functions of Screen
-	void enable() override;
-	void gui() override;
+	virtual void Enable() override;
+	virtual void GUI() override;
 };

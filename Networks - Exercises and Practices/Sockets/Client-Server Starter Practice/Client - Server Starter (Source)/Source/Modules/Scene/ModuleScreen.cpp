@@ -1,14 +1,14 @@
 #include "Core.h"
 
 
-bool ModuleScreen::init()
+bool ModuleScreen::Init()
 {
-	screenCount = 0;
-	screens[screenCount++] = screenLoading  = new ScreenLoading;
-	screens[screenCount++] = screenBackground = new ScreenBackground;
-	screens[screenCount++] = screenMainMenu = new ScreenMainMenu;
-	screens[screenCount++] = screenGame = new ScreenGame;
-	screens[screenCount++] = screenOverlay  = new ScreenOverlay;
+	m_ScreenCount = 0;
+	m_Screens[m_ScreenCount++] = screenLoading  = new ScreenLoading;
+	m_Screens[m_ScreenCount++] = screenBackground = new ScreenBackground;
+	m_Screens[m_ScreenCount++] = screenMainMenu = new ScreenMainMenu;
+	m_Screens[m_ScreenCount++] = screenGame = new ScreenGame;
+	m_Screens[m_ScreenCount++] = screenOverlay  = new ScreenOverlay;
 
 	screenLoading->enabled = true;
 	screenBackground->enabled = true;
@@ -16,64 +16,64 @@ bool ModuleScreen::init()
 	return true;
 }
 
-bool ModuleScreen::update()
+bool ModuleScreen::Update()
 {
-	for (int i = 0; i < screenCount; ++i)
+	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		auto screen = screens[i];
-		if (!screen->enabled && screen->wasEnabled)
+		auto screen = m_Screens[i];
+		if (!screen->enabled && screen->m_WasEnabled)
 		{
-			screen->disable();
-			screen->wasEnabled = screen->enabled;
+			screen->Disable();
+			screen->m_WasEnabled = screen->enabled;
 			//App->modGameObject->deleteGameObjectsInScene(screen);
 		}
 	}
 
-	for (int i = 0; i < screenCount; ++i)
+	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		auto screen = screens[i];
-		if (screen->enabled && !screen->wasEnabled)
+		auto screen = m_Screens[i];
+		if (screen->enabled && !screen->m_WasEnabled)
 		{
-			screen->enable();
-			screen->wasEnabled = screen->enabled;
+			screen->Enable();
+			screen->m_WasEnabled = screen->enabled;
 		}
 	}
 
-	for (int i = 0; i < screenCount; ++i)
+	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		auto screen = screens[i];
-		bool screenIsFullyEnabled = screen->enabled && screen->wasEnabled;
+		auto screen = m_Screens[i];
+		bool screenIsFullyEnabled = screen->enabled && screen->m_WasEnabled;
 
 		if (screenIsFullyEnabled && screen->shouldUpdate)
-			screen->update();
+			screen->Update();
 	}
 
 	return true;
 }
 
-bool ModuleScreen::gui()
+bool ModuleScreen::GUI()
 {
-	for (int i = 0; i < screenCount; ++i)
+	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		auto scene = screens[i];
+		auto scene = m_Screens[i];
 		if (scene->enabled)
-			scene->gui();
+			scene->GUI();
 	}
 
 	return true;
 }
 
-bool ModuleScreen::cleanUp()
+bool ModuleScreen::CleanUp()
 {
-	for (int i = 0; i < screenCount; ++i)
+	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		auto scene = screens[i];
+		auto scene = m_Screens[i];
 		delete scene;
 	}
 	return true;
 }
 
-void ModuleScreen::swapScreensWithTransition(Screen *oldScene, Screen *newScene)
+void ModuleScreen::SwapScreensWithTransition(Screen *oldScene, Screen *newScene)
 {
 	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes passed don't Exist");
 	ASSERT((!screenOverlay->enabled), "Screen Overlay was Disabled!");

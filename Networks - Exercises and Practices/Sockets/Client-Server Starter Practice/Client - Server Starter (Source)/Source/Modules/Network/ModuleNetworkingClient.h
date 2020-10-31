@@ -7,18 +7,18 @@ class ModuleNetworkingClient : public ModuleNetworking
 public:
 
 	// ModuleNetworkingClient public methods
-	bool start(const char *serverAddress, int serverPort, const char *clientName);
-	bool isRunning() const;
+	bool Start(const char *serverAddress, int serverPort, const char *clientName);
+	bool IsRunning() const;
 
 private:
 
 	// Virtual functions of Modules
-	bool update() override;
-	bool gui() override;
+	virtual bool Update() override;
+	virtual bool GUI() override;
 
-	// Virtual functions of ModuleNetworking
-	void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
-	void onSocketDisconnected(SOCKET socket) override;
+	// Virtual functions of ModuleNetworking - Callbacks
+	virtual void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
+	virtual void onSocketDisconnected(SOCKET socket) override;
 
 
 private:
@@ -26,14 +26,14 @@ private:
 	// Client state
 	enum class ClientState
 	{
-		Stopped,
-		Start,
-		Logging
+		STOPPED,
+		START,
+		LOGGING
 	};
 
 	// Variables
 	std::string m_ClientName;
-	ClientState m_ClientState = ClientState::Stopped;
+	ClientState m_ClientState = ClientState::STOPPED;
 	SOCKET m_Socket = INVALID_SOCKET;
 
 	sockaddr_in m_ServerAddress = {};

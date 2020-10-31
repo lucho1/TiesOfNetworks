@@ -31,7 +31,7 @@ Application::~Application()
 bool Application::AppInit()
 {
 	for (int i = 0; i < numModules; ++i)
-		if (!modules[i]->init())
+		if (!modules[i]->Init())
 			return false;
 
 	return true;
@@ -44,14 +44,14 @@ bool Application::AppUpdate()
 	if (!ModulesGUI())			return false;
 	if (!ModulesPostUpdate())	return false;
 
-	modRender->present();
+	modRender->Present();
 	return true;
 }
 
 bool Application::AppCleanUp()
 {
 	for (int i = numModules; i > 0; --i)
-		if (!modules[i - 1]->cleanUp())
+		if (!modules[i - 1]->CleanUp())
 			return false;
 
 	return true;
@@ -60,7 +60,7 @@ bool Application::AppCleanUp()
 bool Application::ModulesPreUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
-		if (!modules[i]->preUpdate())
+		if (!modules[i]->PreUpdate())
 			return false;
 
 	return true;
@@ -78,7 +78,7 @@ bool Application::ModulesUpdate()
 		count++;
 
 		for (int i = 0; i < numModules; ++i)
-			if (!modules[i]->update())
+			if (!modules[i]->Update())
 				return false;
 	}
 
@@ -96,7 +96,7 @@ bool Application::ModulesUpdate()
 bool Application::ModulesGUI()
 {
 	for (int i = 0; i < numModules; ++i)
-		if (!modules[i]->gui())
+		if (!modules[i]->GUI())
 			return false;
 
 	return true;
@@ -105,7 +105,7 @@ bool Application::ModulesGUI()
 bool Application::ModulesPostUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
-		if (!modules[i]->postUpdate())
+		if (!modules[i]->PostUpdate())
 			return false;
 
 	return true;

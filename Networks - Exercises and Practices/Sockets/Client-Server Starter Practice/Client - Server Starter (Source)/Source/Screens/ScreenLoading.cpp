@@ -1,45 +1,45 @@
 #include "Core.h"
 
 
-void ScreenLoading::enable()
+void ScreenLoading::Enable()
 {
 	for (int i = 0; i < BAR_COUNT; ++i)
 	{
 		float progressRatio = (float)i / (float)BAR_COUNT;
 		float radians = 2.0f * PI * progressRatio;
 
-		loadingBars[i] = new GameObject;
-		loadingBars[i]->color[0] = 1.0f;
-		loadingBars[i]->color[1] = 1.0f;
-		loadingBars[i]->color[2] = 1.0f;
-		loadingBars[i]->color[3] = 1.0f;
-		loadingBars[i]->pivot_x = 0.5f;
-		loadingBars[i]->pivot_y = 0.5f;
-		loadingBars[i]->width = 4;
-		loadingBars[i]->height = 30;
-		loadingBars[i]->x = 30.0f * sinf(radians);
-		loadingBars[i]->y = 30.0f * cosf(radians);
-		loadingBars[i]->angle = - 360.0f * progressRatio;
+		m_LoadingBars[i] = new GameObject;
+		m_LoadingBars[i]->color[0] = 1.0f;
+		m_LoadingBars[i]->color[1] = 1.0f;
+		m_LoadingBars[i]->color[2] = 1.0f;
+		m_LoadingBars[i]->color[3] = 1.0f;
+		m_LoadingBars[i]->pivot_x = 0.5f;
+		m_LoadingBars[i]->pivot_y = 0.5f;
+		m_LoadingBars[i]->width = 4;
+		m_LoadingBars[i]->height = 30;
+		m_LoadingBars[i]->x = 30.0f * sinf(radians);
+		m_LoadingBars[i]->y = 30.0f * cosf(radians);
+		m_LoadingBars[i]->angle = - 360.0f * progressRatio;
 	}
 }
 
-void ScreenLoading::update()
+void ScreenLoading::Update()
 {
 	const float ROUND_TIME = 3.0f;
 
 	for (int i = 0; i < BAR_COUNT; ++i)
 	{
 		float progressRatio = (float)i / (float)BAR_COUNT;
-		auto gameObject = loadingBars[i];
+		auto gameObject = m_LoadingBars[i];
 		gameObject->color[3] = 1.0f - GetFractionalPart(((float)Time.time + progressRatio * ROUND_TIME)/ ROUND_TIME);
 	}
 
 	if (App->modResources->finishedLoading)
-		App->modScreen->swapScreensWithTransition(this, App->modScreen->screenMainMenu); // NOTE(jesus): This is equivalent to this line (without transition): this->enabled = false; App->modScene->scenePingPong->enabled = true;
+		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenMainMenu); // NOTE(jesus): This is equivalent to this line (without transition): this->enabled = false; App->modScene->scenePingPong->enabled = true;
 }
 
-void ScreenLoading::disable()
+void ScreenLoading::Disable()
 {
 	for (int i = 0; i < BAR_COUNT; ++i)
-		loadingBars[i]->deleteFlag = true;
+		m_LoadingBars[i]->deleteFlag = true;
 }

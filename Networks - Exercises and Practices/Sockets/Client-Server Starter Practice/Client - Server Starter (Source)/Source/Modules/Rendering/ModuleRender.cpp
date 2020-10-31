@@ -62,7 +62,7 @@ static void LoadShaderFile(std::string File, uint8 *buffer, int *length)
 	}
 }
 
-bool ModuleRender::init()
+bool ModuleRender::Init()
 {
 	/////////////////////////////////////////////////////////////
 	// Direct3D initialization
@@ -110,7 +110,7 @@ bool ModuleRender::init()
 	// VERTEX SHADER
 	/////////////////////////////////////////////////////////////
 	int shaderSourceLength;
-	LoadShaderFile("Assets/Shaders/vertex_shader.hlsl", shaderSource, &shaderSourceLength);
+	LoadShaderFile("Assets/Shaders/vertex_shader.hlsl", m_ShaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
 		LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
@@ -118,7 +118,7 @@ bool ModuleRender::init()
 	}
 
 	ID3DBlob *errorBlob = NULL;
-	D3DCompile(shaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, &errorBlob);
+	D3DCompile(m_ShaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, &errorBlob);
 
 	if (errorBlob)
 	{
@@ -173,14 +173,14 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	// FRAGMENT SHADER
 	/////////////////////////////////////////////////////////////
-	LoadShaderFile("Assets/Shaders/pixel_shader.hlsl", shaderSource, &shaderSourceLength);
+	LoadShaderFile("Assets/Shaders/pixel_shader.hlsl", m_ShaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
 		LOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
 		return false;
 	}
 
-	D3DCompile(shaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, &errorBlob);
+	D3DCompile(m_ShaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, &errorBlob);
 	if (errorBlob)
 	{
 		LOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
@@ -275,10 +275,10 @@ bool ModuleRender::init()
 	/////////////////////////////////////////////////////////////
 	unsigned char white[] = { 255, 255, 255, 255 };
 	unsigned char black[] = { 0, 0, 0, 255 };
-	whitePixel = App->modTextures->loadTexture(white, 1, 1);
-	blackPixel = App->modTextures->loadTexture(black, 1, 1);
+	m_WhitePixel = App->modTextures->LoadTexture(white, 1, 1);
+	m_BlackPixel = App->modTextures->LoadTexture(black, 1, 1);
 
-	if (whitePixel == nullptr || blackPixel == nullptr)
+	if (m_WhitePixel == nullptr || m_BlackPixel == nullptr)
 	{
 		LOG("ModuleRender::init() - Could not create white and black textures");
 		return false;
@@ -287,7 +287,7 @@ bool ModuleRender::init()
 	return true;
 }
 
-bool ModuleRender::postUpdate()
+bool ModuleRender::PostUpdate()
 {
 	//float clear_color[] = { 0.45f, 0.55f, 0.60f, 1.00f };
 	float clear_color[] = { 0.f, 0.f, 0.f, 1.f };
@@ -296,12 +296,12 @@ bool ModuleRender::postUpdate()
 
 	int minOrder = -9999;
 	int maxOrder = 5000;
-	renderScene(minOrder, maxOrder);
+	RenderScene(minOrder, maxOrder);
 
 	return true;
 }
 
-bool ModuleRender::cleanUp()
+bool ModuleRender::CleanUp()
 {
 	SAFE_RELEASE(g_pTextureSampler);
 	SAFE_RELEASE(g_pDepthStencilState);
@@ -318,7 +318,7 @@ bool ModuleRender::cleanUp()
 	return true;
 }
 
-void ModuleRender::resizeBuffers(unsigned int width, unsigned int height)
+void ModuleRender::ResizeBuffers(unsigned int width, unsigned int height)
 {
 	if (g_pSwapChain != nullptr)
 	{
@@ -328,9 +328,9 @@ void ModuleRender::resizeBuffers(unsigned int width, unsigned int height)
 	}
 }
 
-void ModuleRender::present()
+void ModuleRender::Present()
 {
-	renderScene(5001, 9999);
+	RenderScene(5001, 9999);
 
 	//App->modRender->present();
 	g_pSwapChain->Present(1, 0); // Present with vsync
@@ -396,7 +396,7 @@ static void selectAndSortObjects(GameObject *toSort[MAX_GAME_OBJECTS], GameObjec
 		quicksort(result, 0, *numElems - 1);
 }
 
-void ModuleRender::renderScene(int minOrder, int maxOrder)
+void ModuleRender::RenderScene(int minOrder, int maxOrder)
 {
 	ID3D11DeviceContext *ctx = g_pd3dDeviceContext;
 
@@ -439,11 +439,11 @@ void ModuleRender::renderScene(int minOrder, int maxOrder)
 
 	// Render game objects
 	int numObjects = 0;
-	selectAndSortObjects(App->modGameObject->gameObjects, orderedGameObjects, &numObjects);
+	selectAndSortObjects(App->modGameObject->m_GameObjects, m_OrderedGameObjects, &numObjects);
 
 	for (int i = 0; i < numObjects; ++i)
 	{
-		GameObject *gameObject = orderedGameObjects[i];
+		GameObject *gameObject = m_OrderedGameObjects[i];
 
 		if (gameObject->order < minOrder || gameObject->order > maxOrder) continue;
 		
@@ -492,7 +492,7 @@ void ModuleRender::renderScene(int minOrder, int maxOrder)
 		}
 
 		// Pass texture to shader
-		Texture *texture = gameObject->texture ? gameObject->texture : whitePixel;
+		Texture *texture = gameObject->texture ? gameObject->texture : m_WhitePixel;
 		ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)texture->shaderResource;
 		ctx->PSSetShaderResources(0, 1, &texture_srv);
 

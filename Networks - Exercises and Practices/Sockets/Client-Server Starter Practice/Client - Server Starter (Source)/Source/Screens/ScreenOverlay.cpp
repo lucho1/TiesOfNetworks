@@ -1,47 +1,47 @@
 #include "Core.h"
 
 
-void ScreenOverlay::enable()
+void ScreenOverlay::Enable()
 {
 	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes to Overlay don't Exist!");
 	oldScene->shouldUpdate = false;
 	newScene->shouldUpdate = false;
 
-	overlay = new GameObject();
-	//overlay->color[0] = 0.0f;
-	//overlay->color[1] = 0.0f;
-	//overlay->color[2] = 0.0f;
-	//overlay->color[3] = 1.0f;
-	overlay->texture = App->modResources->background;
-	overlay->order = 9999;
-	//overlay->scene = this;
+	m_Overlay = new GameObject();
+	//m_Overlay->color[0] = 0.0f;
+	//m_Overlay->color[1] = 0.0f;
+	//m_Overlay->color[2] = 0.0f;
+	//m_Overlay->color[3] = 1.0f;
+	m_Overlay->texture = App->modResources->background;
+	m_Overlay->order = 9999;
+	//m_Overlay->scene = this;
 
-	transitionTimeElapsed = 0.0f;
+	m_TransitionTimeElapsed = 0.0f;
 }
 
-void ScreenOverlay::update()
+void ScreenOverlay::Update()
 {
 	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes to Overlay don't Exist!");
 
-	overlay->width = (float)Window.width;
-	overlay->height = (float)Window.height;
-	transitionTimeElapsed += Time.deltaTime;
+	m_Overlay->width = (float)Window.width;
+	m_Overlay->height = (float)Window.height;
+	m_TransitionTimeElapsed += Time.deltaTime;
 
-	const float halfTransitionTime = transitionTimeMax * 0.5f;
+	const float halfTransitionTime = m_TransitionMaxTime * 0.5f;
 
-	if (transitionTimeElapsed < halfTransitionTime)
-		overlay->color[3] = transitionTimeElapsed / halfTransitionTime;
+	if (m_TransitionTimeElapsed < halfTransitionTime)
+		m_Overlay->color[3] = m_TransitionTimeElapsed / halfTransitionTime;
 	else
 	{
 		oldScene->enabled = false;
 		newScene->enabled = true;
-		overlay->color[3] = 1.0f - (transitionTimeElapsed - halfTransitionTime) / halfTransitionTime;
+		m_Overlay->color[3] = 1.0f - (m_TransitionTimeElapsed - halfTransitionTime) / halfTransitionTime;
 
-		if (overlay->color[3] < 0.0f)
-			overlay->color[3] = 0.0f;
+		if (m_Overlay->color[3] < 0.0f)
+			m_Overlay->color[3] = 0.0f;
 	}
 
-	if (transitionTimeElapsed > transitionTimeMax)
+	if (m_TransitionTimeElapsed > m_TransitionMaxTime)
 	{
 		enabled = false;
 		oldScene->shouldUpdate = true;
@@ -49,9 +49,4 @@ void ScreenOverlay::update()
 		oldScene = nullptr;
 		newScene = nullptr;
 	}
-}
-
-void ScreenOverlay::disable()
-{
-	overlay->deleteFlag = true;
 }

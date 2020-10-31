@@ -3,7 +3,7 @@
 // -- Delivery by Lucho Suaya and Sergi Parra --
 
 // ------------------ ModuleNetworkingClient public methods ------------------
-bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char * clientName)
+bool  ModuleNetworkingClient::Start(const char * serverAddressStr, int serverPort, const char * clientName)
 {
 	m_ClientName = clientName;
 
@@ -22,8 +22,8 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	
 		if (connect(m_Socket, (sockaddr*)&m_ServerAddress, sizeof(m_ServerAddress)) != SOCKET_ERROR)
 		{
-			addSocket(m_Socket);
-			m_ClientState = ClientState::Start; // If everything was ok... change the state
+			AddSocket(m_Socket);
+			m_ClientState = ClientState::START; // If everything was ok... change the state
 		}
 		else
 		{
@@ -38,38 +38,38 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	return true;
 }
 
-bool ModuleNetworkingClient::isRunning() const
+bool ModuleNetworkingClient::IsRunning() const
 {
-	return m_ClientState != ClientState::Stopped;
+	return m_ClientState != ClientState::STOPPED;
 }
 
 
 
 // ---------------------- Virtual functions of Modules -----------------------
-bool ModuleNetworkingClient::update()
+bool ModuleNetworkingClient::Update()
 {
-	if (m_ClientState == ClientState::Start)
+	if (m_ClientState == ClientState::START)
 	{
 		OutputMemoryStream packet;
 		packet << ClientMessage::HELLO;
 		packet << m_ClientName;
 
 		if (SendPacket(packet, m_Socket))
-			m_ClientState = ClientState::Logging;
+			m_ClientState = ClientState::LOGGING;
 		else
 		{
 			ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
-			disconnect();
-			m_ClientState = ClientState::Stopped;
+			Disconnect();
+			m_ClientState = ClientState::STOPPED;
 		}
 	}
 
 	return true;
 }
 
-bool ModuleNetworkingClient::gui()
+bool ModuleNetworkingClient::GUI()
 {
-	if (m_ClientState != ClientState::Stopped)
+	if (m_ClientState != ClientState::STOPPED)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Client Window");
@@ -87,8 +87,8 @@ bool ModuleNetworkingClient::gui()
 		if (ImGui::Button("Disconnect"))
 		{
 			m_DisconnectedSockets.push_back(m_Socket);
-			m_ClientState = ClientState::Stopped;
-			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
+			m_ClientState = ClientState::STOPPED;
+			App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
 		ImGui::End();
@@ -117,7 +117,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	if (serverMessage == ServerMessage::WELCOME)
 		LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
 
-	m_ClientState = ClientState::Stopped;
+	m_ClientState = ClientState::STOPPED;
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
@@ -128,7 +128,7 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	if (shutdown(socket, 2) == SOCKET_ERROR)
 		ReportErrorAndClose(socket, { "[CLIENT]: Error shuting down the socket of client '" + m_ClientName + "'"}, m_ClientName + " CLIENT", "ModuleNetworkingClient::onSocketDisconnected()");
 	else if (closesocket(socket) == SOCKET_ERROR)
-		reportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
+		ReportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
 
-	m_ClientState = ClientState::Stopped;
+	m_ClientState = ClientState::STOPPED;
 }

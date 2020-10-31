@@ -4,7 +4,7 @@
 
 
 // ------------------ ModuleNetworkingServer public methods ------------------
-bool ModuleNetworkingServer::start(int port)
+bool ModuleNetworkingServer::Start(int port)
 {
 	// TODO(jesus): TCP listen socket stuff
 	// - Create the listenSocket
@@ -22,7 +22,7 @@ bool ModuleNetworkingServer::start(int port)
 		// Set address reuse & check for errors -- TODO: Test if enable can be deleted or not
 		int enable = 1;
 		if (setsockopt(m_ListeningSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int)) == SOCKET_ERROR)
-			reportError("[SERVER]: Couldn't set address reuse");
+			ReportError("[SERVER]: Couldn't set address reuse");
 	
 		// Build address
 		sockaddr_in listenerAdd;
@@ -36,8 +36,8 @@ bool ModuleNetworkingServer::start(int port)
 			// Enter in listen mode and check for errors
 			if (listen(m_ListeningSocket, SOMAXCONN) != SOCKET_ERROR)
 			{
-				addSocket(m_ListeningSocket);
-				m_ServerState = ServerState::Listening;
+				AddSocket(m_ListeningSocket);
+				m_ServerState = ServerState::LISTENING;
 			}
 			else
 				ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Failed on listening mode enter in server socket", "SERVER SOCKET", "ModuleNetworkingServer::start()");
@@ -53,22 +53,22 @@ bool ModuleNetworkingServer::start(int port)
 	return true;
 }
 
-bool ModuleNetworkingServer::isRunning() const
+bool ModuleNetworkingServer::IsRunning() const
 {
-	return m_ServerState != ServerState::Stopped;
+	return m_ServerState != ServerState::STOPPED;
 }
 
 
 
 // ---------------------- Virtual functions of Modules -----------------------
-bool ModuleNetworkingServer::update()
+bool ModuleNetworkingServer::Update()
 {
 	return true;
 }
 
-bool ModuleNetworkingServer::gui()
+bool ModuleNetworkingServer::GUI()
 {
-	if (m_ServerState != ServerState::Stopped)
+	if (m_ServerState != ServerState::STOPPED)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Server Window");
@@ -102,9 +102,9 @@ bool ModuleNetworkingServer::gui()
 			for (ConnectedSocket s : m_ConnectedSockets)
 				m_DisconnectedSockets.push_back(s.socket);
 
-			flagServerDisconnect = true;
-			m_ServerState = ServerState::Stopped;
-			App->modScreen->swapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
+			m_ServerDisconnection = true;
+			m_ServerState = ServerState::STOPPED;
+			App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
 		ImGui::End();
@@ -116,11 +116,6 @@ bool ModuleNetworkingServer::gui()
 
 
 // ----------------- Virtual functions of ModuleNetworking -------------------
-bool ModuleNetworkingServer::isListenSocket(SOCKET socket) const
-{
-	return socket == m_ListeningSocket;
-}
-
 void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress)
 {
 	// Add a new connected socket to the list

@@ -8,14 +8,14 @@ public:
 
 	const char *filename = nullptr;
 	Texture *texture = nullptr;
-	void execute() override { texture = App->modTextures->loadTexture(filename); }
+	virtual void Execute() override { texture = App->modTextures->LoadTexture(filename); }
 };
 #endif
 
 
-bool ModuleResources::init()
+bool ModuleResources::Init()
 {
-	background = App->modTextures->loadTexture("Assets/Textures/background.jpg");
+	background = App->modTextures->LoadTexture("Assets/Textures/background.jpg");
 
 #if !defined(USE_TASK_MANAGER)
 	banner = App->modTextures->loadTexture("Assets/Textures/banner.jpg");
@@ -24,9 +24,9 @@ bool ModuleResources::init()
 	loadingFinished = true;
 	completionRatio = 1.0f;
 #else
-	loadTextureAsync("Assets/Textures/banner.jpg", &banner);
-	loadTextureAsync("Assets/Textures/client.jpg", &client);
-	loadTextureAsync("Assets/Textures/server.jpg", &server);
+	LoadTextureAsync("Assets/Textures/banner.jpg", &banner);
+	LoadTextureAsync("Assets/Textures/client.jpg", &client);
+	LoadTextureAsync("Assets/Textures/server.jpg", &server);
 #endif
 
 	return true;
@@ -34,16 +34,16 @@ bool ModuleResources::init()
 
 #if defined(USE_TASK_MANAGER)
 
-void ModuleResources::loadTextureAsync(const char * filename, Texture **texturePtrAddress)
+void ModuleResources::LoadTextureAsync(const char * filename, Texture **texturePtrAddress)
 {
 	TaskLoadTexture *task = new TaskLoadTexture;
 	task->owner = this;
 	task->filename = filename;
-	App->modTaskManager->scheduleTask(task, this);
+	App->modTaskManager->ScheduleTask(task, this);
 
-	taskResults[taskCount].texturePtr = texturePtrAddress;
-	taskResults[taskCount].task = task;
-	taskCount++;
+	m_TaskResults[m_TaskCount].texturePtr = texturePtrAddress;
+	m_TaskResults[m_TaskCount].task = task;
+	m_TaskCount++;
 }
 
 void ModuleResources::onTaskFinished(Task * task)
@@ -51,12 +51,12 @@ void ModuleResources::onTaskFinished(Task * task)
 	ASSERT((task != nullptr), "Task passed was NULL");
 	TaskLoadTexture *taskLoadTexture = dynamic_cast<TaskLoadTexture*>(task);
 
-	for (int i = 0; i < taskCount; ++i)
+	for (int i = 0; i < m_TaskCount; ++i)
 	{
-		if (task == taskResults[i].task)
+		if (task == m_TaskResults[i].task)
 		{
-			*(taskResults[i].texturePtr) = taskLoadTexture->texture;
-			finishedTaskCount++;
+			*(m_TaskResults[i].texturePtr) = taskLoadTexture->texture;
+			m_FinishedTaskCount++;
 			delete task;
 			task = nullptr;
 			break;
@@ -64,7 +64,7 @@ void ModuleResources::onTaskFinished(Task * task)
 	}
 
 	ASSERT((task == nullptr), "Task is not NULL, still Exists");
-	if (finishedTaskCount == taskCount)
+	if (m_FinishedTaskCount == m_TaskCount)
 		finishedLoading = true;
 }
 

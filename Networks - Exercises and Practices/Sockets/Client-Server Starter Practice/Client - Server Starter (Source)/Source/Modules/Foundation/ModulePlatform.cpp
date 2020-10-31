@@ -2,16 +2,16 @@
 
 
 // Data
-const char *windowClassStr = "Networks and Online Games";
-const char *windowTitleStr = "Networks and Online Games";
-HINSTANCE instance = NULL;									// Application instance
+const char *windowClassStr = "Networks and Online Games -- by Lucho Suaya & Sergi Parra";
+const char *windowTitleStr = "Networks and Online Games -- by Lucho Suaya & Sergi Parra";
+HINSTANCE m_AppInstance = NULL;									// Application instance
 HWND hwnd = NULL;											// Window handle
-WNDCLASSEX windowClass = {};								// Window class
+WNDCLASSEX m_WindowClass = {};								// Window class
 
-static InputController GamepadInput;
-static InputController KeyboardInput;
+static InputController m_GamepadInput;
+static InputController m_KeyboardInput;
 
-static bool IsFocused = false;
+static bool m_IsFocused = false;
 
 
 // XInputGetState
@@ -70,19 +70,19 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				Window.width = (UINT)LOWORD(lParam);
 				Window.height = (UINT)HIWORD(lParam);
-				App->modRender->resizeBuffers(Window.width, Window.height);
+				App->modRender->ResizeBuffers(Window.width, Window.height);
 			}
 			return 0;
 
 		case WM_KILLFOCUS:
 			Input = {};
-			GamepadInput = {};
-			KeyboardInput = {};
-			IsFocused = false;
+			m_GamepadInput = {};
+			m_KeyboardInput = {};
+			m_IsFocused = false;
 			return 0;
 
 		case WM_SETFOCUS:
-			IsFocused = true;
+			m_IsFocused = true;
 			return 0;
 
 		case WM_SYSCOMMAND:
@@ -152,18 +152,18 @@ static float Win32ProcessGamepadThumb(SHORT value, SHORT deadZoneThreshold)
 	return(res);
 }
 
-bool ModulePlatform::init()
+bool ModulePlatform::Init()
 {
 	// Get the application instance handle
-	instance = ::GetModuleHandle("");
+	m_AppInstance = ::GetModuleHandle("");
 
 	// Create window class
-	windowClass.cbSize = sizeof(WNDCLASSEX);
-	windowClass.lpszClassName = _T(windowClassStr);
-	windowClass.hInstance = instance;
-	windowClass.lpfnWndProc = WndProc;
-	windowClass.style = CS_OWNDC;
-	if (::RegisterClassEx(&windowClass) == 0)
+	m_WindowClass.cbSize = sizeof(WNDCLASSEX);
+	m_WindowClass.lpszClassName = _T(windowClassStr);
+	m_WindowClass.hInstance = m_AppInstance;
+	m_WindowClass.lpfnWndProc = WndProc;
+	m_WindowClass.style = CS_OWNDC;
+	if (::RegisterClassEx(&m_WindowClass) == 0)
 	{
 		LOG("ModuleWindow::init() - RegisterClassEx() failed");
 		return false;
@@ -172,7 +172,7 @@ bool ModulePlatform::init()
 	// Create application window
 	hwnd = ::CreateWindowEx(
 		0,
-		windowClass.lpszClassName,
+		m_WindowClass.lpszClassName,
 		_T(windowTitleStr),
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
@@ -181,7 +181,7 @@ bool ModulePlatform::init()
 		768, //CW_USEDEFAULT,
 		NULL,
 		NULL,
-		windowClass.hInstance,
+		m_WindowClass.hInstance,
 		NULL);
 
 	// Init XInput
@@ -206,14 +206,14 @@ bool ModulePlatform::init()
 	{
 		LOG("ModuleWindow::init() - XInput library loading failed");
 		::DestroyWindow(hwnd);
-		::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+		::UnregisterClass(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
 		return false;
 	}
 
 	// Initialize button states
 	Input = {};
-	GamepadInput = {};
-	KeyboardInput = {};
+	m_GamepadInput = {};
+	m_KeyboardInput = {};
 
 	// Is this query reliable?
 	int MonitorRefreshHz = 60;
@@ -242,7 +242,7 @@ bool ModulePlatform::init()
 	return true;
 }
 
-bool ModulePlatform::preUpdate()
+bool ModulePlatform::PreUpdate()
 {
 	MSG msg = {};
 
@@ -340,7 +340,7 @@ bool ModulePlatform::preUpdate()
 	Time.time += (double)Time.deltaTime;
 	StartTime = EndTime;
 
-	if (IsFocused)
+	if (m_IsFocused)
 	{
 		// Keyboard
 		KeyboardInput.horizontalAxis = ((GetKeyState('D') & (1 << 15)) ? 1.0f : 0.0f) - ((GetKeyState('A') & (1 << 15)) ? 1.0f : 0.0f);
@@ -392,7 +392,7 @@ bool ModulePlatform::preUpdate()
 	return true;
 }
 
-bool ModulePlatform::postUpdate()
+bool ModulePlatform::PostUpdate()
 {
 	// Update buttons state
 	for (ButtonState &buttonState : Input.buttons)
@@ -414,10 +414,10 @@ bool ModulePlatform::postUpdate()
 	return true;
 }
 
-bool ModulePlatform::cleanUp()
+bool ModulePlatform::CleanUp()
 {
 	::DestroyWindow(hwnd);
-	::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+	::UnregisterClass(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
 
 	return true;
 }

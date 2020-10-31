@@ -3,10 +3,10 @@
 class ScreenBackground : public Screen
 {
 	// Virtual functions of Module
-	void enable() override;
-	void update() override;
-	void disable() override;
+	virtual void Enable() override;
+	virtual void Update() override;
+	virtual void Disable() override;
 
 	// Variables
-	GameObject *background = nullptr;
+	GameObject* background = nullptr;
 };

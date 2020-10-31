@@ -7,7 +7,7 @@ extern ID3D11DeviceContext *g_pd3dDeviceContext; // Direct3d11 device context po
 
 Texture *banner = nullptr;
 
-bool ModuleUI::init()
+bool ModuleUI::Init()
 {
 	// Setup Dear ImGui binding
 	IMGUI_CHECKVERSION();
@@ -15,7 +15,7 @@ bool ModuleUI::init()
 
 	//ImGuiIO& io = ImGui::GetIO(); (void)io;
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-
+	
 	// Setup style
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
@@ -23,11 +23,11 @@ bool ModuleUI::init()
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
-	banner = App->modTextures->loadTexture("Assets/Textures/banner.jpg");
+	banner = App->modTextures->LoadTexture("Assets/Textures/banner.jpg");
 	return true;
 }
 
-bool ModuleUI::preUpdate()
+bool ModuleUI::PreUpdate()
 {
 	// Start the Dear ImGui frame
 	ImGui_ImplDX11_NewFrame();
@@ -36,7 +36,7 @@ bool ModuleUI::preUpdate()
 	return true;
 }
 
-bool ModuleUI::gui()
+bool ModuleUI::GUI()
 {
 	ImGui::Begin("Logging window");
 
@@ -66,7 +66,7 @@ bool ModuleUI::gui()
 	return true;
 }
 
-bool ModuleUI::postUpdate()
+bool ModuleUI::PostUpdate()
 {
 	ImGui::EndFrame();
 	ImGui::Render();
@@ -74,7 +74,7 @@ bool ModuleUI::postUpdate()
 	return true;
 }
 
-bool ModuleUI::cleanUp()
+bool ModuleUI::CleanUp()
 {
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();

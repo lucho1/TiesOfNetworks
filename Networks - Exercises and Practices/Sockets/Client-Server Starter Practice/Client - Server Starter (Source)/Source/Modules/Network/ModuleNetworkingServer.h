@@ -7,21 +7,23 @@ class ModuleNetworkingServer : public ModuleNetworking
 public:
 
 	// ModuleNetworkingServer public methods
-	bool start(int port);
-	bool isRunning() const;
+	bool Start(int port);
+	bool IsRunning() const;
 	
 
 private:
 
 	// Virtual functions of Modules
-	bool update() override;
-	bool gui() override;
+	virtual bool Update() override;
+	virtual bool GUI() override;
 
 	// Virtual functions of ModuleNetworking
-	bool isListenSocket(SOCKET socket) const override;
-	void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) override;
-	void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
-	void onSocketDisconnected(SOCKET socket) override;
+	virtual inline bool IsListenSocket(SOCKET socket) const override { return socket == m_ListeningSocket; }
+	
+	// Callbacks
+	virtual void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) override;
+	virtual void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
+	virtual void onSocketDisconnected(SOCKET socket) override;
 	
 
 private:
@@ -29,8 +31,8 @@ private:
 	// Server state & Connected Sockets structure
 	enum class ServerState
 	{
-		Stopped,
-		Listening
+		STOPPED,
+		LISTENING
 	};
 
 	struct ConnectedSocket
@@ -41,7 +43,7 @@ private:
 	};
 
 	// Variables
-	ServerState m_ServerState = ServerState::Stopped;
+	ServerState m_ServerState = ServerState::STOPPED;
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
 	std::vector<ConnectedSocket> m_ConnectedSockets;
 };

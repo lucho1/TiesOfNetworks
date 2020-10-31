@@ -7,7 +7,7 @@ static uint8 NumModulesUsingWinsock = 0;
 
 void ModuleNetworking::ReportErrorAndClose(const SOCKET s, const std::string& message, const std::string& socket_or_side_name, const char* function_name)
 {
-	reportError((message + " on " + function_name + "... CLOSING SOCKET").c_str());
+	ReportError((message + " on " + function_name + "... CLOSING SOCKET").c_str());
 	if (closesocket(s) == SOCKET_ERROR)
 	{
 		std::string str = "[NET]: Error closing '" + socket_or_side_name + "' socket on '" + function_name + "' function";
@@ -15,7 +15,7 @@ void ModuleNetworking::ReportErrorAndClose(const SOCKET s, const std::string& me
 	}
 }
 
-void ModuleNetworking::reportError(const char* inOperationDesc)
+void ModuleNetworking::ReportError(const char* inOperationDesc)
 {
 	LPVOID lpMsgBuf;
 	DWORD errorNum = WSAGetLastError();
@@ -28,7 +28,7 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 	ERROR_LOG("\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
-void ModuleNetworking::disconnect()
+void ModuleNetworking::Disconnect()
 {
 	for (SOCKET socket : m_SocketsVec)
 	{
@@ -37,10 +37,10 @@ void ModuleNetworking::disconnect()
 	}
 
 	m_SocketsVec.clear();
-	flagServerDisconnect = false;
+	m_ServerDisconnection = false;
 }
 
-bool ModuleNetworking::init()
+bool ModuleNetworking::Init()
 {
 	if (NumModulesUsingWinsock == 0)
 	{
@@ -50,7 +50,7 @@ bool ModuleNetworking::init()
 		WSADATA data;
 		if (WSAStartup(version, &data) != 0)
 		{
-			reportError("[NET]: Error on ModuleNetworking::init() with WSAStartup()");
+			ReportError("[NET]: Error on ModuleNetworking::init() with WSAStartup()");
 			return false;
 		}
 	}
@@ -58,7 +58,7 @@ bool ModuleNetworking::init()
 	return true;
 }
 
-bool ModuleNetworking::preUpdate()
+bool ModuleNetworking::PreUpdate()
 {
 	if (m_SocketsVec.empty())
 		return true;
@@ -78,7 +78,7 @@ bool ModuleNetworking::preUpdate()
 	timeout.tv_usec = 0;
 
 	if (select(0, &readfds, nullptr, nullptr, &timeout) == SOCKET_ERROR)
-		reportError("[NET]: Error on selecting sockets at ModuleNetworking::preUpdate()");
+		ReportError("[NET]: Error on selecting sockets at ModuleNetworking::preUpdate()");
 
 	// TODO(jesus): for those sockets selected, check wheter or not they are
 	// a listen socket or a standard socket and perform the corresponding
@@ -93,7 +93,7 @@ bool ModuleNetworking::preUpdate()
 	{
 		if (FD_ISSET(s, &readfds))
 		{
-			if (isListenSocket(s))
+			if (IsListenSocket(s))
 			{
 				sockaddr_in add;
 				int addSize = sizeof(add);
@@ -102,7 +102,7 @@ bool ModuleNetworking::preUpdate()
 				if (newSocket != INVALID_SOCKET)
 				{
 					onSocketConnected(newSocket, add);
-					addSocket(newSocket);
+					AddSocket(newSocket);
 				}
 				else
 					ReportErrorAndClose(newSocket, "[NET]: Accept function failed to create new socket", "SERVER", "ModuleNetworking::preUpdate()");
@@ -122,7 +122,7 @@ bool ModuleNetworking::preUpdate()
 				{
 					m_DisconnectedSockets.push_back(s);
 					if (recv_bytes == SOCKET_ERROR)
-						reportError("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
+						ReportError("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
 				else //if (recv_bytes > 0)
 				{
@@ -152,28 +152,28 @@ bool ModuleNetworking::preUpdate()
 	return true;
 }
 
-bool ModuleNetworking::postUpdate()
+bool ModuleNetworking::PostUpdate()
 {
 	// Handle Server Disconnection
-	if (flagServerDisconnect)
+	if (m_ServerDisconnection)
 	{
-		disconnect();
+		Disconnect();
 		LOG("[NET]: Server was Disconnected");
 	}
 
 	return true;
 }
 
-bool ModuleNetworking::cleanUp()
+bool ModuleNetworking::CleanUp()
 {
-	disconnect();
+	Disconnect();
 
 	NumModulesUsingWinsock--;
 	if (NumModulesUsingWinsock == 0)
 	{
 		if (WSACleanup() != 0)
 		{
-			reportError("[NET]: Error on ModuleNetworking::cleanUp() with WSACleanup()");
+			ReportError("[NET]: Error on ModuleNetworking::cleanUp() with WSACleanup()");
 			return false;
 		}
 	}
@@ -181,7 +181,7 @@ bool ModuleNetworking::cleanUp()
 	return true;
 }
 
-void ModuleNetworking::addSocket(SOCKET socket)
+void ModuleNetworking::AddSocket(SOCKET socket)
 {
 	m_SocketsVec.push_back(socket);
 }
@@ -192,8 +192,8 @@ bool ModuleNetworking::SendPacket(const OutputMemoryStream& packet, SOCKET s)
 	if (send(s, packet.GetBufferPtr(), packet.GetSize(), 0) == SOCKET_ERROR)
 	{
 		char msg[50];
-		sprintf_s(msg, "Error upon sending packet in socket '%i'", s);
-		reportError(msg);
+		sprintf_s(msg, "Error upon sending packet in socket '%i'", (int)s);
+		ReportError(msg);
 		return false;
 	}
 

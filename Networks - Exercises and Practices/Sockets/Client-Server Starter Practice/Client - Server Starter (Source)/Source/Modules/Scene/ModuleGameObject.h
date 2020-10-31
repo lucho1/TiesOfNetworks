@@ -15,7 +15,7 @@ struct GameObject
 	float height  = 0.0f;    // NOTE(jesus): If equals 0, it takes the size of the texture
 	float angle = 0.0f;
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // NOTE(jesus): The texture will tinted with this color
-	Texture * texture = nullptr;
+	Texture* texture = nullptr;
 	int  order = 0;          // NOTE(jesus): determines the drawing order
 	bool deleteFlag = false; // NOTE(jesus): set this to true to remove the game object
 
@@ -27,13 +27,16 @@ class ModuleGameObject : public Module
 public:
 
 	// Virtual functions of Modules
-	bool init() override;
-	bool preUpdate() override;
-	bool update() override;
-	bool postUpdate() override;
-	bool cleanUp() override;
+	virtual bool Init() override;
+	virtual bool PreUpdate() override;
+	virtual bool Update() override;
+	virtual bool PostUpdate() override;
+	virtual bool CleanUp() override;
 
 
 	//void deleteGameObjectsInScene(Screen *);
-	GameObject* gameObjects[MAX_GAME_OBJECTS] = {};
+
+public:
+
+	GameObject* m_GameObjects[MAX_GAME_OBJECTS] = {};
 };

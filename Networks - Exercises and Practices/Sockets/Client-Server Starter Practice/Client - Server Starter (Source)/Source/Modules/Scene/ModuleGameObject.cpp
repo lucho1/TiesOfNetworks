@@ -5,7 +5,7 @@ GameObject::GameObject()
 {
 	// NOTE(jesus): Game objects are automatically insterted into ModuleGameObject
 	bool inserted = false;
-	for (GameObject* &gameObject : App->modGameObject->gameObjects)
+	for (GameObject*& gameObject : App->modGameObject->m_GameObjects)
 	{
 		if (gameObject == nullptr)
 		{
@@ -19,24 +19,24 @@ GameObject::GameObject()
 }
 
 
-bool ModuleGameObject::init()
+bool ModuleGameObject::Init()
 {
 	return true;
 }
 
-bool ModuleGameObject::preUpdate()
+bool ModuleGameObject::PreUpdate()
 {
 	return true;
 }
 
-bool ModuleGameObject::update()
+bool ModuleGameObject::Update()
 {
 	return true;
 }
 
-bool ModuleGameObject::postUpdate()
+bool ModuleGameObject::PostUpdate()
 {
-	for (GameObject* &gameObject : gameObjects)
+	for (GameObject* &gameObject : m_GameObjects)
 	{
 		if (gameObject == nullptr) continue;
 
@@ -50,9 +50,9 @@ bool ModuleGameObject::postUpdate()
 	return true;
 }
 
-bool ModuleGameObject::cleanUp()
+bool ModuleGameObject::CleanUp()
 {
-	for (GameObject* gameObject : gameObjects)
+	for (GameObject* gameObject : m_GameObjects)
 		delete gameObject;
 
 	return true;

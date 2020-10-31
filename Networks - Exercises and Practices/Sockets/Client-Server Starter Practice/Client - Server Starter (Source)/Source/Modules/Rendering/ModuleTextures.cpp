@@ -3,14 +3,9 @@
 
 extern ID3D11Device *g_pd3dDevice;
 
-bool ModuleTextures::init()
+bool ModuleTextures::CleanUp()
 {
-	return true;
-}
-
-bool ModuleTextures::cleanUp()
-{
-	for (Texture &texture : _textures)
+	for (Texture &texture : m_Textures)
 	{
 		if (texture.shaderResource != nullptr)
 		{
@@ -26,14 +21,14 @@ bool ModuleTextures::cleanUp()
 	return true;
 }
 
-Texture* ModuleTextures::loadTexture(const char *filename)
+Texture* ModuleTextures::LoadTexture(const char *filename)
 {
-	Texture & texture = getTextureSlotForFilename(filename);
+	Texture & texture = GetTextureSlotForFilename(filename);
 
 	if (texture.shaderResource == nullptr)
 	{
 		int width, height;
-		texture.shaderResource = loadD3DTextureFromFile(filename, &width, &height);
+		texture.shaderResource = LoadD3DTextureFromFile(filename, &width, &height);
 		if (texture.shaderResource == nullptr)
 		{
 			texture.used = false;
@@ -50,13 +45,13 @@ Texture* ModuleTextures::loadTexture(const char *filename)
 	return &texture;
 }
 
-Texture * ModuleTextures::loadTexture(void * pixels, int width, int height)
+Texture* ModuleTextures::LoadTexture(void * pixels, int width, int height)
 {
-	ID3D11ShaderResourceView *shaderResource = loadD3DTextureFromPixels(pixels, width, height);
+	ID3D11ShaderResourceView *shaderResource = LoadD3DTextureFromPixels(pixels, width, height);
 	if (shaderResource == nullptr)
 		return nullptr;
 
-	Texture & texture = getTextureSlotForFilename("###EMPTY_TEXTURE###");
+	Texture & texture = GetTextureSlotForFilename("###EMPTY_TEXTURE###");
 	texture.shaderResource = shaderResource;
 	texture.filename = "";
 	texture.width = width;
@@ -66,11 +61,11 @@ Texture * ModuleTextures::loadTexture(void * pixels, int width, int height)
 	return &texture;
 }
 
-void ModuleTextures::freeTexture(Texture* tex)
+void ModuleTextures::FreeTexture(Texture* tex)
 {
 	if (tex != nullptr)
 	{
-		for (Texture &texture : _textures)
+		for (Texture &texture : m_Textures)
 		{
 			if (texture.shaderResource == tex->shaderResource)
 			{
@@ -86,7 +81,7 @@ void ModuleTextures::freeTexture(Texture* tex)
 	}
 }
 
-ID3D11ShaderResourceView* ModuleTextures::loadD3DTextureFromFile(const char * filename, int * width, int * height)
+ID3D11ShaderResourceView* ModuleTextures::LoadD3DTextureFromFile(const char * filename, int * width, int * height)
 {
 	ID3D11ShaderResourceView *shaderResourceView = nullptr;
 
@@ -111,7 +106,7 @@ ID3D11ShaderResourceView* ModuleTextures::loadD3DTextureFromFile(const char * fi
 	//	pixel[2] = tmp;
 	//}
 
-	shaderResourceView = loadD3DTextureFromPixels(pixels, *width, *height);
+	shaderResourceView = LoadD3DTextureFromPixels(pixels, *width, *height);
 
 	// Free image pixels
 	stbi_image_free(pixels);
@@ -119,7 +114,7 @@ ID3D11ShaderResourceView* ModuleTextures::loadD3DTextureFromFile(const char * fi
 	return shaderResourceView;
 }
 
-ID3D11ShaderResourceView * ModuleTextures::loadD3DTextureFromPixels(void * pixels, int width, int height)
+ID3D11ShaderResourceView* ModuleTextures::LoadD3DTextureFromPixels(void * pixels, int width, int height)
 {
 	ID3D11ShaderResourceView *shaderResourceView = nullptr;
 	ID3D11Texture2D* handle = nullptr;
@@ -169,21 +164,21 @@ ID3D11ShaderResourceView * ModuleTextures::loadD3DTextureFromPixels(void * pixel
 	return shaderResourceView;
 }
 
-Texture & ModuleTextures::getTextureSlotForFilename(const char *filename)
+Texture& ModuleTextures::GetTextureSlotForFilename(const char *filename)
 {
 	// Protect concurrent access to this shared resource...
 	static std::mutex mtx;
 	std::unique_lock<std::mutex> lock(mtx);
 
 	// Try to find an existing texture
-	for (Texture &texture : _textures)
+	for (Texture &texture : m_Textures)
 	{
 		if (strcmp(texture.filename, filename) == 0)
 			return texture;
 	}
 
 	// Find the first empty slot
-	for (Texture &texture : _textures)
+	for (Texture &texture : m_Textures)
 	{
 		if (strcmp(texture.filename, "") == 0 && !texture.used)
 		{

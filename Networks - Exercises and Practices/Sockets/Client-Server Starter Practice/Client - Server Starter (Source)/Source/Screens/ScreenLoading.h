@@ -3,11 +3,11 @@
 class ScreenLoading : public Screen
 {
 	// Virtual functions of Screen
-	void enable() override;
-	void update() override;
-	void disable() override;
+	virtual void Enable() override;
+	virtual void Update() override;
+	virtual void Disable() override;
 
 	// Variables
 	static const int BAR_COUNT = 12;
-	GameObject *loadingBars[BAR_COUNT];
+	GameObject* m_LoadingBars[BAR_COUNT];
 };

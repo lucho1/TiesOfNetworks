@@ -2,19 +2,29 @@
 
 class ScreenGame : public Screen
 {
+
 public:
 
-	// Variables
-	bool isServer = true;
-	int serverPort;
-	const char *serverAddress = "127.0.0.1";
-	const char *playerName = "player";
+	// Setters
+	inline void SetAsServer(bool server)				{ isServer = server; }
+	inline void SetServerPort(int port)					{ m_ServerPort = port; }
+	inline void SetServerAddress(const char* address)	{ m_ServerAddress = address; }
+	inline void SetClientName(const char* name)			{ m_ClientName = name; }
+
 
 private:
 
 	// Virtual functions of Screen
-	void enable() override;
-	void update() override;
-	void gui() override;
-	void disable() override;
+	virtual void Enable() override;
+	virtual void Update() override;
+
+
+private:
+
+	// Variables
+	bool isServer = true;
+	
+	int m_ServerPort = 8888;
+	const char* m_ServerAddress = "127.0.0.1";
+	const char* m_ClientName = "player";
 };

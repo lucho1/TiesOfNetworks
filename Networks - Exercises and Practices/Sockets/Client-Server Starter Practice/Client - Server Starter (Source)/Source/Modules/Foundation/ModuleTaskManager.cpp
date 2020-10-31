@@ -1,7 +1,7 @@
 #include "Core.h"
 
 
-inline void enqueue(Task **queue, int *front, int *back, int max_elems, Task * task)
+inline void Enqueue(Task **queue, int *front, int *back, int max_elems, Task * task)
 {
 	ASSERT((*back != *front), "Back queue element is the same than Front one!");
 	queue[*back] = task;
@@ -12,7 +12,7 @@ inline void enqueue(Task **queue, int *front, int *back, int max_elems, Task * t
 	*back = (*back + 1) % max_elems;
 }
 
-inline Task *dequeue(Task **queue, int *front, int *back, int max_elems)
+inline Task* Dequeue(Task **queue, int *front, int *back, int max_elems)
 {
 	ASSERT((*front != -1), "Front queue element is NULL");
 
@@ -37,47 +37,47 @@ static std::mutex scheduledMutex;
 static std::mutex finishedMutex;
 static std::condition_variable event;
 
-void ModuleTaskManager::threadMain()
+void ModuleTaskManager::ThreadMain()
 {
 	Task *task = nullptr;	
 	while (true)
 	{
 		{
 			std::unique_lock<std::mutex> lock(scheduledMutex);
-			while (scheduledTasksFront == -1 && exitFlag == false)
+			while (m_ScheduledTasksFront == -1 && exitFlag == false)
 				event.wait(lock);
 
 			if (exitFlag)
 				break;			
 			else
-				task = dequeue(scheduledTasks, &scheduledTasksFront, &scheduledTasksBack, MAX_TASKS);
+				task = Dequeue(m_ScheduledTasks, &m_ScheduledTasksFront, &m_ScheduledTasksBack, MAX_TASKS);
 		}
 
-		task->execute();
+		task->Execute();
 
 		{
 			std::unique_lock<std::mutex> lock(finishedMutex);
-			enqueue(finishedTasks, &finishedTasksFront, &finishedTasksBack, MAX_TASKS, task);
+			Enqueue(m_FinishedTasks, &m_FinishedTasksFront, &m_FinishedTasksBack, MAX_TASKS, task);
 		}
 	}
 }
 
-bool ModuleTaskManager::init()
+bool ModuleTaskManager::Init()
 {
 	for (std::thread &thread : threads)
-		thread = std::thread(&ModuleTaskManager::threadMain, this);
+		thread = std::thread(&ModuleTaskManager::ThreadMain, this);
 
 	return true;
 }
 
-bool ModuleTaskManager::update()
+bool ModuleTaskManager::Update()
 {
-	if (finishedTasksFront != -1)
+	if (m_FinishedTasksFront != -1)
 	{
 		std::unique_lock<std::mutex> lock(finishedMutex);
-		while (finishedTasksFront != -1)
+		while (m_FinishedTasksFront != -1)
 		{
-			Task *task = dequeue(finishedTasks,&finishedTasksFront, &finishedTasksBack, MAX_TASKS);
+			Task *task = Dequeue(m_FinishedTasks, &m_FinishedTasksFront, &m_FinishedTasksBack, MAX_TASKS);
 			task->owner->onTaskFinished(task);
 		}
 	}
@@ -85,7 +85,7 @@ bool ModuleTaskManager::update()
 	return true;
 }
 
-bool ModuleTaskManager::cleanUp()
+bool ModuleTaskManager::CleanUp()
 {
 	{
 		std::unique_lock<std::mutex> lock(scheduledMutex);
@@ -99,11 +99,11 @@ bool ModuleTaskManager::cleanUp()
 	return true;
 }
 
-void ModuleTaskManager::scheduleTask(Task *task, Module *owner)
+void ModuleTaskManager::ScheduleTask(Task *task, Module *owner)
 {
 	task->owner = owner;
 	std::unique_lock<std::mutex> lock(scheduledMutex);
 
-	enqueue(scheduledTasks, &scheduledTasksFront, &scheduledTasksBack, MAX_TASKS, task);
+	Enqueue(m_ScheduledTasks, &m_ScheduledTasksFront, &m_ScheduledTasksBack, MAX_TASKS, task);
 	event.notify_one();
 }

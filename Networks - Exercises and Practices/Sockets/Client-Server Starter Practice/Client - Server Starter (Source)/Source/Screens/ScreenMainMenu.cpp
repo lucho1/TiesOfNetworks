@@ -1,7 +1,7 @@
 #include "Core.h"
 #include "ScreenMainMenu.h"
 
-void ScreenMainMenu::enable()
+void ScreenMainMenu::Enable()
 {
 	//LOG("Example INFO log entry...");
 	//TEXT_LOG("Example TEXT log entry...");
@@ -10,7 +10,7 @@ void ScreenMainMenu::enable()
 	//ERROR_LOG("Example ERROR log entry...");
 }
 
-void ScreenMainMenu::gui()
+void ScreenMainMenu::GUI()
 {
 	ImGui::Begin("Main Menu");
 	
@@ -29,9 +29,10 @@ void ScreenMainMenu::gui()
 
 	if (ImGui::Button("Start Server"))
 	{
-		App->modScreen->screenGame->isServer = true;
-		App->modScreen->screenGame->serverPort = localServerPort;
-		App->modScreen->swapScreensWithTransition(this, App->modScreen->screenGame);
+		App->modScreen->screenGame->SetAsServer(true);
+		App->modScreen->screenGame->SetServerPort(localServerPort);
+
+		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
 	}
 
 	ImGui::Spacing();
@@ -52,11 +53,12 @@ void ScreenMainMenu::gui()
 
 	if (ImGui::Button("Connect to Server"))
 	{
-		App->modScreen->screenGame->isServer = false;
-		App->modScreen->screenGame->serverPort = remoteServerPort;
-		App->modScreen->screenGame->serverAddress = serverAddressStr;
-		App->modScreen->screenGame->playerName = playerNameStr;
-		App->modScreen->swapScreensWithTransition(this, App->modScreen->screenGame);
+		App->modScreen->screenGame->SetAsServer(false);
+		App->modScreen->screenGame->SetServerPort(remoteServerPort);
+		App->modScreen->screenGame->SetServerAddress(serverAddressStr);
+		App->modScreen->screenGame->SetClientName(playerNameStr);
+
+		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
 	}
 
 	ImGui::End();

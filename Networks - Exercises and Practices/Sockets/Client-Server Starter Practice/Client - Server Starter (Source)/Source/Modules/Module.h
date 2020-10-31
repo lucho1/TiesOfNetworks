@@ -9,12 +9,12 @@ public:
 	virtual ~Module() {}
 
 	// Virtual functions of Modules
-	virtual bool init()			{ return true; }
-	virtual bool preUpdate()	{ return true; }
-	virtual bool update()		{ return true; }
-	virtual bool gui()			{ return true; }
-	virtual bool postUpdate()	{ return true; }
-	virtual bool cleanUp()		{ return true;  }
+	virtual bool Init()			{ return true; }
+	virtual bool PreUpdate()	{ return true; }
+	virtual bool Update()		{ return true; }
+	virtual bool GUI()			{ return true; }
+	virtual bool PostUpdate()	{ return true; }
+	virtual bool CleanUp()		{ return true;  }
 
 	// For tasks
 	virtual void onTaskFinished(Task *) { }

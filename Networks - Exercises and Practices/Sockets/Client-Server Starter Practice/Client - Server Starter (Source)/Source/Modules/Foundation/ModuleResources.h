@@ -8,10 +8,10 @@ class ModuleResources : public Module
 {
 public:
 
-	Texture *background = nullptr;
-	Texture *banner = nullptr;
-	Texture *client = nullptr;
-	Texture *server = nullptr;
+	Texture* background = nullptr;
+	Texture* banner = nullptr;
+	Texture* client = nullptr;
+	Texture* server = nullptr;
 
 	bool finishedLoading = false;
 
@@ -19,14 +19,14 @@ public:
 private:
 
 	// Virtual functions of Module
-	bool init() override;
+	virtual bool Init() override;
 
 
 private:
 
 #if defined(USE_TASK_MANAGER)
-	void onTaskFinished(Task *task) override;
-	void loadTextureAsync(const char *filename, Texture **texturePtrAddress);
+	virtual void onTaskFinished(Task *task) override;
+	void LoadTextureAsync(const char *filename, Texture **texturePtrAddress);
 #endif
 
 
@@ -36,7 +36,7 @@ private:
 		Task *task = nullptr;
 	};
 
-	LoadTextureResult taskResults[1024] = {};
-	int taskCount = 0;
-	int finishedTaskCount = 0;
+	LoadTextureResult m_TaskResults[1024] = {};
+	int m_TaskCount = 0;
+	int m_FinishedTaskCount = 0;
 };

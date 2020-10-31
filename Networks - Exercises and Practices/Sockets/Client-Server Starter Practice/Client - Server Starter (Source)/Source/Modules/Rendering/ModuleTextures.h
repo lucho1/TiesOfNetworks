@@ -16,24 +16,23 @@ class ModuleTextures : public Module
 public:
 
 	// Virtual functions of Module
-	bool init() override;
-	bool cleanUp() override;
+	virtual bool CleanUp() override;
 
 	// Public Functions
-	Texture* loadTexture(const char *filename);
-	Texture *loadTexture(void *pixels, int width, int height);
-	void freeTexture(Texture *texture);
+	Texture* LoadTexture(const char *filename);
+	Texture* LoadTexture(void *pixels, int width, int height);
+	void FreeTexture(Texture *texture);
 
 
 private:
 
 	// Private Functions
-	ID3D11ShaderResourceView *loadD3DTextureFromFile(const char *filename, int *width, int *height);
-	ID3D11ShaderResourceView *loadD3DTextureFromPixels(void *pixels, int width, int height);
-	Texture & getTextureSlotForFilename(const char *filename);
+	ID3D11ShaderResourceView* LoadD3DTextureFromFile(const char *filename, int *width, int *height);
+	ID3D11ShaderResourceView* LoadD3DTextureFromPixels(void *pixels, int width, int height);
+	Texture& GetTextureSlotForFilename(const char *filename);
 
 
 private:
 
-	Texture _textures[MAX_TEXTURES];
+	Texture m_Textures[MAX_TEXTURES];
 };

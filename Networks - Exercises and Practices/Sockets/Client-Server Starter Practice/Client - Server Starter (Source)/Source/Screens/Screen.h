@@ -12,14 +12,14 @@ public:
 private:
 
 	// Virtual functions of Module
-	virtual void enable() { }  // Called each time the screen is enabled
-	virtual void update() { }  // Called at each frame (if enabled)
-	virtual void gui() { }     // Called at each frame (if enabled)
-	virtual void disable() { } // Called each time the screen is disabled
+	virtual void Enable() {}  // Called each time the screen is enabled
+	virtual void Update() {}  // Called at each frame (if enabled)
+	virtual void GUI() {}     // Called at each frame (if enabled)
+	virtual void Disable() {} // Called each time the screen is disabled
 
 
 private:
 
-	bool wasEnabled = false;
+	bool m_WasEnabled = false;
 	friend class ModuleScreen;
 };

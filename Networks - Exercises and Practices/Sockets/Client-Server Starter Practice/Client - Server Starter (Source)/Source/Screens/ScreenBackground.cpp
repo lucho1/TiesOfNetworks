@@ -1,6 +1,6 @@
 #include "Core.h"
 
-void ScreenBackground::enable()
+void ScreenBackground::Enable()
 {
 	background = new GameObject;
 	background->texture = App->modResources->background;
@@ -10,13 +10,13 @@ void ScreenBackground::enable()
 	//background->scene = this;
 }
 
-void ScreenBackground::update()
+void ScreenBackground::Update()
 {
 	background->width = (float)Window.width;
 	background->height = (float)Window.height;
 }
 
-void ScreenBackground::disable()
+void ScreenBackground::Disable()
 {
 	background->deleteFlag = true;
 }

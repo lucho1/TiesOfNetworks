@@ -1,37 +1,29 @@
 #include "Core.h"
 
-void ScreenGame::enable()
+void ScreenGame::Enable()
 {
 	if (isServer)
 	{
-		if (!App->modNetServer->start(serverPort))
+		if (!App->modNetServer->Start(m_ServerPort))
 			WARN_LOG("Could not start ModuleNetworkingServer");
 	}
 	else
 	{
-		if (!App->modNetClient->start(serverAddress, serverPort, playerName))
+		if (!App->modNetClient->Start(m_ServerAddress, m_ServerPort, m_ClientName))
 			WARN_LOG("Could not start ModuleNetworkingClient");
 	}
 }
 
-void ScreenGame::update()
+void ScreenGame::Update()
 {
 	if (isServer)
 	{
-		if (!App->modNetServer->isRunning())
-			App->modScreen->swapScreensWithTransition(this, App->modScreen->screenMainMenu);
+		if (!App->modNetServer->IsRunning())
+			App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenMainMenu);
 	}
 	else
 	{
-		if (!App->modNetClient->isRunning())
-			App->modScreen->swapScreensWithTransition(this, App->modScreen->screenMainMenu);
+		if (!App->modNetClient->IsRunning())
+			App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenMainMenu);
 	}
-}
-
-void ScreenGame::gui()
-{
-}
-
-void ScreenGame::disable()
-{
 }
