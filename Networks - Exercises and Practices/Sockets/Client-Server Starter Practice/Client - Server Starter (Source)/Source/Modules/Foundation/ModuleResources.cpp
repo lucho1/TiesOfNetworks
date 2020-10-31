@@ -48,7 +48,7 @@ void ModuleResources::loadTextureAsync(const char * filename, Texture **textureP
 
 void ModuleResources::onTaskFinished(Task * task)
 {
-	ASSERT(task != nullptr);
+	ASSERT((task != nullptr), "Task passed was NULL");
 	TaskLoadTexture *taskLoadTexture = dynamic_cast<TaskLoadTexture*>(task);
 
 	for (int i = 0; i < taskCount; ++i)
@@ -63,7 +63,7 @@ void ModuleResources::onTaskFinished(Task * task)
 		}
 	}
 
-	ASSERT(task == nullptr);
+	ASSERT((task == nullptr), "Task is not NULL, still Exists");
 	if (finishedTaskCount == taskCount)
 		finishedLoading = true;
 }

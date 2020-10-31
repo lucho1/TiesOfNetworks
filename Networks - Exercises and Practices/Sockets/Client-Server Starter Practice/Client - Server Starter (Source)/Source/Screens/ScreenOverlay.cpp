@@ -3,7 +3,7 @@
 
 void ScreenOverlay::enable()
 {
-	ASSERT(oldScene != nullptr && newScene != nullptr);
+	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes to Overlay don't Exist!");
 	oldScene->shouldUpdate = false;
 	newScene->shouldUpdate = false;
 
@@ -21,7 +21,7 @@ void ScreenOverlay::enable()
 
 void ScreenOverlay::update()
 {
-	ASSERT(oldScene != nullptr && newScene != nullptr);
+	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes to Overlay don't Exist!");
 
 	overlay->width = (float)Window.width;
 	overlay->height = (float)Window.height;

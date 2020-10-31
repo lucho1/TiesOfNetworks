@@ -12,7 +12,7 @@
 #ifdef ASSERT
 #undef ASSERT
 #endif
-#define ASSERT(x) if ((x) == false) { *(int*)0 = 0; }
+#define ASSERT(x, ...) if ((!x)) { Log(__FILE__, __LINE__, LOG_TYPE_ERROR, "ASSERTION FAILED: ", __VA_ARGS__); __debugbreak(); }
 
 #ifdef PI
 #undef PI
@@ -108,7 +108,6 @@ enum ButtonState { Idle, Press, Pressed, Release };
 struct InputController
 {
 	bool isConnected = false;
-
 	float verticalAxis = 0.0f;
 	float horizontalAxis = 0.0f;
 
@@ -151,31 +150,35 @@ extern MouseController Mouse;
 // Use log just like standard printf function.
 // Example: LOG("New user connected %s\n", usernameString);
 enum { LOG_TYPE_INFO, LOG_TYPE_TEXT, LOG_TYPE_WARN, LOG_TYPE_ERROR, LOG_TYPE_DEBUG };
-#define LOG(format, ...)  log(__FILE__, __LINE__, LOG_TYPE_INFO,  format, __VA_ARGS__)
-#define TEXT_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_TEXT,  format, __VA_ARGS__)
-#define WARN_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
-#define ERROR_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
-#define DEBUG_LOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
-void log(const char file[], int line, int type, const char* format, ...);
-uint32 getLogEntryCount();
-struct LogEntry {
+
+#define LOG(format, ...)  Log(__FILE__, __LINE__, LOG_TYPE_INFO,  format, __VA_ARGS__)
+#define TEXT_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_TEXT,  format, __VA_ARGS__)
+#define WARN_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
+#define ERROR_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
+#define DEBUG_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
+
+struct LogEntry
+{
 	int type;
 	const char *message;
 };
-LogEntry getLogEntry(uint32 entryIndex);
+
 std::vector<LogEntry> logLines;
+void Log(const char file[], int line, int type, const char* format, ...);
+inline const uint32 GetLogEntryCount();
+inline const LogEntry GetLogEntry(uint32 entryIndex);
 
 ////////////////////////////////////////////////////////////////////////
 // MATH
 ////////////////////////////////////////////////////////////////////////
 
-inline float radiansFromDegrees(float degrees)
+inline float DegreesToRadians(float degrees)
 {
 	const float radians = PI * degrees / 180.0f;
 	return radians;
 }
 
-inline float fractionalPart(float number)
+inline float GetFractionalPart(float number)
 {
 	const float f = number - (int)number;
 	return f;

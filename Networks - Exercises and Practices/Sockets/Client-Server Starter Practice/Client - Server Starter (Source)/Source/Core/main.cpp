@@ -8,12 +8,12 @@
 
 enum class MainState
 {
-	Create,
-	Init,
-	Loop,
-	CleanUp,
-	Fail,
-	Exit
+	CREATE,
+	INIT,
+	LOOP,
+	CLEANUP,
+	FAIL,
+	EXIT
 };
 
 
@@ -22,64 +22,64 @@ Application * App = nullptr;
 int main(int argc, char **argv)
 {
 	int result = EXIT_FAILURE;
-	MainState state = MainState::Create;
+	MainState state = MainState::CREATE;
 
-	while (state != MainState::Exit)
+	while (state != MainState::EXIT)
 	{
 		switch (state)
 		{
 			// App Creation
-			case MainState::Create:
+			case MainState::CREATE:
 				App = new Application();
 				if (App != nullptr)
-					state = MainState::Init;
+					state = MainState::INIT;
 				else
 				{
 					LOG("Create failed");
-					state = MainState::Fail;
+					state = MainState::FAIL;
 				}
 			break;
 
 			// App Init
-			case MainState::Init:
-				if (App->init())
-					state = MainState::Loop;
+			case MainState::INIT:
+				if (App->AppInit())
+					state = MainState::LOOP;
 				else
 				{
 					LOG("Start failed");
-					state = MainState::Fail;
+					state = MainState::FAIL;
 				}
 			break;
 
 			// Update ok, continue here in the loop, updating...
-			case MainState::Loop:
-				if (!App->update())
-					state = MainState::CleanUp;				
+			case MainState::LOOP:
+				if (!App->AppUpdate())
+					state = MainState::CLEANUP;				
 			break;
 
 			// App cleanup
-			case MainState::CleanUp:
-				if (App->cleanUp())
+			case MainState::CLEANUP:
+				if (App->AppCleanUp())
 				{
 					delete App;
 					App = nullptr;
-					state = MainState::Exit;
+					state = MainState::EXIT;
 					result = EXIT_SUCCESS;
 				}
 				else
 				{
 					LOG("CleanUp failed");
-					state = MainState::Fail;
+					state = MainState::FAIL;
 				}
 			break;
 
 			// App Fail/Exit
-			case MainState::Fail:
+			case MainState::FAIL:
 				LOG("Application failed :-(");
-				state = MainState::Exit;
+				state = MainState::EXIT;
 			break;
 
-			case MainState::Exit: break;
+			case MainState::EXIT: break;
 			default: break;
 		}
 	}

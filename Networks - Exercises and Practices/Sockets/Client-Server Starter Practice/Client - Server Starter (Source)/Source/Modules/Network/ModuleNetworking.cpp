@@ -124,7 +124,7 @@ bool ModuleNetworking::preUpdate()
 					if (recv_bytes == SOCKET_ERROR)
 						reportError("[NET]: Disconnected Client triggered SOCKET_ERROR, probably due to forced disconnection"); // SOCKET_ERROR = -1, so checking for recv_status <= 0 is fine
 				}
-				else //if (recv_status > 0)
+				else //if (recv_bytes > 0)
 				{
 					packet.SetSize((uint32)recv_bytes);
 					onSocketReceivedData(s, packet);

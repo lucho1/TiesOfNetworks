@@ -43,9 +43,9 @@ bool ModuleUI::gui()
 	if (ImGui::Button("Clear Console"))
 		logLines.clear();
 
-	for (uint32 entryIndex = 0; entryIndex < getLogEntryCount(); ++entryIndex)
+	for (uint32 entryIndex = 0; entryIndex < GetLogEntryCount(); ++entryIndex)
 	{
-		LogEntry entry = getLogEntry(entryIndex);
+		LogEntry entry = GetLogEntry(entryIndex);
 
 		if (entry.type == LOG_TYPE_WARN)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));

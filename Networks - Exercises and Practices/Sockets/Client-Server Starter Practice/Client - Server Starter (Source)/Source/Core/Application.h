@@ -9,22 +9,22 @@ public:
 	~Application();
 
 	// Application methods
-	bool wantsToExit() const { return wannaExit; }
-	void exit() { wannaExit = true; }
+	bool WantsToExit() const { return wannaExit; }
+	void ExitApp() { wannaExit = true; }
 
 	// Application lifetime methods
-	bool init();
-	bool update();
-	bool cleanUp();
+	bool AppInit();
+	bool AppUpdate();
+	bool AppCleanUp();
 
 
 private:
 
 	// Private lifetime methods
-	bool doPreUpdate();
-	bool doUpdate();
-	bool doGui();	
-	bool doPostUpdate();
+	bool ModulesPreUpdate();
+	bool ModulesUpdate();
+	bool ModulesGUI();	
+	bool ModulesPostUpdate();
 
 
 public:

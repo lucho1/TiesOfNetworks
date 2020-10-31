@@ -3,7 +3,7 @@
 
 inline void enqueue(Task **queue, int *front, int *back, int max_elems, Task * task)
 {
-	ASSERT(*back != *front);
+	ASSERT((*back != *front), "Back queue element is the same than Front one!");
 	queue[*back] = task;
 
 	if (*front == -1)
@@ -14,7 +14,7 @@ inline void enqueue(Task **queue, int *front, int *back, int max_elems, Task * t
 
 inline Task *dequeue(Task **queue, int *front, int *back, int max_elems)
 {
-	ASSERT(*front != -1);
+	ASSERT((*front != -1), "Front queue element is NULL");
 
 	Task *task = queue[*front];
 	queue[*front] = nullptr;

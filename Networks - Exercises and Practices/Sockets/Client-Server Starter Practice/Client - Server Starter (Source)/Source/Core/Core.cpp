@@ -6,7 +6,7 @@ InputController Input = {};
 MouseController Mouse = {};
 
 
-void log(const char file[], int line, int type, const char* format, ...)
+void Log(const char file[], int line, int type, const char* format, ...)
 {
 	static char tmp_string[4096];
 	static char tmp_string2[4096];
@@ -39,13 +39,13 @@ void log(const char file[], int line, int type, const char* format, ...)
 	logLines.push_back(entry);
 }
 
-uint32 getLogEntryCount()
+inline const uint32 GetLogEntryCount()
 {
 	return (uint32)logLines.size();
 }
 
-LogEntry getLogEntry(uint32 logLineIndex)
+inline const LogEntry GetLogEntry(uint32 logLineIndex)
 {
-	ASSERT(logLineIndex < logLines.size());
+	ASSERT((logLineIndex < logLines.size()), "LogLineIndex passed was Invalid!");
 	return logLines[logLineIndex];
 }

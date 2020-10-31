@@ -28,7 +28,7 @@ Application::~Application()
 }
 
 
-bool Application::init()
+bool Application::AppInit()
 {
 	for (int i = 0; i < numModules; ++i)
 		if (!modules[i]->init())
@@ -37,18 +37,18 @@ bool Application::init()
 	return true;
 }
 
-bool Application::update()
+bool Application::AppUpdate()
 {
-	if (!doPreUpdate())		return false;	
-	if (!doUpdate())		return false;
-	if (!doGui())			return false;
-	if (!doPostUpdate())	return false;
+	if (!ModulesPreUpdate())		return false;
+	if (!ModulesUpdate())		return false;
+	if (!ModulesGUI())			return false;
+	if (!ModulesPostUpdate())	return false;
 
 	modRender->present();
 	return true;
 }
 
-bool Application::cleanUp()
+bool Application::AppCleanUp()
 {
 	for (int i = numModules; i > 0; --i)
 		if (!modules[i - 1]->cleanUp())
@@ -57,7 +57,7 @@ bool Application::cleanUp()
 	return true;
 }
 
-bool Application::doPreUpdate()
+bool Application::ModulesPreUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
 		if (!modules[i]->preUpdate())
@@ -66,7 +66,7 @@ bool Application::doPreUpdate()
 	return true;
 }
 
-bool Application::doUpdate()
+bool Application::ModulesUpdate()
 {
 	unsigned int count = 0;
 	static float accumulator = 0.0f;
@@ -93,7 +93,7 @@ bool Application::doUpdate()
 	return true;
 }
 
-bool Application::doGui()
+bool Application::ModulesGUI()
 {
 	for (int i = 0; i < numModules; ++i)
 		if (!modules[i]->gui())
@@ -102,7 +102,7 @@ bool Application::doGui()
 	return true;
 }
 
-bool Application::doPostUpdate()
+bool Application::ModulesPostUpdate()
 {
 	for (int i = 0; i < numModules; ++i)
 		if (!modules[i]->postUpdate())

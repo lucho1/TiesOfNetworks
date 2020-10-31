@@ -31,7 +31,7 @@ void ScreenLoading::update()
 	{
 		float progressRatio = (float)i / (float)BAR_COUNT;
 		auto gameObject = loadingBars[i];
-		gameObject->color[3] = 1.0f - fractionalPart(((float)Time.time + progressRatio * ROUND_TIME)/ ROUND_TIME);
+		gameObject->color[3] = 1.0f - GetFractionalPart(((float)Time.time + progressRatio * ROUND_TIME)/ ROUND_TIME);
 	}
 
 	if (App->modResources->finishedLoading)

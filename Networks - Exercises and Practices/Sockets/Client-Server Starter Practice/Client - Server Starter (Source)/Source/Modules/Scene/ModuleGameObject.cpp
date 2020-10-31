@@ -15,7 +15,7 @@ GameObject::GameObject()
 		}
 	}
 
-	ASSERT(inserted);
+	ASSERT(inserted, "Couldn't Insert GameObject in GameObjectsList, it was full!");
 }
 
 

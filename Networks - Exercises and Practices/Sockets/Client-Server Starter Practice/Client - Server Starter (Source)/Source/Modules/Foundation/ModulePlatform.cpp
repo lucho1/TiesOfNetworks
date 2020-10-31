@@ -280,7 +280,7 @@ bool ModulePlatform::preUpdate()
 		switch (msg.message)
 		{
 			case WM_QUIT:
-				App->exit();
+				App->ExitApp();
 				return false;
 			
 			case WM_SYSKEYDOWN:

@@ -19,14 +19,14 @@ void OutputMemoryStream::Write(const void *inData, size_t inByteCount)
 void OutputMemoryStream::ReallocBuffer(uint32 inNewLength)
 {
 	mBuffer = static_cast<char*>(std::realloc(mBuffer, inNewLength));
-	ASSERT(mBuffer != nullptr && "OutputMemoryStream::ReallocBuffer() - std::realloc() failed.");
+	ASSERT((mBuffer != nullptr), "OutputMemoryStream::ReallocBuffer() - std::realloc() failed.");
 	mCapacity = inNewLength;
 }
 
 void InputMemoryStream::Read(void *outData, size_t inByteCount) const
 {
 	uint32 resultHead = mHead + static_cast<uint32>(inByteCount);
-	ASSERT(resultHead <= mSize && resultHead <= mCapacity && "InputMemoryStream::Read() - trying to read more data than available.");
+	ASSERT((resultHead <= mSize && resultHead <= mCapacity), "InputMemoryStream::Read() - trying to read more data than available.");
 	std::memcpy(outData, mBuffer + mHead, inByteCount);
 	mHead = resultHead;
 }
