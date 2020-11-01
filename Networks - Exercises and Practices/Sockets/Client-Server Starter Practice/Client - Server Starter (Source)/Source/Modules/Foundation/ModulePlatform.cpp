@@ -165,7 +165,7 @@ bool ModulePlatform::Init()
 	m_WindowClass.style = CS_OWNDC;
 	if (::RegisterClassEx(&m_WindowClass) == 0)
 	{
-		LOG("ModuleWindow::init() - RegisterClassEx() failed");
+		APP_LOG("ModuleWindow::init() - RegisterClassEx() failed");
 		return false;
 	}
 
@@ -204,7 +204,7 @@ bool ModulePlatform::Init()
 	}
 	else
 	{
-		LOG("ModuleWindow::init() - XInput library loading failed");
+		APP_LOG("ModuleWindow::init() - XInput library loading failed");
 		::DestroyWindow(hwnd);
 		::UnregisterClass(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
 		return false;

@@ -58,7 +58,7 @@ bool ModuleNetworkingClient::Update()
 			m_ClientState = ClientState::LOGGING;
 		else
 		{
-			ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+			APPCONSOLE_ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
 			Disconnect();
 			m_ClientState = ClientState::STOPPED;
 		}
@@ -115,14 +115,14 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	packet >> r; packet >> g; packet >> b;
 
 	if (serverMessage == ServerMessage::WELCOME)
-		LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
+		APPCONSOLE_INFO_LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
 
 	m_ClientState = ClientState::STOPPED;
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	DEBUG_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	APPCONSOLE_INFO_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
 	m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)

@@ -3,11 +3,6 @@
 
 void ScreenMainMenu::Enable()
 {
-	//LOG("Example INFO log entry...");
-	//TEXT_LOG("Example TEXT log entry...");
-	//DEBUG_LOG("Example DEBUG log entry...");
-	//WARN_LOG("Example WARNING log entry...");
-	//ERROR_LOG("Example ERROR log entry...");
 }
 
 void ScreenMainMenu::GUI()

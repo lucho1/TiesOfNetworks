@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 					state = MainState::INIT;
 				else
 				{
-					LOG("Create failed");
+					APP_LOG("Create failed");
 					state = MainState::FAIL;
 				}
 			break;
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 					state = MainState::LOOP;
 				else
 				{
-					LOG("Start failed");
+					APP_LOG("Start failed");
 					state = MainState::FAIL;
 				}
 			break;
@@ -68,14 +68,14 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					LOG("CleanUp failed");
+					APP_LOG("CleanUp failed");
 					state = MainState::FAIL;
 				}
 			break;
 
 			// App Fail/Exit
 			case MainState::FAIL:
-				LOG("Application failed :-(");
+				APP_LOG("Application failed :-(");
 				state = MainState::EXIT;
 			break;
 

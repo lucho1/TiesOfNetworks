@@ -6,40 +6,6 @@
 
 
 ////////////////////////////////////////////////////////////////////////
-// MACROS
-////////////////////////////////////////////////////////////////////////
-
-#ifdef ASSERT
-#undef ASSERT
-#endif
-#define ASSERT(x, ...) if ((!x)) { Log(__FILE__, __LINE__, LOG_TYPE_ERROR, "ASSERTION FAILED: ", __VA_ARGS__); __debugbreak(); }
-
-#ifdef PI
-#undef PI
-#endif
-#define PI 3.14159265359f
-
-#define Kilobytes(x) (1024L * x)
-#define Megabytes(x) (1024L * Kilobytes(x))
-#define Gigabytes(x) (1024L * Megabytes(x))
-#define Terabytes(x) (1024L * Gigabytes(x))
-
-
-////////////////////////////////////////////////////////////////////////
-// CONSTANTS
-////////////////////////////////////////////////////////////////////////
-
-#define MAX_SCREENS           32
-#define MAX_TASKS            128
-#define MAX_TEXTURES         512
-#define MAX_GAME_OBJECTS    2048
-#define MAX_CLIENTS            4
-
-#define SCENE_TRANSITION_TIME      1.0f
-#define PACKET_SIZE        Kilobytes(4)
-
-
-////////////////////////////////////////////////////////////////////////
 // BASIC TYPES
 ////////////////////////////////////////////////////////////////////////
 
@@ -143,31 +109,66 @@ extern MouseController Mouse;
 
 
 ////////////////////////////////////////////////////////////////////////
-// LOG
+// MACROS
 ////////////////////////////////////////////////////////////////////////
 
+#ifdef ASSERT
+#undef ASSERT
+#endif
+#define ASSERT(x, ...) if ((!x)) { PrivateAppLog(__FILE__, __LINE__, "ASSERTION FAILED: ", __VA_ARGS__); __debugbreak(); }
+
+#ifdef PI
+#undef PI
+#endif
+#define PI 3.14159265359f
+
+#define Kilobytes(x) (1024L * x)
+#define Megabytes(x) (1024L * Kilobytes(x))
+#define Gigabytes(x) (1024L * Megabytes(x))
+#define Terabytes(x) (1024L * Gigabytes(x))
+
+
+////////////////////////////////////////////////////////////////////////
+// CONSTANTS
+////////////////////////////////////////////////////////////////////////
+
+#define MAX_SCREENS           32
+#define MAX_TASKS            128
+#define MAX_TEXTURES         512
+#define MAX_GAME_OBJECTS    2048
+#define MAX_CLIENTS            4
+
+#define SCENE_TRANSITION_TIME      1.0f
+#define PACKET_SIZE        Kilobytes(4)
+
+////////////////////////////////////////////////////////////////////////
+// LOG
+////////////////////////////////////////////////////////////////////////
 // NOTE(jesus):
 // Use log just like standard printf function.
 // Example: LOG("New user connected %s\n", usernameString);
-enum { LOG_TYPE_INFO, LOG_TYPE_TEXT, LOG_TYPE_WARN, LOG_TYPE_ERROR, LOG_TYPE_DEBUG };
+enum EntryType { APP_ERROR_LOG = 0, APP_WARN_LOG, APP_INFO_LOG };
 
-#define LOG(format, ...)  Log(__FILE__, __LINE__, LOG_TYPE_INFO,  format, __VA_ARGS__)
-#define TEXT_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_TEXT,  format, __VA_ARGS__)
-#define WARN_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
-#define ERROR_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
-#define DEBUG_LOG(format, ...) Log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
+#define APP_LOG(format, ...)				PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__)
+#define APPCONSOLE_ERROR_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_ERROR_LOG)
+#define APPCONSOLE_WARN_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_WARN_LOG)
+#define APPCONSOLE_INFO_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_INFO_LOG)
 
+class Color;
 struct LogEntry
 {
-	int type;
+	LogEntry(const char* msg, const Color& col) : message(msg), text_color(&col) {}
+	const Color* text_color;
 	const char *message;
-	
 };
 
+void PublicAppLog(const char* msg, EntryType type);
+const char* PrivateAppLog(const char file[], int line, const char* format, ...);
+
 std::vector<LogEntry> logLines;
-void Log(const char file[], int line, int type, const char* format, ...);
 inline const uint32 GetLogEntryCount();
 inline const LogEntry GetLogEntry(uint32 entryIndex);
+inline void PushLogEntry(const LogEntry& entry);
 
 ////////////////////////////////////////////////////////////////////////
 // MATH
@@ -181,6 +182,9 @@ inline float ClampValue(float val)				{ return float (std::max(0.0f, std::min(va
 ////////////////////////////////////////////////////////////////////////
 // FRAMEWORK HEADERS
 ////////////////////////////////////////////////////////////////////////
+
+// --- Utilities Includes ---
+#include "Utilities/Color.h"
 
 // --- Networking Includes ---
 #include "NetStreams/Messages.h"

@@ -69,7 +69,7 @@ bool ModuleRender::Init()
 	/////////////////////////////////////////////////////////////
 	if (!CreateDeviceD3D(hwnd))
 	{
-		LOG("ModuleRender::init() - CreateDeviceD3D() failed");
+		APP_LOG("ModuleRender::init() - CreateDeviceD3D() failed");
 		CleanupDeviceD3D();
 		return false;
 	}
@@ -101,7 +101,7 @@ bool ModuleRender::Init()
 	InitData.pSysMem = vertices;
 
 	if (g_pd3dDevice->CreateBuffer(&desc, &InitData, &g_pVertexBuffer) < 0) {
-		LOG("d3d->CreateBuffer() failed (Vertex Buffer)");
+		APP_LOG("d3d->CreateBuffer() failed (Vertex Buffer)");
 		return false;
 	}
 
@@ -113,7 +113,7 @@ bool ModuleRender::Init()
 	LoadShaderFile("Assets/Shaders/vertex_shader.hlsl", m_ShaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
-		LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
+		APP_LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
 		return false;
 	}
 
@@ -122,17 +122,17 @@ bool ModuleRender::Init()
 
 	if (errorBlob)
 	{
-		LOG("D3DCompile(\"vertex_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
+		APP_LOG("D3DCompile(\"vertex_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		SAFE_RELEASE(errorBlob);
 	}
 	if (g_pVertexShaderBlob == NULL)
 	{
-		LOG("D3DCompile(\"vertex_shader.hlsl\") failed");
+		APP_LOG("D3DCompile(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 	if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
 	{
-		LOG("d3d->CreateVertexShader(\"vertex_shader.hlsl\") failed");
+		APP_LOG("d3d->CreateVertexShader(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -149,7 +149,7 @@ bool ModuleRender::Init()
 		g_pVertexShaderBlob->GetBufferPointer(),
 		g_pVertexShaderBlob->GetBufferSize(),
 		&g_pInputLayout) != S_OK) {
-		LOG("d3d->CreateInputLayout(\"vertex_shader.hlsl\") failed");
+		APP_LOG("d3d->CreateInputLayout(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -164,7 +164,7 @@ bool ModuleRender::Init()
 		desc.StructureByteStride = 0;
 		if (g_pd3dDevice->CreateBuffer(&desc, NULL, &g_pConstantBuffer) != S_OK)
 		{
-			LOG("d3d->CreateBuffer() failed (CONSTANT_BUFFER)");
+			APP_LOG("d3d->CreateBuffer() failed (CONSTANT_BUFFER)");
 			return false;
 		}
 	}
@@ -176,24 +176,24 @@ bool ModuleRender::Init()
 	LoadShaderFile("Assets/Shaders/pixel_shader.hlsl", m_ShaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
-		LOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
+		APP_LOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
 		return false;
 	}
 
 	D3DCompile(m_ShaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, &errorBlob);
 	if (errorBlob)
 	{
-		LOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
+		APP_LOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		errorBlob->Release();
 	}
 	if (g_pPixelShaderBlob == NULL)
 	{
-		LOG("D3DCompile(\"pixel_shader.hlsl\") failed");
+		APP_LOG("D3DCompile(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
 	if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
 	{
-		LOG("d3d->CreatePixelShader(\"pixel_shader.hlsl\") failed");
+		APP_LOG("d3d->CreatePixelShader(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -215,7 +215,7 @@ bool ModuleRender::Init()
 		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		if (g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState) != S_OK)
 		{
-			LOG("d3d->CreateBlendState() failed");
+			APP_LOG("d3d->CreateBlendState() failed");
 			return false;
 		}
 	}
@@ -229,7 +229,7 @@ bool ModuleRender::Init()
 		desc.DepthClipEnable = true;
 		if (g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState) != S_OK)
 		{
-			LOG("d3d->CreateRasterizerState() failed");
+			APP_LOG("d3d->CreateRasterizerState() failed");
 			return false;
 		}
 	}
@@ -246,7 +246,7 @@ bool ModuleRender::Init()
 		desc.BackFace = desc.FrontFace;
 		if (g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState) != S_OK)
 		{
-			LOG("d3d->CreateDepthStencilState() failed");
+			APP_LOG("d3d->CreateDepthStencilState() failed");
 			return false;
 		}
 	}
@@ -280,7 +280,7 @@ bool ModuleRender::Init()
 
 	if (m_WhitePixel == nullptr || m_BlackPixel == nullptr)
 	{
-		LOG("ModuleRender::init() - Could not create white and black textures");
+		APP_LOG("ModuleRender::init() - Could not create white and black textures");
 		return false;
 	}
 
@@ -479,7 +479,7 @@ void ModuleRender::RenderScene(int minOrder, int maxOrder)
 			D3D11_MAPPED_SUBRESOURCE mapped_resource;
 			if (ctx->Map(g_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
 			{
-				LOG("d3d->Map() failed (CONSTANT BUFFER)");
+				APPCONSOLE_ERROR_LOG("d3d->Map() failed (CONSTANT BUFFER) - Renderer Failure on Loading Matrices into constant buffer");
 				return;
 			}
 
@@ -525,7 +525,7 @@ bool ModuleRender::CreateDeviceD3D(HWND hWnd)
 	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
 	if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
 	{
-		LOG("ModuleRender::CreateDeviceD3D() failed");
+		APP_LOG("ModuleRender::CreateDeviceD3D() failed");
 		return false;
 	}
 

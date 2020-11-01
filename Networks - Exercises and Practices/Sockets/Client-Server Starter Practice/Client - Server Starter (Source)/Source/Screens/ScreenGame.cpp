@@ -5,12 +5,12 @@ void ScreenGame::Enable()
 	if (isServer)
 	{
 		if (!App->modNetServer->Start(m_ServerPort))
-			WARN_LOG("Could not start ModuleNetworkingServer");
+			APPCONSOLE_WARN_LOG("Error: Could not start ModuleNetworkingServer");
 	}
 	else
 	{
 		if (!App->modNetClient->Start(m_ServerAddress, m_ServerPort, m_ClientName))
-			WARN_LOG("Could not start ModuleNetworkingClient");
+			APPCONSOLE_WARN_LOG("Error: Could not start ModuleNetworkingClient");
 	}
 }
 

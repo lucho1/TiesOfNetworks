@@ -8,10 +8,12 @@ class Color
 public:
 	
 	// --- Constructors ---
+	Color() : r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
+
 	Color(float red, float green, float blue, float alpha = 1.0f)
 	{
 		if (red > 255.0f || green > 255.0f || blue > 255.0f || red < 0.0f || green < 0.0f || blue < 0.0f || alpha > 255.0f || alpha < 0.0f)
-			ERROR_LOG("Colors can't be negative or bigger than 255!");
+			APPCONSOLE_WARN_LOG("Colors can't be negative or bigger than 255!");
 
 		r = red; g = green; b = blue; a = alpha;
 		if (red > 1.0f)		r /= 255.0f;

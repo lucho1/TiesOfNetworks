@@ -92,7 +92,7 @@ ID3D11ShaderResourceView* ModuleTextures::LoadD3DTextureFromFile(const char * fi
 	
 	if (pixels == nullptr)
 	{
-		LOG("ModuleTextures::loadTexture() - stbi_load() failed.");
+		APPCONSOLE_ERROR_LOG("ModuleTextures::loadTexture() - stbi_load() failed on image loading from file.");
 		return NULL;
 	}
 
@@ -140,7 +140,7 @@ ID3D11ShaderResourceView* ModuleTextures::LoadD3DTextureFromPixels(void * pixels
 	
 	if (g_pd3dDevice->CreateTexture2D(&desc, &subResource, &handle) < 0)
 	{
-		LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateTexture() failed.");
+		APPCONSOLE_ERROR_LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateTexture() failed.");
 		return NULL;
 	}
 
@@ -154,7 +154,7 @@ ID3D11ShaderResourceView* ModuleTextures::LoadD3DTextureFromPixels(void * pixels
 	
 	if (g_pd3dDevice->CreateShaderResourceView(handle, &srvDesc, &shaderResourceView) != S_OK)
 	{
-		LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateShaderResourceView() failed.");
+		APPCONSOLE_ERROR_LOG("ModuleTextures::loadTexture() - g_pd3dDevice->CreateShaderResourceView() failed.");
 		handle->Release();
 		return NULL;
 	}

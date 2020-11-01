@@ -48,7 +48,8 @@ bool ModuleNetworkingServer::Start(int port)
 	else
 		ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Error opening socket m_ListeningSocket in ", "SERVER", "ModuleNetworkingServer::start()");
 
-	
+	APPCONSOLE_INFO_LOG("SERVER STARTED IN PORT %i", port);
+
 	// --- ---
 	return true;
 }
@@ -140,7 +141,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			if (s.socket == socket)
 			{
 				s.client_name = clientName;
-				LOG("Received client name from client '%s'", s.client_name.c_str()); // TODO: Delete this, is just for debugging
+				APPCONSOLE_INFO_LOG("Received client name from client '%s'", s.client_name.c_str()); // TODO: Delete this, is just for debugging
 
 				OutputMemoryStream response;
 				response << ServerMessage::WELCOME << "WELCOME CLIENT " << s.client_name;
@@ -164,7 +165,7 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 			std::string add = std::to_string(inAddr.S_un.S_un_b.s_b1) + "." + std::to_string(inAddr.S_un.S_un_b.s_b2) + "." + std::to_string(inAddr.S_un.S_un_b.s_b3)
 								+ "." + std::to_string(inAddr.S_un.S_un_b.s_b4) + ":" + std::to_string(ntohs(connectedSocket.address.sin_port));
 
-			DEBUG_LOG("Disconnected client '%s' with address %s and ID: %d", connectedSocket.client_name.c_str(), add.c_str(), connectedSocket.socket);
+			APPCONSOLE_INFO_LOG("Disconnected client '%s' with address %s and ID: %d", connectedSocket.client_name.c_str(), add.c_str(), connectedSocket.socket);
 			m_ConnectedSockets.erase(it);
 			break;
 		}

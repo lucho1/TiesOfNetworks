@@ -11,7 +11,7 @@ void ModuleNetworking::ReportErrorAndClose(const SOCKET s, const std::string& me
 	if (closesocket(s) == SOCKET_ERROR)
 	{
 		std::string str = "[NET]: Error closing '" + socket_or_side_name + "' socket on '" + function_name + "' function";
-		ERROR_LOG(str.c_str());
+		APPCONSOLE_ERROR_LOG(str.c_str());
 	}
 }
 
@@ -25,7 +25,7 @@ void ModuleNetworking::ReportError(const char* inOperationDesc)
 					NULL, errorNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL
 				  );
 
-	ERROR_LOG("\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	APPCONSOLE_ERROR_LOG("\t%s\n\t\tError Number and Description: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
 void ModuleNetworking::Disconnect()
@@ -158,7 +158,7 @@ bool ModuleNetworking::PostUpdate()
 	if (m_ServerDisconnection)
 	{
 		Disconnect();
-		LOG("[NET]: Server was Disconnected");
+		APPCONSOLE_INFO_LOG("[NET]: Server was Disconnected");
 	}
 
 	return true;

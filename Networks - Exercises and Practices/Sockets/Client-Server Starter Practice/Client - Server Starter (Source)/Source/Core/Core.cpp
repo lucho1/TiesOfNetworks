@@ -5,14 +5,13 @@ TimeStruct Time = {};
 InputController Input = {};
 MouseController Mouse = {};
 
-
-void Log(const char file[], int line, int type, const char* format, ...)
+const char* PrivateAppLog(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];
 	static char tmp_string2[4096];
 	static va_list  ap;
 
-	const char *basefile = file;
+	const char* basefile = file;
 	const size_t filelen = strlen(file);
 
 	for (size_t i = 0; i < filelen; ++i)
@@ -27,15 +26,26 @@ void Log(const char file[], int line, int type, const char* format, ...)
 
 	// Windows debug output
 	OutputDebugString(tmp_string2);
+	return tmp_string2;
+}
 
+
+void PublicAppLog(const char* msg, EntryType type)
+{
 	// NOTE: There is a memory leak here, but we will need logs
 	// until the application finished, we will go with this...
-	char *message = new char[strlen(tmp_string2)+1];
-	lstrcpyA(message, tmp_string2);
+	char *message = new char[strlen(msg)+1];
+	lstrcpyA(message, msg);
 
-	LogEntry entry;
-	entry.type = type;
-	entry.message = message;
+	Color color = Color();
+	switch (type)
+	{
+		case APP_ERROR_LOG:	color.SetColor(1.0f, 0.2f, 0.2f);	// Red
+		case APP_WARN_LOG:	color.SetColor(1.0f, 0.5f, 0.0f);	// Yellow
+		case APP_INFO_LOG:	color.SetColor(0.3f, 0.3f, 1.0f);	// Blue
+	}
+
+	LogEntry entry = LogEntry(message, color);
 	logLines.push_back(entry);
 }
 
@@ -48,4 +58,9 @@ inline const LogEntry GetLogEntry(uint32 logLineIndex)
 {
 	ASSERT((logLineIndex < logLines.size()), "LogLineIndex passed was Invalid!");
 	return logLines[logLineIndex];
+}
+
+inline void PushLogEntry(const LogEntry& entry)
+{
+	logLines.push_back(entry);
 }

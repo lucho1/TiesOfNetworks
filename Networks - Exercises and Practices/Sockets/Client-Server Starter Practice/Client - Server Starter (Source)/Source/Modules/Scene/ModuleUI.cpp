@@ -36,36 +36,6 @@ bool ModuleUI::PreUpdate()
 	return true;
 }
 
-bool ModuleUI::GUI()
-{
-	ImGui::Begin("Logging window");
-
-	if (ImGui::Button("Clear Console"))
-		logLines.clear();
-
-	for (uint32 entryIndex = 0; entryIndex < GetLogEntryCount(); ++entryIndex)
-	{
-		LogEntry entry = GetLogEntry(entryIndex);
-
-		if (entry.type == LOG_TYPE_WARN)
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-		else if (entry.type == LOG_TYPE_ERROR)
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));		
-		else if (entry.type == LOG_TYPE_DEBUG)
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.3f, 1.0f, 1.0f));
-		else if (entry.type == LOG_TYPE_TEXT)
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-
-
-		ImGui::TextWrapped("%s", entry.message);
-		if (entry.type == LOG_TYPE_WARN || entry.type == LOG_TYPE_ERROR || entry.type == LOG_TYPE_DEBUG || entry.type == LOG_TYPE_TEXT)
-			ImGui::PopStyleColor();
-	}
-
-	ImGui::End();
-	return true;
-}
-
 bool ModuleUI::PostUpdate()
 {
 	ImGui::EndFrame();
@@ -80,6 +50,31 @@ bool ModuleUI::CleanUp()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 	return true;
+}
+
+bool ModuleUI::GUI()
+{
+	ImGui::Begin("Logging window");
+
+	if (ImGui::Button("Clear Console"))
+		logLines.clear();
+
+	for (uint32 entryIndex = 0; entryIndex < GetLogEntryCount(); ++entryIndex)
+	{
+		LogEntry entry = GetLogEntry(entryIndex);
+
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.text_color->r, entry.text_color->g, entry.text_color->b, entry.text_color->a));
+		ImGui::TextWrapped("%s", entry.message);
+		ImGui::PopStyleColor();
+	}
+
+	ImGui::End();
+	return true;
+}
+
+inline void ModuleUI::PrintMessageInConsole(const char* msg, const Color& col) const
+{
+	PushLogEntry(LogEntry(msg, col));
 }
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
