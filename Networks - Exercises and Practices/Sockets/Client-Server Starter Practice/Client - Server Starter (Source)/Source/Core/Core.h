@@ -161,6 +161,7 @@ struct LogEntry
 {
 	int type;
 	const char *message;
+	
 };
 
 std::vector<LogEntry> logLines;
@@ -172,17 +173,9 @@ inline const LogEntry GetLogEntry(uint32 entryIndex);
 // MATH
 ////////////////////////////////////////////////////////////////////////
 
-inline float DegreesToRadians(float degrees)
-{
-	const float radians = PI * degrees / 180.0f;
-	return radians;
-}
-
-inline float GetFractionalPart(float number)
-{
-	const float f = number - (int)number;
-	return f;
-}
+inline float DegreesToRadians(float degrees)	{ return float (PI * degrees / 180.0f); }
+inline float GetFractionalPart(float number)	{ return float (number - (int)number); }
+inline float ClampValue(float val)				{ return float (std::max(0.0f, std::min(val, 1.0f))); }
 
 
 ////////////////////////////////////////////////////////////////////////

@@ -221,6 +221,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\Application.h" />
+    <ClInclude Include="Source\Core\Utilities\Color.h" />
     <ClInclude Include="Source\Modules\Network\ModuleNetworkingClient.h" />
     <ClInclude Include="Source\Modules\Network\ModuleNetworkingServer.h" />
     <ClInclude Include="Source\Core\NetStreams\ByteSwap.h" />
