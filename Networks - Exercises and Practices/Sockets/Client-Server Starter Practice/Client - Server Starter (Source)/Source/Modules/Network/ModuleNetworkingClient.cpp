@@ -130,5 +130,7 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	else if (closesocket(socket) == SOCKET_ERROR)
 		ReportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
 
+
+	logLines.clear();
 	m_ClientState = ClientState::STOPPED;
 }

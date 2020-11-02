@@ -56,8 +56,12 @@ bool ModuleUI::GUI()
 {
 	ImGui::Begin("Logging window");
 
-	if (ImGui::Button("Clear Console"))
-		logLines.clear();
+	const char* console_name = "Clear Console";
+	if (App->modNetClient->IsRunning())
+		console_name = "Clear Chat";
+
+	if (ImGui::Button(console_name))
+		logLines.clear();	
 
 	for (uint32 entryIndex = 0; entryIndex < GetLogEntryCount(); ++entryIndex)
 	{
@@ -69,6 +73,7 @@ bool ModuleUI::GUI()
 	}
 
 	ImGui::End();
+
 	return true;
 }
 
