@@ -47,7 +47,7 @@ void PublicAppLog(const char* msg, EntryType type)
 		case APP_INFO_LOG:	color.SetColor(0.3f, 0.3f, 1.0f);	// Blue
 	}
 
-	LogEntry entry = LogEntry(msg, color);
+	LogEntry entry = LogEntry(message, color);
 	logLines.push_back(entry);
 }
 

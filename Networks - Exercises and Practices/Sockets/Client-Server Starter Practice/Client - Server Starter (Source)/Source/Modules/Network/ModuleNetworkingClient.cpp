@@ -117,7 +117,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	if (serverMessage == ServerMessage::WELCOME)
 		APPCONSOLE_INFO_LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
 
-	m_ClientState = ClientState::STOPPED;
+	//m_ClientState = ClientState::STOPPED;
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
