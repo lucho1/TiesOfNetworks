@@ -97,3 +97,18 @@ public:
 
 	float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
 };
+
+
+namespace Colors
+{
+	extern Color White = Color();
+	extern Color Black = Color(0.0f, 0.0f, 0.0f);
+	extern Color Red = Color(1.0f, 0.0f, 0.0f);
+	extern Color Green = Color(0.0f, 1.0f, 0.0f);
+	extern Color Blue = Color(0.0f, 0.0f, 1.0f);
+	extern Color Yellow = Color(1.0f, 1.0f, 0.0f);
+
+	extern Color ConsoleRed = Color(1.0f, 0.2f, 0.2f);
+	extern Color ConsoleYellow = Color(1.0f, 0.5f, 0.0f);
+	extern Color ConsoleBlue = Color(0.3f, 0.3f, 1.0f);
+}

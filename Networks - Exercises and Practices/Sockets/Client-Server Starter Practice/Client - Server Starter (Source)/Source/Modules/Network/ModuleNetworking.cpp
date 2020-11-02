@@ -159,6 +159,7 @@ bool ModuleNetworking::PostUpdate()
 	{
 		Disconnect();
 		logLines.clear();
+		APPCONSOLE_INFO_LOG("[NET]: Server Disconnected");
 	}
 
 	return true;

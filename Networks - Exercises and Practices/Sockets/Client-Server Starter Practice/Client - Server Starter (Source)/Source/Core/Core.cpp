@@ -42,9 +42,9 @@ void PublicAppLog(const char* msg, EntryType type)
 	Color color = Color();
 	switch (type)
 	{
-		case APP_ERROR_LOG:	color.SetColor(1.0f, 0.2f, 0.2f);	// Red
-		case APP_WARN_LOG:	color.SetColor(1.0f, 0.5f, 0.0f);	// Yellow
-		case APP_INFO_LOG:	color.SetColor(0.3f, 0.3f, 1.0f);	// Blue
+		case APP_ERROR_LOG:	color.SetColor(Colors::ConsoleRed);		// Red
+		case APP_WARN_LOG:	color.SetColor(Colors::ConsoleYellow);	// Yellow
+		case APP_INFO_LOG:	color.SetColor(Colors::ConsoleBlue);	// Blue
 	}
 
 	LogEntry entry = LogEntry(message, color);
