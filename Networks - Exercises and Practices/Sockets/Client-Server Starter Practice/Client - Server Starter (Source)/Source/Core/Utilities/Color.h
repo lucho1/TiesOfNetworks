@@ -26,12 +26,13 @@ public:
 	Color(int r, int g, int b, int a) : Color((float)r, (float)g, (float)b, (float)a)	{}
 
 	Color(const Color& col) { *this = col; }
-	Color& operator=(const Color& col) { Color(col.r, col.g, col.b, col.a); }
+	//Color& operator=(const Color& col) { return *this; }
 
 public:
 
 	// --- Getters ---
 	Color GetColor() const { return *this; }
+	float* GetColorArray() const { float ret[4] = { r,g,b,a }; return ret; }
 
 	// --- Setters ---
 	void SetColor(const Color& col)

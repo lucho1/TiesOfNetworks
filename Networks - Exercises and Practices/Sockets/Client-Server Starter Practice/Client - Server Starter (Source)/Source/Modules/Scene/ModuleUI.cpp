@@ -63,7 +63,7 @@ bool ModuleUI::GUI()
 	{
 		LogEntry entry = GetLogEntry(entryIndex);
 
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.text_color->r, entry.text_color->g, entry.text_color->b, entry.text_color->a));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.text_color.r, entry.text_color.g, entry.text_color.b, entry.text_color.a));
 		ImGui::TextWrapped("%s", entry.message);
 		ImGui::PopStyleColor();
 	}

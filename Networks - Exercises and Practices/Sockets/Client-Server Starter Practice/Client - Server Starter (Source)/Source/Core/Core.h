@@ -141,6 +141,16 @@ extern MouseController Mouse;
 #define SCENE_TRANSITION_TIME      1.0f
 #define PACKET_SIZE        Kilobytes(4)
 
+
+////////////////////////////////////////////////////////////////////////
+// MATH
+////////////////////////////////////////////////////////////////////////
+
+inline float DegreesToRadians(float degrees) { return float(PI * degrees / 180.0f); }
+inline float GetFractionalPart(float number) { return float(number - (int)number); }
+inline float ClampValue(float val) { return float(std::max(0.0f, std::min(val, 1.0f))); }
+
+
 ////////////////////////////////////////////////////////////////////////
 // LOG
 ////////////////////////////////////////////////////////////////////////
@@ -149,42 +159,34 @@ extern MouseController Mouse;
 // Example: LOG("New user connected %s\n", usernameString);
 enum EntryType { APP_ERROR_LOG = 0, APP_WARN_LOG, APP_INFO_LOG };
 
+void PublicAppLog(const char* msg, EntryType type);
+const char* PrivateAppLog(const char file[], int line, const char* format, ...);
+
 #define APP_LOG(format, ...)				PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__)
 #define APPCONSOLE_ERROR_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_ERROR_LOG)
 #define APPCONSOLE_WARN_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_WARN_LOG)
 #define APPCONSOLE_INFO_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_INFO_LOG)
 
-class Color;
+
+// --- Utilities Includes ---
+#include "Utilities/Color.h"
+
 struct LogEntry
 {
-	LogEntry(const char* msg, const Color& col) : message(msg), text_color(&col) {}
-	const Color* text_color;
+	LogEntry(const char* msg, const Color& col) : message(msg), text_color(col) {}
+	const Color text_color;
 	const char *message;
 };
-
-void PublicAppLog(const char* msg, EntryType type);
-const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 
 std::vector<LogEntry> logLines;
 inline const uint32 GetLogEntryCount();
 inline const LogEntry GetLogEntry(uint32 entryIndex);
 inline void PushLogEntry(const LogEntry& entry);
 
-////////////////////////////////////////////////////////////////////////
-// MATH
-////////////////////////////////////////////////////////////////////////
-
-inline float DegreesToRadians(float degrees)	{ return float (PI * degrees / 180.0f); }
-inline float GetFractionalPart(float number)	{ return float (number - (int)number); }
-inline float ClampValue(float val)				{ return float (std::max(0.0f, std::min(val, 1.0f))); }
-
 
 ////////////////////////////////////////////////////////////////////////
 // FRAMEWORK HEADERS
 ////////////////////////////////////////////////////////////////////////
-
-// --- Utilities Includes ---
-#include "Utilities/Color.h"
 
 // --- Networking Includes ---
 #include "NetStreams/Messages.h"

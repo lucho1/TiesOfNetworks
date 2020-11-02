@@ -1,4 +1,5 @@
 #include "Core.h"
+#include <strsafe.h>
 
 WindowStruct Window = {};
 TimeStruct Time = {};
@@ -35,7 +36,8 @@ void PublicAppLog(const char* msg, EntryType type)
 	// NOTE: There is a memory leak here, but we will need logs
 	// until the application finished, we will go with this...
 	char *message = new char[strlen(msg)+1];
-	lstrcpyA(message, msg);
+	//lstrcpyA(message, msg);
+	StringCchCopyA(message, strlen(msg) + 1, msg); // A safer function than lstrcpyA() --> lstrcpy has undefined behavior if src & dest buffers overlap
 
 	Color color = Color();
 	switch (type)
@@ -45,7 +47,7 @@ void PublicAppLog(const char* msg, EntryType type)
 		case APP_INFO_LOG:	color.SetColor(0.3f, 0.3f, 1.0f);	// Blue
 	}
 
-	LogEntry entry = LogEntry(message, color);
+	LogEntry entry = LogEntry(msg, color);
 	logLines.push_back(entry);
 }
 
