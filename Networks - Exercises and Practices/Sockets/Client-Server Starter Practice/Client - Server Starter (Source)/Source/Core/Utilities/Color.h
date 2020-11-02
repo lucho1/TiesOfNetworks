@@ -87,6 +87,7 @@ public:
 
 	bool operator== (const Color& col)	{ return (r == col.r && g == col.g && b == col.b && a == col.a); }
 	bool operator!= (const Color& col) { return (r != col.r || g != col.g || b != col.b || a != col.a); }
+	float operator[](const uint index) { if (index < 4) return GetColorArray()[index]; else return -1; }
 
 	Color operator +(const Color& col)	{ return Color(ClampValue(col.r + r), ClampValue(col.g + g), ClampValue(col.b + b), ClampValue(col.a + a)); }
 	Color operator -(const Color& col)	{ return Color(ClampValue(col.r - r), ClampValue(col.g - g), ClampValue(col.b - b), ClampValue(col.a - a));	}
@@ -111,4 +112,5 @@ namespace Colors
 	extern Color ConsoleRed = Color(1.0f, 0.2f, 0.2f);
 	extern Color ConsoleYellow = Color(1.0f, 0.5f, 0.0f);
 	extern Color ConsoleBlue = Color(0.3f, 0.3f, 1.0f);
+	extern Color ConsoleGreen = Color(0.2f, 1.0f, 0.2f);
 }

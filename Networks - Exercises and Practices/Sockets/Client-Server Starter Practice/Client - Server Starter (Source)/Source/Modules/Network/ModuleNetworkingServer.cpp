@@ -3,6 +3,7 @@
 // -- Delivery by Lucho Suaya and Sergi Parra --
 
 
+
 // ------------------ ModuleNetworkingServer public methods ------------------
 bool ModuleNetworkingServer::Start(int port)
 {
@@ -59,6 +60,17 @@ bool ModuleNetworkingServer::IsRunning() const
 	return m_ServerState != ServerState::STOPPED;
 }
 
+uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
+{
+	if (m_ConnectedSockets.empty())
+		return -1;
+
+	for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
+		if (m_ConnectedSockets[i].socket == socket)
+			return i;
+
+	return -1;
+}
 
 
 // ---------------------- Virtual functions of Modules -----------------------
@@ -94,6 +106,14 @@ bool ModuleNetworkingServer::GUI()
 		}
 
 		// Disconnect Button
+		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine();
+		ImGui::Separator();
+		static char buffer[250]{ "Write a Message" };
+		ImGui::InputText("##ConsoleInputText", buffer, 250);
+		ImGui::SameLine();
+		if (ImGui::Button("Send"))
+			APPCONSOLE_INFO_LOG("Server Sent Message: %s", buffer);
+
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
 		ImGui::NewLine();
 		ImGui::Separator();
@@ -128,27 +148,67 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
+	// --- Find Socket in Vector ---
+	uint s_index = FindSocket(socket);
+	if (s_index == -1)
+		return;
+
+	// --- If found, open packet ---
 	ClientMessage clientMessage;
+	std::string clientName;
 	packet >> clientMessage;
+	packet >> clientName;
 
-	if (clientMessage == ClientMessage::HELLO)
+	// --- Decide what to do with packet according to its message type ---
+	ConnectedSocket& s = m_ConnectedSockets[s_index];
+	switch (clientMessage)
 	{
-		std::string clientName;
-		packet >> clientName;
-
-		for (ConnectedSocket& s : m_ConnectedSockets)
+		case ClientMessage::HELLO:
 		{
-			if (s.socket == socket)
+			s.client_name = clientName;
+			APPCONSOLE_INFO_LOG("Connected Client '%s'", clientName);
+
+			OutputMemoryStream response;
+			response << ServerMessage::WELCOME << "WELCOME CLIENT " << s.client_name << 0.5f << 0.2f << 0.6f;
+			SendPacket(response, socket);
+		}
+		case ClientMessage::CLIENT_TEXT:
+		{
+			// Run through all clients sending the message, username and text color   ---> Maybe we should do a packet struct or class with dst, LogEntry and a Pack/Unpack f(x)
+			Color cMessageColor = Color(Colors::ConsoleGreen);
+			std::string clientMessageStr;
+			packet >> clientMessageStr;
+			packet >> cMessageColor;
+			
+			OutputMemoryStream response;
+			response << clientName << clientMessageStr << cMessageColor;
+			
+			for (ConnectedSocket& client : m_ConnectedSockets)
+				SendPacket(response, client.socket);
+		}
+		case ClientMessage::CLIENT_PRIVATE_TEXT:
+		{
+			// Run through all clients and send the message to the desired dst
+		}
+		case ClientMessage::CLIENT_COMMAND:
+		{
+			// First read the command and then make the response. For the help case:
+			std::string clientMessageStr;
+			packet >> clientMessageStr;
+			if (clientMessageStr == "/help")
 			{
-				s.client_name = clientName;
-				APPCONSOLE_INFO_LOG("Received client name from client '%s'", s.client_name.c_str()); // TODO: Delete this, is just for debugging
-
 				OutputMemoryStream response;
-				response << ServerMessage::WELCOME << "WELCOME CLIENT " << s.client_name;
-				response << 0.5f << 0.2f << 0.1f;
-
-				SendPacket(response, socket);
+				std::string consoleMsg = "-------- CONSOLE COMMANDS --------\n\n\t\t\t\help - ... whatever other commands";
+				response << consoleMsg << Color(Colors::ConsoleYellow);
 			}
+		}
+		case ClientMessage::CLIENT_DISCONNECTION:
+		{
+			OutputMemoryStream response;
+			response << "[SERVER]: Client Disconnected"; // Add additional info. of interest
+
+			for (ConnectedSocket& client : m_ConnectedSockets)
+				SendPacket(response, client.socket);
 		}
 	}
 }

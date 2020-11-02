@@ -92,6 +92,15 @@ public:
 		Write(inString, elementCount * sizeof(char));
 	}
 
+	// Write for Colors
+	void Write(const Color& col)
+	{
+		Write(col.r);
+		Write(col.g);
+		Write(col.b);
+		Write(col.a);
+	}
+
 	// Generic operator <<
 	template< typename T >
 	OutputMemoryStream &operator<<(const T &data) {
@@ -171,7 +180,7 @@ public:
 	}
 
 	// Read for strings
-	void Read( std::string& inString ) const
+	void Read(std::string& inString ) const
 	{
 		uint32 elementCount;
 		Read( elementCount );
@@ -188,6 +197,14 @@ public:
 		for (uint32 i = 0; i < elementCount; ++i) {
 			Read(inString[i]);
 		}
+	}
+	// Read for colors
+	void Read(Color col) const
+	{
+		Read(col.r);
+		Read(col.g);
+		Read(col.b);
+		Read(col.a);
 	}
 
 	// Generic operator >>

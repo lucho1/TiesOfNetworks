@@ -24,7 +24,6 @@ private:
 	virtual void onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress) override;
 	virtual void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
 	virtual void onSocketDisconnected(SOCKET socket) override;
-	
 
 private:
 
@@ -46,4 +45,10 @@ private:
 	ServerState m_ServerState = ServerState::STOPPED;
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
 	std::vector<ConnectedSocket> m_ConnectedSockets;
+
+
+private:
+
+	// Class Methods
+	uint FindSocket(const SOCKET& s);
 };

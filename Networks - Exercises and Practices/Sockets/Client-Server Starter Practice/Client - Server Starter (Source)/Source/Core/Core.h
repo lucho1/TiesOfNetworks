@@ -21,6 +21,7 @@ typedef unsigned char uint8;
 typedef unsigned short int uint16;
 typedef unsigned long int uint32;
 typedef unsigned long long int uint64;
+typedef unsigned int uint;
 
 typedef float real32;
 typedef double real64;
