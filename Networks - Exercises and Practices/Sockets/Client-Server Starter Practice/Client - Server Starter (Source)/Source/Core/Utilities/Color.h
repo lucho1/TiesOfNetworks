@@ -6,7 +6,7 @@
 class Color
 {
 public:
-	float array[4] = {1,1,1,1};
+	float array[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float& r = array[0];
 	float& g = array[1];
 	float& b = array[2];
@@ -50,14 +50,16 @@ public:
 	// --- Operators ---
 	float* operator & ()				{ return (float*)this; }
 
-	bool operator== (const Color& col)	{
+	bool operator== (const Color& col)
+	{
 		bool ret = true;
 		for (int i = 0; ret && i < 4; ++i)
 			ret = col.array[i] == array[i];
 
 		return ret;
 	}
-	bool operator!= (const Color& col)	{
+	bool operator!= (const Color& col)
+	{
 		bool ret = true;
 		for (int i = 0; ret && i < 4; ++i)
 			ret = col.array[i] != array[i];
@@ -65,10 +67,12 @@ public:
 		return ret;
 	}
 
-	void operator=(const Color& col) {
+	void operator=(const Color& col)
+	{
 		for (int i = 0;  i < 4; ++i)
 			array[i] = col.array[i];
 	}
+
 	float operator[](const uint index) { return array[index]; }
 
 	Color operator +(const Color& col)	{ return Color(ClampValue(col.r + r), ClampValue(col.g + g), ClampValue(col.b + b), ClampValue(col.a + a)); }

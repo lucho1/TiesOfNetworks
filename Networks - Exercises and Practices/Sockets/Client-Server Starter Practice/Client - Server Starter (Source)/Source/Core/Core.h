@@ -160,13 +160,13 @@ inline float ClampValue(float val) { return float(std::max(0.0f, std::min(val, 1
 // Example: LOG("New user connected %s\n", usernameString);
 enum EntryType { APP_ERROR_LOG = 0, APP_WARN_LOG, APP_INFO_LOG };
 
-void PublicAppLog(const char* msg, EntryType type);
+void PublicAppLog(int line, const char* msg, EntryType type);
 const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 
 #define APP_LOG(format, ...)				PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__)
-#define APPCONSOLE_ERROR_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_ERROR_LOG)
-#define APPCONSOLE_WARN_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_WARN_LOG)
-#define APPCONSOLE_INFO_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_INFO_LOG)
+#define APPCONSOLE_ERROR_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_ERROR_LOG)
+#define APPCONSOLE_WARN_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_WARN_LOG)
+#define APPCONSOLE_INFO_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_INFO_LOG)
 
 
 ////////////////////////////////////////////////////////////////////////

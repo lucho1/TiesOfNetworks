@@ -22,7 +22,8 @@ private:
 
 	// Private Module Methods
 	void SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
-
+	void ReadPacket(const InputMemoryStream& packet, SERVER_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color);
+	bool DrawUI_SendButton();
 
 private:
 

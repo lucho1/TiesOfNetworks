@@ -19,8 +19,10 @@ void ScreenMainMenu::GUI()
 	// --- Server UI ---
 	ImGui::Text("Server");
 
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank;
+
 	static int localServerPort = 8888;
-	ImGui::InputInt("Server Port Opened", &localServerPort);
+	ImGui::InputInt("Server Port To Open", &localServerPort, flags);
 
 	if (ImGui::Button("Start Server"))
 	{
@@ -39,13 +41,13 @@ void ScreenMainMenu::GUI()
 	ImGui::Text("Client");
 
 	static char serverAddressStr[64] = "127.0.0.1";
-	ImGui::InputText("Server Address", serverAddressStr, sizeof(serverAddressStr));
+	ImGui::InputText("Server Address", serverAddressStr, sizeof(serverAddressStr), flags | ImGuiInputTextFlags_CharsDecimal);
 
 	static int remoteServerPort = 8888;
-	ImGui::InputInt("Server Port to Connect", &remoteServerPort);
-
+	ImGui::InputInt("Server Port to Connect", &remoteServerPort, flags);
+	
 	static char playerNameStr[64] = "Username";
-	ImGui::InputText("Player Name", playerNameStr, sizeof(playerNameStr));
+	ImGui::InputText("Player Name", playerNameStr, sizeof(playerNameStr), flags);
 
 	if (ImGui::Button("Connect to Server"))
 	{

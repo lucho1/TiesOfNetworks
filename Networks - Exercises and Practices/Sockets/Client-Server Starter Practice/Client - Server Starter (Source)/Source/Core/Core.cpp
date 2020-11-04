@@ -31,13 +31,20 @@ const char* PrivateAppLog(const char file[], int line, const char* format, ...)
 }
 
 
-void PublicAppLog(const char* msg, EntryType type)
+void PublicAppLog(int line, const char* msg, EntryType type)
 {
 	// NOTE: There is a memory leak here, but we will need logs
 	// until the application finished, we will go with this...
-	char *message = new char[strlen(msg)+1];
+
+	// NOTE: (Lucho) This lines are no longer needed, so no memLeak :)
+	//char *message = new char[strlen(msg)+1];
 	//lstrcpyA(message, msg);
-	StringCchCopyA(message, strlen(msg) + 1, msg); // A safer function than lstrcpyA() --> lstrcpy has undefined behavior if src & dest buffers overlap
+	//StringCchCopyA(message, strlen(msg) + 1, msg); // A safer function than lstrcpyA() --> lstrcpy has undefined behavior if src & dest buffers overlap
+	std::string cutted_message = msg;
+
+	size_t size = cutted_message.find_first_of(": ", 0) + 3;
+	if (size != std::string::npos)
+		cutted_message = cutted_message.substr(size, cutted_message.size());
 
 	Color color = Color();
 	switch (type)
@@ -48,5 +55,5 @@ void PublicAppLog(const char* msg, EntryType type)
 	}
 
 	if (App && App->modUI)
-		App->modUI->PrintMessageInConsole(message, color);
+		App->modUI->PrintMessageInConsole(cutted_message, color);
 }

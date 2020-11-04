@@ -87,14 +87,23 @@ bool ModuleNetworkingServer::GUI()
 		}
 
 		// Input message & Send button
-		static char buffer[250]{ "Write a Message" };
-		
+		static char buffer[250]{ "Write a Server Message" };
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+
 		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::Separator();
-		ImGui::InputText("##ConsoleInputText", buffer, 250);
-		ImGui::SameLine();
-		
-		if (ImGui::Button("Send"))
-			APPCONSOLE_INFO_LOG("Server Sent Message: %s", buffer);
+		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
+			ImGui::SetKeyboardFocusHere(0);
+
+		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || ImGui::Button("Send"))
+		{
+			OutputMemoryStream packet;
+			SetupPacket(packet, SERVER_MESSAGE::SERVER_WARN, std::string(buffer), 0, Colors::ConsoleYellow);
+			
+			for (ConnectedSocket& client : m_ConnectedSockets)
+				SendPacket(packet, client.socket); //TTT
+
+			sprintf_s(buffer, "");
+		}
 
 		// Disconnect Button
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
@@ -142,6 +151,13 @@ void ModuleNetworkingServer::SetupPacket(OutputMemoryStream& packet, SERVER_MESS
 	packet << (int)msg_type << msg << src_id << msg_color;
 }
 
+void ModuleNetworkingServer::ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color)
+{
+	int int_type = -1;
+	packet >> int_type >> msg >> src_id >> msg_color;
+	msg_type = (CLIENT_MESSAGE)int_type;
+}
+
 
 
 // ----------------- Virtual functions of ModuleNetworking -------------------
@@ -152,26 +168,27 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	if (s_index == -1)
 		return;
 
-	// --- If found, open packet, the common variables  ---
+	// --- If found, read data & prepare response ---
 	ConnectedSocket s = m_ConnectedSockets[s_index];
-	std::string client_name = s.client_name;
 	OutputMemoryStream server_response;
 	
-	int a = 0;
 	CLIENT_MESSAGE message_type;
-	packet >> a;
-	message_type = (CLIENT_MESSAGE)a;
+	std::string message;
+	uint source_id;
+	Color message_color;
 
-	// --- Decide what to do with packet according to its message type ---
+	ReadPacket(packet, message_type, message, source_id, message_color);
+
+	// --- Decide what to do with packet according to its type ---
 	switch (message_type)
 	{
 		case CLIENT_MESSAGE::CLIENT_CONNECTION:
 		{
-			s.client_name = client_name;
-			APPCONSOLE_INFO_LOG("Connected Client '%s'", client_name);
+			s.client_name = message;
+			APPCONSOLE_INFO_LOG("Connected Client '%s'", message.c_str());
 
-			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Connected";
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
+			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s.id) + "') Connected";
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleBlue); //TTT
 
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
@@ -181,13 +198,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
 			// Run through all clients sending the message, username and text color   ---> Maybe we should do a packet struct or class with dst, LogEntry and a Pack/Unpack f(x)
-			std::string client_msg;
-			Color client_msg_color;
-			int client_id;
+			//std::string client_msg;
+			//Color client_msg_color;
+			//int client_id;
 
-			packet >> client_msg >> client_id >> client_msg_color;
+			//packet >> client_msg >> client_id >> client_msg_color;
 
-			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, client_msg, s.id, client_msg_color);
+			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, message, s.id, message_color);
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
 
@@ -195,18 +212,18 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			std::string client_msg;
-			Color client_msg_color;
-			int dst_user = 0;
-			int client_id;
+			//std::string client_msg;
+			//Color client_msg_color;
+			//int dst_user = 0;
+			//int client_id;
 
-			packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a >> dst_user;
+			//packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a >> dst_user;
 
 			for (ConnectedSocket& client : m_ConnectedSockets)
 			{
-				if (client.id == dst_user)
+				if (client.id == source_id)
 				{
-					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, client_msg, s.id, client_msg_color);
+					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, message, s.id, message_color);
 					SendPacket(server_response, client.socket);
 				}
 			}
@@ -230,7 +247,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
 		{
-			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Disconnected";
+			std::string msg = "[SERVER]: Client" + s.client_name + "(ID '#" + std::to_string(s.id) + "') Disconnected";
 
 			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
 			for (ConnectedSocket& client : m_ConnectedSockets)
