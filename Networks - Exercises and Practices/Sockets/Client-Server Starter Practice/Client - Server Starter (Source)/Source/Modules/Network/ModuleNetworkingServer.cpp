@@ -137,10 +137,10 @@ uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
 	return -1;
 }
 
-const OutputMemoryStream& ModuleNetworkingServer::SetupPacket(SERVER_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color)
+const OutputMemoryStream& ModuleNetworkingServer::SetupPacket(SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
 {
 	OutputMemoryStream ret;
-	ret << (int)msg_type << msg << src_id << 4 << msg_color.GetColorVector();
+	ret << (int)msg_type << msg << src_id << msg_color.r << msg_color.g << msg_color.b << msg_color.a;
 	return ret;
 }
 
@@ -181,26 +181,24 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
 			// Run through all clients sending the message, username and text color   ---> Maybe we should do a packet struct or class with dst, LogEntry and a Pack/Unpack f(x)
-			const char* client_msg;
+			std::string client_msg;
 			Color client_msg_color;
+			int client_id;
 
-			std::vector<float> col;
-			packet >> client_msg >> col;
-			client_msg_color = Color(col[0], col[1], col[2], col[3]);
-			
+			packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a;
+
 			server_response = SetupPacket(SERVER_MESSAGE::CLIENT_TEXT, client_msg, s.id, client_msg_color);
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			const char* client_msg;
+			std::string client_msg;
 			Color client_msg_color;
 			int dst_user = 0;
+			int client_id;
 
-			std::vector<float> col;
-			packet >> client_msg >> col >> dst_user;
-			client_msg_color = Color(col[0], col[1], col[2], col[3]);
+			packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a >> dst_user;
 
 			for (ConnectedSocket& client : m_ConnectedSockets)
 			{

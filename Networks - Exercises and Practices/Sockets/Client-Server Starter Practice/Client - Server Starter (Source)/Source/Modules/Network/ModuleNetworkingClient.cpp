@@ -113,10 +113,10 @@ bool ModuleNetworkingClient::GUI()
 
 
 
-const OutputMemoryStream& ModuleNetworkingClient::SetupPacket(CLIENT_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color)
+const OutputMemoryStream& ModuleNetworkingClient::SetupPacket(CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
 {
 	OutputMemoryStream ret;
-	ret << (int)msg_type << msg << msg_color << src_id;
+	ret << (int)msg_type << msg << src_id << msg_color.r << msg_color.g << msg_color.b << msg_color.a;
 	return ret;
 }
 
@@ -127,7 +127,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 {
 	int a = 0;
 	SERVER_MESSAGE message_type;
-	const char* msg;
+	std::string msg;
 	packet >> a >> msg;
 	message_type = (SERVER_MESSAGE)a;
 
@@ -137,27 +137,23 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			int src_id;
 			Color msg_color;
-			std::vector<float> col;
-			packet >> src_id >> col;
-			msg_color = Color(col[0], col[1], col[2], col[3]);
+			packet >> src_id >> msg_color.r >> msg_color.g >> msg_color.b >> msg_color.a;
 
-			std::string displayed_message = "[" + src_id + std::string("]: ") + msg;
+			std::string displayed_message = "[" + src_id + std::string("]: ") + msg.c_str();
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
 		}
 		case SERVER_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
 			int src_id;
 			Color msg_color;
-			std::vector<float> col;
-			packet >> src_id >> col;
-			msg_color = Color(col[0], col[1], col[2], col[3]);
+			packet >> src_id >> msg_color.r >> msg_color.g >> msg_color.b >> msg_color.a;
 
 			std::string displayed_message = "- [PRIV] - [" + src_id + std::string("]: ") + msg;
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
 		}
-		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(msg);
-		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(msg);
-		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(msg);
+		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(msg.c_str());
+		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(msg.c_str());
+		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(msg.c_str());
 	}
 }
 

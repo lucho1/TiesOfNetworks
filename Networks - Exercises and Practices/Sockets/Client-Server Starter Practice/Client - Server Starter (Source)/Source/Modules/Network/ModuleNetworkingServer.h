@@ -53,5 +53,5 @@ private:
 
 	// Class Methods
 	uint FindSocket(const SOCKET& s);
-	const OutputMemoryStream& SetupPacket(SERVER_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color);
+	const OutputMemoryStream& SetupPacket(SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
 };
