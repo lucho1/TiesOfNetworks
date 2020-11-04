@@ -8,13 +8,12 @@ public:
 
 	// ModuleNetworkingServer public methods
 	bool Start(int port);
-	bool IsRunning() const;
+	bool IsRunning() const { return m_ServerState != ServerState::STOPPED; }
 	
 
 private:
 
 	// Virtual functions of Modules
-	virtual bool Update() override;
 	virtual bool GUI() override;
 
 	// Virtual functions of ModuleNetworking
@@ -39,20 +38,18 @@ private:
 		sockaddr_in address;
 		SOCKET socket;
 		std::string client_name;
-
-		int id = 0;
 	};
 
 	// Variables
 	ServerState m_ServerState = ServerState::STOPPED;
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
-	std::vector<ConnectedSocket> m_ConnectedSockets;
+	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
 
 
 private:
 
 	// Class Methods
-	uint FindSocket(const SOCKET& s);
+	uint GetSocketIndex(const SOCKET& s);
 	void SetupPacket(OutputMemoryStream& packet, SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
-	void ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color);
+	void ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, Color& msg_color);
 };

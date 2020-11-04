@@ -43,9 +43,9 @@ bool ModuleNetworkingClient::IsRunning() const
 	return m_ClientState != ClientState::STOPPED;
 }
 
-void ModuleNetworkingClient::SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
+void ModuleNetworkingClient::SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, const Color& msg_color)
 {
-	packet << (int)msg_type << msg << src_id << msg_color;
+	packet << (int)msg_type << msg << msg_color;
 }
 
 void ModuleNetworkingClient::ReadPacket(const InputMemoryStream& packet, SERVER_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color)
@@ -88,8 +88,8 @@ bool ModuleNetworkingClient::GUI()
 		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || DrawUI_SendButton())
 		{
 			OutputMemoryStream packet;
-			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), 0, Colors::ConsoleGreen);
-			SendPacket(packet, m_Socket); //TTT
+			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), Colors::ConsoleGreen);
+			SendPacket(packet, m_Socket);
 			sprintf_s(buffer, "");
 		}
 
@@ -101,6 +101,11 @@ bool ModuleNetworkingClient::GUI()
 		ImGui::NewLine(); ImGui::Separator();
 		if (ImGui::Button("Disconnect"))
 		{
+			// Notify Disconnection
+			OutputMemoryStream packet;
+			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", Colors::ConsoleBlue);
+			SendPacket(packet, m_Socket);
+
 			m_DisconnectedSockets.push_back(m_Socket);
 			m_ClientState = ClientState::STOPPED;
 			App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
@@ -117,7 +122,7 @@ bool ModuleNetworkingClient::Update()
 	if (m_ClientState == ClientState::START)
 	{
 		OutputMemoryStream packet;
-		SetupPacket(packet, CLIENT_MESSAGE::CLIENT_CONNECTION, m_ClientName, 0, Colors::ConsoleBlue); //TTT
+		SetupPacket(packet, CLIENT_MESSAGE::CLIENT_CONNECTION, m_ClientName, Colors::ConsoleBlue);
 		SendPacket(packet, m_Socket);
 		m_ClientState = ClientState::LOGGING;
 	}
@@ -142,29 +147,25 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		case SERVER_MESSAGE::CLIENT_TEXT:
 		{
-			std::string displayed_message = "[" + source_id + std::string("]: ") + message;
+			std::string displayed_message = "[#" + std::to_string(source_id) + std::string("]: ") + message;
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), message_color);
 			break;
 		}
 		case SERVER_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			std::string displayed_message = "- [PRIV] - [" + source_id + std::string("]: ") + message;
+			std::string displayed_message = "- [PRIV] - [" + std::to_string(source_id) + std::string("]: ") + message;
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), message_color);
 			break;
 		}
-		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(message.c_str());	break;
-		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(message.c_str());	break;
-		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(message.c_str());	break;
+		case SERVER_MESSAGE::SERVER_INFO:			APPCONSOLE_INFO_LOG(message.c_str());						break;
+		case SERVER_MESSAGE::SERVER_WARN:			APPCONSOLE_WARN_LOG(message.c_str());						break;
+		case SERVER_MESSAGE::SERVER_ERROR:			APPCONSOLE_ERROR_LOG(message.c_str());						break;
+		case SERVER_MESSAGE::SERVER_DISCONNECTION:	m_ServerDisconnection = true;								break;
 	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	// Notify Disconnection
-	OutputMemoryStream packet;
-	SetupPacket(packet, CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", 0, Colors::ConsoleBlue); //TTT
-	SendPacket(packet, m_Socket);
-
 	// Disconnect Socket
 	m_DisconnectedSockets.push_back(m_Socket);
 	
@@ -173,8 +174,14 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	else if (closesocket(socket) == SOCKET_ERROR)
 		ReportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
 
-	// Clear Client Console
+	// Clear Client Console & Log/Change State
 	App->modUI->ClearConsoleMessages();
 	m_ClientState = ClientState::STOPPED;
-	APPCONSOLE_INFO_LOG("Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+
+	if (m_ServerDisconnection)
+	{
+		APPCONSOLE_WARN_LOG("[SERVER]: Server was Disconnected");
+		m_ServerDisconnection = false;
+	}
 }

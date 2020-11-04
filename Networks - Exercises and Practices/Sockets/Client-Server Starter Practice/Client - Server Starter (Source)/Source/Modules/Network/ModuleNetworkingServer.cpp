@@ -55,11 +55,6 @@ bool ModuleNetworkingServer::Start(int port)
 	return true;
 }
 
-bool ModuleNetworkingServer::Update()
-{
-	return true;
-}
-
 bool ModuleNetworkingServer::GUI()
 {
 	if (m_ServerState != ServerState::STOPPED)
@@ -73,17 +68,19 @@ bool ModuleNetworkingServer::GUI()
 
 		ImGui::Text("List of connected sockets:");
 
-		for (ConnectedSocket &connectedSocket : m_ConnectedSockets)
+		for (const auto& connectedSocket : m_ConnectedSockets)
 		{
 			ImGui::Separator();
-			ImGui::Text("Socket ID: %d", connectedSocket.socket);
+			ImGui::Text("Socket ID: %d", connectedSocket.second.socket);
 			ImGui::Text("Address: %d.%d.%d.%d:%d",
-				connectedSocket.address.sin_addr.S_un.S_un_b.s_b1,
-				connectedSocket.address.sin_addr.S_un.S_un_b.s_b2,
-				connectedSocket.address.sin_addr.S_un.S_un_b.s_b3,
-				connectedSocket.address.sin_addr.S_un.S_un_b.s_b4,
-				ntohs(connectedSocket.address.sin_port));
-			ImGui::Text("Player name: %s", connectedSocket.client_name.c_str());
+				connectedSocket.second.address.sin_addr.S_un.S_un_b.s_b1,
+				connectedSocket.second.address.sin_addr.S_un.S_un_b.s_b2,
+				connectedSocket.second.address.sin_addr.S_un.S_un_b.s_b3,
+				connectedSocket.second.address.sin_addr.S_un.S_un_b.s_b4,
+				ntohs(connectedSocket.second.address.sin_port));
+
+			std::string str = connectedSocket.second.client_name;
+			ImGui::Text("Client name: %s - ID: #%i", connectedSocket.second.client_name.c_str(), connectedSocket.first);
 		}
 
 		// Input message & Send button
@@ -99,8 +96,8 @@ bool ModuleNetworkingServer::GUI()
 			OutputMemoryStream packet;
 			SetupPacket(packet, SERVER_MESSAGE::SERVER_WARN, std::string(buffer), 0, Colors::ConsoleYellow);
 			
-			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(packet, client.socket); //TTT
+			for (const auto& client : m_ConnectedSockets)
+				SendPacket(packet, client.second.socket);
 
 			sprintf_s(buffer, "");
 		}
@@ -112,8 +109,14 @@ bool ModuleNetworkingServer::GUI()
 
 		if (ImGui::Button("Disconnect"))
 		{
-			for (ConnectedSocket& s : m_ConnectedSockets)
-				m_DisconnectedSockets.push_back(s.socket);
+			OutputMemoryStream packet;
+			SetupPacket(packet, SERVER_MESSAGE::SERVER_DISCONNECTION, "", 0, Colors::ConsoleYellow);
+
+			for (const auto& s : m_ConnectedSockets)
+			{
+				SendPacket(packet, s.second.socket);
+				m_DisconnectedSockets.push_back(s.second.socket);
+			}
 
 			m_ServerDisconnection = true;
 			m_ServerState = ServerState::STOPPED;
@@ -129,20 +132,18 @@ bool ModuleNetworkingServer::GUI()
 
 
 // ------------------ ModuleNetworkingServer methods ------------------
-bool ModuleNetworkingServer::IsRunning() const
-{
-	return m_ServerState != ServerState::STOPPED;
-}
-
-uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
+uint ModuleNetworkingServer::GetSocketIndex(const SOCKET& socket)
 {
 	if (m_ConnectedSockets.empty())
 		return -1;
 
-	for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
-		if (m_ConnectedSockets[i].socket == socket)
-			return i;
+	for (const auto& conn_sockets : m_ConnectedSockets)
+		if (conn_sockets.second.socket == socket)
+			return conn_sockets.first;
 
+	//for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
+	//	if (m_ConnectedSockets[i].socket == socket)
+	//		return i;
 	return -1;
 }
 
@@ -151,10 +152,10 @@ void ModuleNetworkingServer::SetupPacket(OutputMemoryStream& packet, SERVER_MESS
 	packet << (int)msg_type << msg << src_id << msg_color;
 }
 
-void ModuleNetworkingServer::ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color)
+void ModuleNetworkingServer::ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, Color& msg_color)
 {
 	int int_type = -1;
-	packet >> int_type >> msg >> src_id >> msg_color;
+	packet >> int_type >> msg >> msg_color;
 	msg_type = (CLIENT_MESSAGE)int_type;
 }
 
@@ -164,53 +165,52 @@ void ModuleNetworkingServer::ReadPacket(const InputMemoryStream& packet, CLIENT_
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
 	// --- Find Socket in Vector ---
-	uint s_index = FindSocket(socket);
+	uint s_index = GetSocketIndex(socket);
 	if (s_index == -1)
 		return;
 
 	// --- If found, read data & prepare response ---
-	ConnectedSocket s = m_ConnectedSockets[s_index];
-	OutputMemoryStream server_response;
-	
 	CLIENT_MESSAGE message_type;
 	std::string message;
-	uint source_id;
+	uint source_id = -1;
 	Color message_color;
+	ReadPacket(packet, message_type, message, message_color);
 
-	ReadPacket(packet, message_type, message, source_id, message_color);
+	ConnectedSocket& connected_socket = m_ConnectedSockets[s_index];
+	OutputMemoryStream server_response;
 
 	// --- Decide what to do with packet according to its type ---
 	switch (message_type)
 	{
 		case CLIENT_MESSAGE::CLIENT_CONNECTION:
 		{
-			s.client_name = message;
-			APPCONSOLE_INFO_LOG("Connected Client '%s'", message.c_str());
+			connected_socket.client_name = message;
+			APPCONSOLE_INFO_LOG("Connected Client '%s #%i'", message.c_str(), s_index);
 
-			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s.id) + "') Connected";
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleBlue); //TTT
+			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s_index) + "') Connected";
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s_index, Colors::ConsoleBlue);
 
-			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(server_response, client.socket);
+			for (const auto& client : m_ConnectedSockets)
+				SendPacket(server_response, client.second.socket);
 
 			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
-			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, message, s.id, message_color);
-			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(server_response, client.socket);
+			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, message, s_index, message_color);
+			for (const auto& client : m_ConnectedSockets)
+				SendPacket(server_response, client.second.socket);
 
 			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			for (ConnectedSocket& client : m_ConnectedSockets)
+			for (const auto& client : m_ConnectedSockets)
 			{
-				if (client.id == source_id)
+				if (client.first == source_id)
 				{
-					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, message, s.id, message_color);
-					SendPacket(server_response, client.socket);
+					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, message, s_index, message_color);
+					SendPacket(server_response, client.second.socket);
 				}
 			}
 
@@ -233,11 +233,11 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
 		{
-			std::string msg = "[SERVER]: Client '" + s.client_name + "' (ID '#" + std::to_string(s.id) + "') Disconnected";
+			std::string msg = "[SERVER]: Client '" + connected_socket.client_name + "' (ID '#" + std::to_string(s_index) + "') Disconnected";
 
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
-			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(server_response, client.socket);
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s_index, Colors::ConsoleBlue);
+			for (const auto& client : m_ConnectedSockets)
+				SendPacket(server_response, client.second.socket);
 
 			break;
 		}
@@ -250,7 +250,8 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in&
 	ConnectedSocket connectedSocket;
 	connectedSocket.socket = socket;
 	connectedSocket.address = socketAddress;
-	m_ConnectedSockets.push_back(connectedSocket);
+
+	m_ConnectedSockets.insert({ m_ConnectedSockets.size(), connectedSocket });
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
@@ -258,9 +259,11 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 	// Remove the connected socket from the list
 	for (auto it = m_ConnectedSockets.begin(); it != m_ConnectedSockets.end(); ++it)
 	{
-		auto &connectedSocket = *it;
-		if (connectedSocket.socket == socket)
+		auto& iterator = *it;
+		if (iterator.second.socket == socket)
 		{
+			ConnectedSocket connectedSocket = iterator.second;
+
 			IN_ADDR inAddr = connectedSocket.address.sin_addr;
 			std::string add = std::to_string(inAddr.S_un.S_un_b.s_b1) + "." + std::to_string(inAddr.S_un.S_un_b.s_b2) + "." + std::to_string(inAddr.S_un.S_un_b.s_b3)
 								+ "." + std::to_string(inAddr.S_un.S_un_b.s_b4) + ":" + std::to_string(ntohs(connectedSocket.address.sin_port));
