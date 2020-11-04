@@ -197,13 +197,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
-			// Run through all clients sending the message, username and text color   ---> Maybe we should do a packet struct or class with dst, LogEntry and a Pack/Unpack f(x)
-			//std::string client_msg;
-			//Color client_msg_color;
-			//int client_id;
-
-			//packet >> client_msg >> client_id >> client_msg_color;
-
 			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, message, s.id, message_color);
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
@@ -212,13 +205,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			//std::string client_msg;
-			//Color client_msg_color;
-			//int dst_user = 0;
-			//int client_id;
-
-			//packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a >> dst_user;
-
 			for (ConnectedSocket& client : m_ConnectedSockets)
 			{
 				if (client.id == source_id)
@@ -247,7 +233,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
 		{
-			std::string msg = "[SERVER]: Client" + s.client_name + "(ID '#" + std::to_string(s.id) + "') Disconnected";
+			std::string msg = "[SERVER]: Client '" + s.client_name + "' (ID '#" + std::to_string(s.id) + "') Disconnected";
 
 			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
 			for (ConnectedSocket& client : m_ConnectedSockets)

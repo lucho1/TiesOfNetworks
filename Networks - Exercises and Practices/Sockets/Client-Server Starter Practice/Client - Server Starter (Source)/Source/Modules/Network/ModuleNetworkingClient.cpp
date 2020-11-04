@@ -138,13 +138,6 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	ReadPacket(packet, message_type, message, source_id, message_color);
 
-
-	//int a = 0;
-	//SERVER_MESSAGE message_type;
-	//std::string msg;
-	//packet >> a >> msg;
-	//message_type = (SERVER_MESSAGE)a;
-
 	switch (message_type)
 	{
 		case SERVER_MESSAGE::CLIENT_TEXT:
