@@ -199,7 +199,7 @@ public:
 		}
 	}
 	// Read for colors
-	void Read(Color col) const
+	void Read(Color& col) const
 	{
 		Read(col.r);
 		Read(col.g);

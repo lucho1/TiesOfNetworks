@@ -4,7 +4,7 @@
 
 
 
-// ------------------ ModuleNetworkingServer public methods ------------------
+// ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingServer::Start(int port)
 {
 	// TODO(jesus): TCP listen socket stuff
@@ -55,25 +55,6 @@ bool ModuleNetworkingServer::Start(int port)
 	return true;
 }
 
-bool ModuleNetworkingServer::IsRunning() const
-{
-	return m_ServerState != ServerState::STOPPED;
-}
-
-uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
-{
-	if (m_ConnectedSockets.empty())
-		return -1;
-
-	for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
-		if (m_ConnectedSockets[i].socket == socket)
-			return i;
-
-	return -1;
-}
-
-
-// ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingServer::Update()
 {
 	return true;
@@ -92,7 +73,7 @@ bool ModuleNetworkingServer::GUI()
 
 		ImGui::Text("List of connected sockets:");
 
-		for (ModuleNetworkingServer::ConnectedSocket &connectedSocket : m_ConnectedSockets)
+		for (ConnectedSocket &connectedSocket : m_ConnectedSockets)
 		{
 			ImGui::Separator();
 			ImGui::Text("Socket ID: %d", connectedSocket.socket);
@@ -105,22 +86,24 @@ bool ModuleNetworkingServer::GUI()
 			ImGui::Text("Player name: %s", connectedSocket.client_name.c_str());
 		}
 
-		// Disconnect Button
-		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine();
-		ImGui::Separator();
+		// Input message & Send button
 		static char buffer[250]{ "Write a Message" };
+		
+		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::Separator();
 		ImGui::InputText("##ConsoleInputText", buffer, 250);
 		ImGui::SameLine();
+		
 		if (ImGui::Button("Send"))
 			APPCONSOLE_INFO_LOG("Server Sent Message: %s", buffer);
 
+		// Disconnect Button
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
 		ImGui::NewLine();
 		ImGui::Separator();
 
 		if (ImGui::Button("Disconnect"))
 		{
-			for (ConnectedSocket s : m_ConnectedSockets)
+			for (ConnectedSocket& s : m_ConnectedSockets)
 				m_DisconnectedSockets.push_back(s.socket);
 
 			m_ServerDisconnection = true;
@@ -136,16 +119,34 @@ bool ModuleNetworkingServer::GUI()
 
 
 
-// ----------------- Virtual functions of ModuleNetworking -------------------
-void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in &socketAddress)
+// ------------------ ModuleNetworkingServer methods ------------------
+bool ModuleNetworkingServer::IsRunning() const
 {
-	// Add a new connected socket to the list
-	ConnectedSocket connectedSocket;
-	connectedSocket.socket = socket;
-	connectedSocket.address = socketAddress;
-	m_ConnectedSockets.push_back(connectedSocket);
+	return m_ServerState != ServerState::STOPPED;
 }
 
+uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
+{
+	if (m_ConnectedSockets.empty())
+		return -1;
+
+	for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
+		if (m_ConnectedSockets[i].socket == socket)
+			return i;
+
+	return -1;
+}
+
+const OutputMemoryStream& ModuleNetworkingServer::SetupPacket(SERVER_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color)
+{
+	OutputMemoryStream ret;
+	ret << (int)msg_type << msg << src_id << 4 << msg_color.GetColorVector();
+	return ret;
+}
+
+
+
+// ----------------- Virtual functions of ModuleNetworking -------------------
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
 	// --- Find Socket in Vector ---
@@ -153,64 +154,94 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	if (s_index == -1)
 		return;
 
-	// --- If found, open packet ---
-	ClientMessage clientMessage;
-	std::string clientName;
-	packet >> clientMessage;
-	packet >> clientName;
+	// --- If found, open packet, the common variables  ---
+	ConnectedSocket s = m_ConnectedSockets[s_index];
+	std::string client_name = s.client_name;
+	OutputMemoryStream server_response;
+	
+	int a = 0;
+	CLIENT_MESSAGE message_type;
+	packet >> a;
+	message_type = (CLIENT_MESSAGE)a;
 
 	// --- Decide what to do with packet according to its message type ---
-	ConnectedSocket& s = m_ConnectedSockets[s_index];
-	switch (clientMessage)
+	switch (message_type)
 	{
-		case ClientMessage::HELLO:
+		case CLIENT_MESSAGE::CLIENT_CONNECTION:
 		{
-			s.client_name = clientName;
-			APPCONSOLE_INFO_LOG("Connected Client '%s'", clientName);
+			s.client_name = client_name;
+			APPCONSOLE_INFO_LOG("Connected Client '%s'", client_name);
 
-			OutputMemoryStream response;
-			response << ServerMessage::WELCOME << "WELCOME CLIENT " << s.client_name << 0.5f << 0.2f << 0.6f;
-			SendPacket(response, socket);
+			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Connected";
+			server_response = SetupPacket(SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
+
+			for (ConnectedSocket& client : m_ConnectedSockets)
+				SendPacket(server_response, client.socket);
 		}
-		case ClientMessage::CLIENT_TEXT:
+		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
 			// Run through all clients sending the message, username and text color   ---> Maybe we should do a packet struct or class with dst, LogEntry and a Pack/Unpack f(x)
-			Color cMessageColor = Color(Colors::ConsoleGreen);
-			std::string clientMessageStr;
-			packet >> clientMessageStr;
-			packet >> cMessageColor;
+			const char* client_msg;
+			Color client_msg_color;
+
+			std::vector<float> col;
+			packet >> client_msg >> col;
+			client_msg_color = Color(col[0], col[1], col[2], col[3]);
 			
-			OutputMemoryStream response;
-			response << clientName << clientMessageStr << cMessageColor;
-			
+			server_response = SetupPacket(SERVER_MESSAGE::CLIENT_TEXT, client_msg, s.id, client_msg_color);
 			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(response, client.socket);
+				SendPacket(server_response, client.socket);
 		}
-		case ClientMessage::CLIENT_PRIVATE_TEXT:
+		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			// Run through all clients and send the message to the desired dst
-		}
-		case ClientMessage::CLIENT_COMMAND:
-		{
-			// First read the command and then make the response. For the help case:
-			std::string clientMessageStr;
-			packet >> clientMessageStr;
-			if (clientMessageStr == "/help")
-			{
-				OutputMemoryStream response;
-				std::string consoleMsg = "-------- CONSOLE COMMANDS --------\n\n\t\t\t\help - ... whatever other commands";
-				response << consoleMsg << Color(Colors::ConsoleYellow);
-			}
-		}
-		case ClientMessage::CLIENT_DISCONNECTION:
-		{
-			OutputMemoryStream response;
-			response << "[SERVER]: Client Disconnected"; // Add additional info. of interest
+			const char* client_msg;
+			Color client_msg_color;
+			int dst_user = 0;
+
+			std::vector<float> col;
+			packet >> client_msg >> col >> dst_user;
+			client_msg_color = Color(col[0], col[1], col[2], col[3]);
 
 			for (ConnectedSocket& client : m_ConnectedSockets)
-				SendPacket(response, client.socket);
+			{
+				if (client.id == dst_user)
+				{
+					server_response = SetupPacket(SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, client_msg, s.id, client_msg_color);
+					SendPacket(server_response, client.socket);
+				}
+			}
+		}
+		case CLIENT_MESSAGE::CLIENT_COMMAND:
+		{
+			// First read the command and then make the response. For instance:
+			// Client reads the first char to decide sending CLIENT_COMMAND ("/")
+			// Client also reads the COMMAND_NAME ("whisper") and COMMAND_ARG ("user")
+			// if the command can solve the command ("help", "list" (?), ...) solve it there.
+			// Otherwise, in here place we make a switch() to decide what to do with the command sent
+
+			//if (COMMAND_NAME == "change_name")
+			//{
+			//	We could make a "WARN" so the text is displayed yellow
+			//}
+		}
+		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
+		{
+			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Disconnected";
+
+			server_response = SetupPacket(SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
+			for (ConnectedSocket& client : m_ConnectedSockets)
+				SendPacket(server_response, client.socket);
 		}
 	}
+}
+
+void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in& socketAddress)
+{
+	// Add a new connected socket to the list
+	ConnectedSocket connectedSocket;
+	connectedSocket.socket = socket;
+	connectedSocket.address = socketAddress;
+	m_ConnectedSockets.push_back(connectedSocket);
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)

@@ -20,6 +20,9 @@ private:
 	virtual void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
 	virtual void onSocketDisconnected(SOCKET socket) override;
 
+	// Private Module Methods
+	const OutputMemoryStream& SetupPacket(CLIENT_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color);
+
 
 private:
 

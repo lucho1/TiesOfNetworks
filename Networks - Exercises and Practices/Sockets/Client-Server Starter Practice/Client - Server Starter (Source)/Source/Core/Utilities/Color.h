@@ -33,6 +33,7 @@ public:
 	// --- Getters ---
 	Color GetColor() const { return *this; }
 	float* GetColorArray() const { float ret[4] = { r,g,b,a }; return ret; }
+	std::vector<float> GetColorVector() const { return {r, g, b, a}; }
 
 	// --- Setters ---
 	void SetColor(const Color& col)

@@ -50,18 +50,18 @@ bool ModuleNetworkingClient::Update()
 {
 	if (m_ClientState == ClientState::START)
 	{
-		OutputMemoryStream packet;
-		packet << ClientMessage::HELLO;
-		packet << m_ClientName;
+		OutputMemoryStream packet = SetupPacket(CLIENT_MESSAGE::CLIENT_CONNECTION, "", 0, Colors::ConsoleBlue); //TTT
+		SendPacket(packet, m_Socket);
+		m_ClientState = ClientState::LOGGING;
 
-		if (SendPacket(packet, m_Socket))
-			m_ClientState = ClientState::LOGGING;
-		else
-		{
-			APPCONSOLE_ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
-			Disconnect();
-			m_ClientState = ClientState::STOPPED;
-		}
+		//if (SendPacket(packet, m_Socket))
+		//	m_ClientState = ClientState::LOGGING;
+		//else
+		//{
+		//	APPCONSOLE_ERROR_LOG(std::string("[CLIENT]: Error sending data to server '" + m_ServerAddressStr + "' from " + m_ClientName + " client on ModuleNetworkingClient::update()").c_str());
+		//	Disconnect();
+		//	m_ClientState = ClientState::STOPPED;
+		//}
 	}
 
 	return true;
@@ -79,6 +79,19 @@ bool ModuleNetworkingClient::GUI()
 		ImGui::Image(tex->shaderResource, texSize);
 
 		ImGui::Text("'%s' connected to the server '%s'...", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+
+		// Input message & Send button
+		static char buffer[250]{ "Write a Message" };
+
+		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::Separator();
+		ImGui::InputText("##ConsoleInputText", buffer, 250);
+		ImGui::SameLine();
+
+		if (ImGui::Button("Send"))
+			SendPacket(SetupPacket(CLIENT_MESSAGE::CLIENT_TEXT, buffer, 0, Colors::ConsoleGreen), m_Socket); //TTT
+
+		// Add functionality for Private Text & Commands here
+
 
 		// Disconnect Button
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
@@ -99,30 +112,59 @@ bool ModuleNetworkingClient::GUI()
 
 
 
+
+const OutputMemoryStream& ModuleNetworkingClient::SetupPacket(CLIENT_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color)
+{
+	OutputMemoryStream ret;
+	ret << (int)msg_type << msg << msg_color << src_id;
+	return ret;
+}
+
+
+
 // ----------------- Virtual functions of ModuleNetworking -------------------
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
-	ServerMessage serverMessage;
-	packet >> serverMessage;
+	int a = 0;
+	SERVER_MESSAGE message_type;
+	const char* msg;
+	packet >> a >> msg;
+	message_type = (SERVER_MESSAGE)a;
 
-	std::string welcome_msg;
-	packet >> welcome_msg;	
-	std::string cName;
-	packet >> cName;
-	welcome_msg += cName;
+	switch (message_type)
+	{
+		case SERVER_MESSAGE::CLIENT_TEXT:
+		{
+			int src_id;
+			Color msg_color;
+			std::vector<float> col;
+			packet >> src_id >> col;
+			msg_color = Color(col[0], col[1], col[2], col[3]);
 
-	float r, g, b;
-	packet >> r; packet >> g; packet >> b;
+			std::string displayed_message = "[" + src_id + std::string("]: ") + msg;
+			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
+		}
+		case SERVER_MESSAGE::CLIENT_PRIVATE_TEXT:
+		{
+			int src_id;
+			Color msg_color;
+			std::vector<float> col;
+			packet >> src_id >> col;
+			msg_color = Color(col[0], col[1], col[2], col[3]);
 
-	if (serverMessage == ServerMessage::WELCOME)
-		APPCONSOLE_INFO_LOG("RECEIVED WELCOME MESSAGE FROM SERVER '%s'\n\tIt says: %s\n\tYour new color will be: %.2f, %.2f, %.2f", m_ServerAddressStr.c_str(), welcome_msg.c_str(), r, g, b);
-
-	//m_ClientState = ClientState::STOPPED;
+			std::string displayed_message = "- [PRIV] - [" + src_id + std::string("]: ") + msg;
+			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
+		}
+		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(msg);
+		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(msg);
+		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(msg);
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	APPCONSOLE_INFO_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	OutputMemoryStream packet = SetupPacket(CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", 0, Colors::ConsoleBlue); //TTT
+	SendPacket(packet, m_Socket);	
 	m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)
@@ -133,4 +175,5 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 
 	logLines.clear();
 	m_ClientState = ClientState::STOPPED;
+	APPCONSOLE_INFO_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
 }

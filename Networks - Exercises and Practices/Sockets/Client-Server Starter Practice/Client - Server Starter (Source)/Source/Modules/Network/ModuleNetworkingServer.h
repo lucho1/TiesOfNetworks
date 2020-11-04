@@ -39,6 +39,8 @@ private:
 		sockaddr_in address;
 		SOCKET socket;
 		std::string client_name;
+
+		int id = 0;
 	};
 
 	// Variables
@@ -51,4 +53,5 @@ private:
 
 	// Class Methods
 	uint FindSocket(const SOCKET& s);
+	const OutputMemoryStream& SetupPacket(SERVER_MESSAGE msg_type, const char* msg, uint src_id, const Color& msg_color);
 };
