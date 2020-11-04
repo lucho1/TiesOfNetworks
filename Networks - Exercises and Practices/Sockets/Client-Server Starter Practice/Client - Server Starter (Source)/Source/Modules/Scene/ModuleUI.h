@@ -11,8 +11,14 @@ public:
 	virtual bool PostUpdate() override;
 	virtual bool CleanUp() override;
 
-	inline void PrintMessageInConsole(const char* msg, const Color& col = Color(0.2f, 1.0f, 0.2f)) const; // Text Color Green by default
+	// Text Color Green by default
+	inline void PrintMessageInConsole(const std::string& msg, const Color& col = { 0.2f, 1.0f, 0.2f })	{ m_ChatMessages.push_back({ msg, col }); }
+	inline void ClearConsoleMessages()																	{ m_ChatMessages.clear(); }
 
 	// Public methods
 	LRESULT HandleWindowsEvents(UINT msg, WPARAM wParam, LPARAM lParam);
+
+private:
+
+	std::vector<std::pair<std::string, const Color>> m_ChatMessages;
 };

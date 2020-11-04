@@ -61,25 +61,18 @@ bool ModuleUI::GUI()
 		console_name = "Clear Chat";
 
 	if (ImGui::Button(console_name))
-		logLines.clear();	
+		App->modUI->ClearConsoleMessages();
 
-	for (uint32 entryIndex = 0; entryIndex < GetLogEntryCount(); ++entryIndex)
+	for (auto& msg_pair : m_ChatMessages)
 	{
-		LogEntry entry = GetLogEntry(entryIndex);
-
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.text_color.r, entry.text_color.g, entry.text_color.b, entry.text_color.a));
-		ImGui::TextWrapped("%s", entry.message);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(msg_pair.second.r, msg_pair.second.g, msg_pair.second.b, msg_pair.second.a));
+		ImGui::TextWrapped("%s", msg_pair.first.c_str());
 		ImGui::PopStyleColor();
 	}
 
 	ImGui::End();
 
 	return true;
-}
-
-inline void ModuleUI::PrintMessageInConsole(const char* msg, const Color& col) const
-{
-	PushLogEntry(LogEntry(msg, col));
 }
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

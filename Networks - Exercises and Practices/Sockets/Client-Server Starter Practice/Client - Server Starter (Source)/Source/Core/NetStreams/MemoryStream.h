@@ -94,14 +94,14 @@ public:
 		Write(inString, elementCount * sizeof(char));
 	}
 
-	// // Write for Colors
-	// void Write(const Color& col)
-	// {
-	// 	Write(col.r);
-	// 	Write(col.g);
-	// 	Write(col.b);
-	// 	Write(col.a);
-	// }
+	// Write for Colors
+	void Write(const Color& col)
+	{
+		Write(col.r);
+		Write(col.g);
+		Write(col.b);
+		Write(col.a);
+	}
 
 	// Generic operator <<
 	template< typename T >
@@ -200,14 +200,15 @@ public:
 			Read(inString[i]);
 		}
 	}
-	// // Read for colors
-	// void Read(Color& col) const
-	// {
-	// 	Read(col.r);
-	// 	Read(col.g);
-	// 	Read(col.b);
-	// 	Read(col.a);
-	// }
+	
+	// Read for colors
+	void Read(Color& col) const
+	{
+		Read(col.r);
+		Read(col.g);
+		Read(col.b);
+		Read(col.a);
+	}
 
 	// Generic operator >>
 	template< typename T >

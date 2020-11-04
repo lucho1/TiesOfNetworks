@@ -43,6 +43,11 @@ bool ModuleNetworkingClient::IsRunning() const
 	return m_ClientState != ClientState::STOPPED;
 }
 
+void ModuleNetworkingClient::SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
+{
+	packet << (int)msg_type << msg << src_id << msg_color;
+}
+
 
 
 // ---------------------- Virtual functions of Modules -----------------------
@@ -50,7 +55,8 @@ bool ModuleNetworkingClient::Update()
 {
 	if (m_ClientState == ClientState::START)
 	{
-		OutputMemoryStream packet = SetupPacket(CLIENT_MESSAGE::CLIENT_CONNECTION, "", 0, Colors::ConsoleBlue); //TTT
+		OutputMemoryStream packet;
+		SetupPacket(packet, CLIENT_MESSAGE::CLIENT_CONNECTION, "", 0, Colors::ConsoleBlue); //TTT
 		SendPacket(packet, m_Socket);
 		m_ClientState = ClientState::LOGGING;
 
@@ -88,7 +94,12 @@ bool ModuleNetworkingClient::GUI()
 		ImGui::SameLine();
 
 		if (ImGui::Button("Send"))
-			SendPacket(SetupPacket(CLIENT_MESSAGE::CLIENT_TEXT, buffer, 0, Colors::ConsoleGreen), m_Socket); //TTT
+		{
+			OutputMemoryStream packet;
+			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), 0, Colors::ConsoleGreen);
+			if (!SendPacket(packet, m_Socket)) //TTT
+				ReportError("COULDN'T SEND MESSAGE");
+		}
 
 		// Add functionality for Private Text & Commands here
 
@@ -112,16 +123,6 @@ bool ModuleNetworkingClient::GUI()
 
 
 
-
-const OutputMemoryStream& ModuleNetworkingClient::SetupPacket(CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
-{
-	OutputMemoryStream ret;
-	ret << (int)msg_type << msg << src_id << msg_color.r << msg_color.g << msg_color.b << msg_color.a;
-	return ret;
-}
-
-
-
 // ----------------- Virtual functions of ModuleNetworking -------------------
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
@@ -137,30 +138,35 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			int src_id;
 			Color msg_color;
-			packet >> src_id >> msg_color.r >> msg_color.g >> msg_color.b >> msg_color.a;
+			packet >> src_id >> msg_color;
 
 			std::string displayed_message = "[" + src_id + std::string("]: ") + msg.c_str();
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
+
+			break;
 		}
 		case SERVER_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
 			int src_id;
 			Color msg_color;
-			packet >> src_id >> msg_color.r >> msg_color.g >> msg_color.b >> msg_color.a;
+			packet >> src_id >> msg_color;
 
 			std::string displayed_message = "- [PRIV] - [" + src_id + std::string("]: ") + msg;
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), msg_color);
+
+			break;
 		}
-		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(msg.c_str());
-		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(msg.c_str());
-		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(msg.c_str());
+		case SERVER_MESSAGE::SERVER_INFO:	APPCONSOLE_INFO_LOG(msg.c_str());	break;
+		case SERVER_MESSAGE::SERVER_WARN:	APPCONSOLE_WARN_LOG(msg.c_str());	break;
+		case SERVER_MESSAGE::SERVER_ERROR:	APPCONSOLE_ERROR_LOG(msg.c_str());	break;
 	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
-	OutputMemoryStream packet = SetupPacket(CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", 0, Colors::ConsoleBlue); //TTT
-	SendPacket(packet, m_Socket);	
+	OutputMemoryStream packet;
+	SetupPacket(packet, CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", 0, Colors::ConsoleBlue); //TTT
+	SendPacket(packet, m_Socket);
 	m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)
@@ -168,8 +174,7 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	else if (closesocket(socket) == SOCKET_ERROR)
 		ReportError(std::string("[CLIENT]: Error Closing socket from '" + m_ClientName + "' Client on function ModuleNetworkingClient::onSocketDisconnected()").c_str());
 
-
-	logLines.clear();
+	App->modUI->ClearConsoleMessages();
 	m_ClientState = ClientState::STOPPED;
 	APPCONSOLE_INFO_LOG("Socket at '%s' Disconnected from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
 }

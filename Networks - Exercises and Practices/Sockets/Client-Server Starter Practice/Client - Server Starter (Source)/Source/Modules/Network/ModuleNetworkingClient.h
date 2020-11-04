@@ -21,7 +21,7 @@ private:
 	virtual void onSocketDisconnected(SOCKET socket) override;
 
 	// Private Module Methods
-	const OutputMemoryStream& SetupPacket(CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
+	void SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
 
 
 private:

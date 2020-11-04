@@ -158,7 +158,7 @@ bool ModuleNetworking::PostUpdate()
 	if (m_ServerDisconnection)
 	{
 		Disconnect();
-		logLines.clear();
+		App->modUI->ClearConsoleMessages();
 		APPCONSOLE_INFO_LOG("[NET]: Server Disconnected");
 	}
 

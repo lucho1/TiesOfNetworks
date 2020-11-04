@@ -137,11 +137,9 @@ uint ModuleNetworkingServer::FindSocket(const SOCKET& socket)
 	return -1;
 }
 
-const OutputMemoryStream& ModuleNetworkingServer::SetupPacket(SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
+void ModuleNetworkingServer::SetupPacket(OutputMemoryStream& packet, SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
 {
-	OutputMemoryStream ret;
-	ret << (int)msg_type << msg << src_id << msg_color.r << msg_color.g << msg_color.b << msg_color.a;
-	return ret;
+	packet << (int)msg_type << msg << src_id << msg_color;
 }
 
 
@@ -173,10 +171,12 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			APPCONSOLE_INFO_LOG("Connected Client '%s'", client_name);
 
 			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Connected";
-			server_response = SetupPacket(SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
 
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
+
+			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
@@ -185,11 +185,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			Color client_msg_color;
 			int client_id;
 
-			packet >> client_msg >> client_id >> client_msg_color.r >> client_msg_color.g >> client_msg_color.b >> client_msg_color.a;
+			packet >> client_msg >> client_id >> client_msg_color;
 
-			server_response = SetupPacket(SERVER_MESSAGE::CLIENT_TEXT, client_msg, s.id, client_msg_color);
+			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, client_msg, s.id, client_msg_color);
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
+
+			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
@@ -204,10 +206,12 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			{
 				if (client.id == dst_user)
 				{
-					server_response = SetupPacket(SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, client_msg, s.id, client_msg_color);
+					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, client_msg, s.id, client_msg_color);
 					SendPacket(server_response, client.socket);
 				}
 			}
+
+			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_COMMAND:
 		{
@@ -221,14 +225,18 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			//{
 			//	We could make a "WARN" so the text is displayed yellow
 			//}
+
+			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
 		{
 			std::string msg = "[SERVER]: Client" + client_name + "(ID '#" + std::to_string(s.id) + "' Disconnected";
 
-			server_response = SetupPacket(SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s.id, Colors::ConsoleYellow); //TTT
 			for (ConnectedSocket& client : m_ConnectedSockets)
 				SendPacket(server_response, client.socket);
+
+			break;
 		}
 	}
 }

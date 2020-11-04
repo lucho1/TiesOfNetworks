@@ -42,27 +42,11 @@ void PublicAppLog(const char* msg, EntryType type)
 	Color color = Color();
 	switch (type)
 	{
-		case APP_ERROR_LOG:	color.SetColor(Colors::ConsoleRed);		// Red
-		case APP_WARN_LOG:	color.SetColor(Colors::ConsoleYellow);	// Yellow
-		case APP_INFO_LOG:	color.SetColor(Colors::ConsoleBlue);	// Blue
+		case APP_ERROR_LOG:	color.SetColor(Colors::ConsoleRed);		break; // Red
+		case APP_WARN_LOG:	color.SetColor(Colors::ConsoleYellow);	break; // Yellow
+		case APP_INFO_LOG:	color.SetColor(Colors::ConsoleBlue);	break; // Blue
 	}
 
-	LogEntry entry = LogEntry(message, color);
-	logLines.push_back(entry);
-}
-
-inline const uint32 GetLogEntryCount()
-{
-	return (uint32)logLines.size();
-}
-
-inline const LogEntry GetLogEntry(uint32 logLineIndex)
-{
-	ASSERT((logLineIndex < logLines.size()), "LogLineIndex passed was Invalid!");
-	return logLines[logLineIndex];
-}
-
-inline void PushLogEntry(const LogEntry& entry)
-{
-	logLines.push_back(entry);
+	if (App && App->modUI)
+		App->modUI->PrintMessageInConsole(message, color);
 }

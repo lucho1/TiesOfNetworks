@@ -34,6 +34,7 @@
 #include <vector>
 #include <list>
 #include <deque>
+#include <unordered_map>
 
 #include <string.h>
 #include <fstream>

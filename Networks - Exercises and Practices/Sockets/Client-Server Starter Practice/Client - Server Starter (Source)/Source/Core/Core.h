@@ -169,25 +169,12 @@ const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 #define APPCONSOLE_INFO_LOG(format, ...)	PublicAppLog(PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), APP_INFO_LOG)
 
 
-// --- Utilities Includes ---
-#include "Utilities/Color.h"
-
-struct LogEntry
-{
-	LogEntry(const char* msg, const Color& col) : message(msg), text_color(col) {}
-	const Color text_color;
-	const char *message;
-};
-
-std::vector<LogEntry> logLines;
-inline const uint32 GetLogEntryCount();
-inline const LogEntry GetLogEntry(uint32 entryIndex);
-inline void PushLogEntry(const LogEntry& entry);
-
-
 ////////////////////////////////////////////////////////////////////////
 // FRAMEWORK HEADERS
 ////////////////////////////////////////////////////////////////////////
+
+// --- Utilities Includes ---
+#include "Utilities/Color.h"
 
 // --- Networking Includes ---
 #include "NetStreams/Messages.h"

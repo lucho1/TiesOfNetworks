@@ -28,7 +28,7 @@ void ScreenMainMenu::GUI()
 		App->modScreen->screenGame->SetServerPort(localServerPort);
 
 		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
-		logLines.clear();
+		App->modUI->ClearConsoleMessages();
 	}
 
 	ImGui::Spacing();
@@ -55,7 +55,7 @@ void ScreenMainMenu::GUI()
 		App->modScreen->screenGame->SetClientName(playerNameStr);
 
 		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
-		logLines.clear();
+		App->modUI->ClearConsoleMessages();
 	}
 
 	ImGui::End();
