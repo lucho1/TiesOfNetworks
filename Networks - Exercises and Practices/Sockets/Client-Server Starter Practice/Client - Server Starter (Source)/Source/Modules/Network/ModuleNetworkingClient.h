@@ -40,7 +40,6 @@ private:
 	ClientState m_ClientState = ClientState::STOPPED;
 	SOCKET m_Socket = INVALID_SOCKET;
 
-	sockaddr_in m_ServerAddress = {};
 	std::string m_ServerAddressStr = {};
 	std::string m_ServerName = "ServerName";
 	Color m_UserTextColor = Colors::ConsoleGreen;

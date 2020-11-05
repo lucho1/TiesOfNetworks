@@ -16,11 +16,13 @@ bool  ModuleNetworkingClient::Start(const char * serverAddressStr, int serverPor
 	if (m_Socket != INVALID_SOCKET)
 	{
 		m_ServerAddressStr = serverAddressStr + std::string(":") + std::to_string(serverPort);
-		m_ServerAddress.sin_family = AF_INET;
-		m_ServerAddress.sin_port = htons(serverPort);
-		inet_pton(AF_INET, serverAddressStr, &m_ServerAddress.sin_addr);
+
+		sockaddr_in server_sockaddrin;
+		server_sockaddrin.sin_family = AF_INET;
+		server_sockaddrin.sin_port = htons(serverPort);
+		inet_pton(AF_INET, serverAddressStr, &server_sockaddrin.sin_addr);
 	
-		if (connect(m_Socket, (sockaddr*)&m_ServerAddress, sizeof(m_ServerAddress)) != SOCKET_ERROR)
+		if (connect(m_Socket, (sockaddr*)&server_sockaddrin, sizeof(server_sockaddrin)) != SOCKET_ERROR)
 		{
 			AddSocket(m_Socket);
 			m_ClientState = ClientState::START; // If everything was ok... change the state
