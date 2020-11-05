@@ -7,18 +7,6 @@ void ScreenMainMenu::Enable()
 
 void ScreenMainMenu::GUI()
 {
-	
-	int a = rng::GetRandomInt();
-	//int b = rn.GetRandomInt_InRange(10, 15);
-	//std::vector<int> bV = rn.GetRandomIntVec(5);
-	//std::vector<int> aV = rn.GetRandomIntVec_InRange(10, 40, 150);
-
-	//float fa = rn.GetRandomFloat();
-	//float bf = rn.GetRandomFloat_InRange(10, 15);
-	//std::vector<float> fbV = rn.GetRandomFloatVec(5);
-	//std::vector<float> faV = rn.GetRandomFloatVec_InRange(10, 40, 150);
-
-
 	ImGui::Begin("Main Menu");
 	
 	// --- Top Image ---
