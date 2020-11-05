@@ -89,10 +89,14 @@ bool ModuleNetworkingClient::GUI()
 		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || DrawUI_SendButton())
 		{
 			OutputMemoryStream packet;
-			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), Colors::ConsoleGreen);
+			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), m_UserTextColor);
 			SendPacket(packet, m_Socket);
 			sprintf_s(buffer, "");
 		}
+
+		ImGuiColorEditFlags color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueWheel;
+		ImGui::SameLine();
+		ImGui::ColorEdit4("Text Color", &m_UserTextColor, color_flags);
 
 		// Add functionality for Private Text & Commands here
 

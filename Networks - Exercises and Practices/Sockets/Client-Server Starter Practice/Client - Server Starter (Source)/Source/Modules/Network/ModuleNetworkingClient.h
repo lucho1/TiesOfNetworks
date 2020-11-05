@@ -43,6 +43,7 @@ private:
 	sockaddr_in m_ServerAddress = {};
 	std::string m_ServerAddressStr = {};
 	std::string m_ServerName = "ServerName";
+	Color m_UserTextColor = Colors::ConsoleGreen;
 
 	bool m_ServerDisconnection = false;
 };
