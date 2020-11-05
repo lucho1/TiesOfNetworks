@@ -174,6 +174,7 @@ const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 ////////////////////////////////////////////////////////////////////////
 
 // --- Utilities Includes ---
+#include "Utilities/RandomGenerator.h"
 #include "Utilities/Color.h"
 
 // --- Networking Includes ---

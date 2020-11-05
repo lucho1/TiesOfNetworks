@@ -114,6 +114,9 @@
     <ClCompile Include="Source\Core\NetStreams\MemoryStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\Utilities\RandomGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vendor\stb\stb_image.h">
@@ -216,6 +219,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Utilities\Color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Utilities\RandomGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
