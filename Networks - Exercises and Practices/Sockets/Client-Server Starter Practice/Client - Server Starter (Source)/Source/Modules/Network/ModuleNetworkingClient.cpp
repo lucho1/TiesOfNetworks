@@ -75,7 +75,8 @@ bool ModuleNetworkingClient::GUI()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("Welcome '%s' to the server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+		ImGui::Text("Welcome '%s' to the '%s' server!", m_ClientName.c_str(), m_ServerName.c_str());
+		ImGui::Text("Server Address: %s", m_ServerAddressStr.c_str());
 
 		// Input message & Send button
 		static char buffer[250]{ "Write a Message" };
@@ -123,6 +124,8 @@ bool ModuleNetworkingClient::Update()
 	{
 		OutputMemoryStream packet;
 		SetupPacket(packet, CLIENT_MESSAGE::CLIENT_CONNECTION, m_ClientName, Colors::ConsoleBlue);
+		packet << m_ServerAddressStr;
+
 		SendPacket(packet, m_Socket);
 		m_ClientState = ClientState::LOGGING;
 	}
@@ -161,6 +164,12 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		case SERVER_MESSAGE::SERVER_WARN:			APPCONSOLE_WARN_LOG(message.c_str());						break;
 		case SERVER_MESSAGE::SERVER_ERROR:			APPCONSOLE_ERROR_LOG(message.c_str());						break;
 		case SERVER_MESSAGE::SERVER_DISCONNECTION:	m_ServerDisconnection = true;								break;
+		case SERVER_MESSAGE::SERVER_WELCOME:
+		{
+			packet >> m_ServerName;
+			APPCONSOLE_INFO_LOG(message.c_str());
+			break;
+		}
 	}
 }
 
@@ -177,11 +186,12 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	// Clear Client Console & Log/Change State
 	App->modUI->ClearConsoleMessages();
 	m_ClientState = ClientState::STOPPED;
-	APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s'", m_ClientName.c_str(), m_ServerAddressStr.c_str());
+	APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s' (IP: %s)", m_ClientName.c_str(), m_ServerName.c_str(), m_ServerAddressStr.c_str());
 
+	// If server was Disconnected, notify
 	if (m_ServerDisconnection)
 	{
-		APPCONSOLE_WARN_LOG("[SERVER]: Server was Disconnected");
+		APPCONSOLE_WARN_LOG("[SERVER]: Server '%s' with IP: %s was Disconnected", m_ServerName.c_str(), m_ServerAddressStr.c_str());
 		m_ServerDisconnection = false;
 	}
 }

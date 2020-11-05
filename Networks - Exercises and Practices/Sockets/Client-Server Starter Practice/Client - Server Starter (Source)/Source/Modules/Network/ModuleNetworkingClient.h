@@ -42,6 +42,7 @@ private:
 
 	sockaddr_in m_ServerAddress = {};
 	std::string m_ServerAddressStr = {};
+	std::string m_ServerName = "ServerName";
 
 	bool m_ServerDisconnection = false;
 };

@@ -22,12 +22,16 @@ void ScreenMainMenu::GUI()
 	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank;
 
 	static int localServerPort = 8888;
-	ImGui::InputInt("Server Port To Open", &localServerPort, flags);
+	ImGui::InputInt("Port To Open", &localServerPort, flags);
+
+	static char serverNameStr[64] = "ServerName";
+	ImGui::InputText("Server Name", serverNameStr, sizeof(serverNameStr), flags);
 
 	if (ImGui::Button("Start Server"))
 	{
 		App->modScreen->screenGame->SetAsServer(true);
 		App->modScreen->screenGame->SetServerPort(localServerPort);
+		App->modScreen->screenGame->SetServerName(serverNameStr);
 
 		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
 		App->modUI->ClearConsoleMessages();
@@ -44,7 +48,7 @@ void ScreenMainMenu::GUI()
 	ImGui::InputText("Server Address", serverAddressStr, sizeof(serverAddressStr), flags | ImGuiInputTextFlags_CharsDecimal);
 
 	static int remoteServerPort = 8888;
-	ImGui::InputInt("Server Port to Connect", &remoteServerPort, flags);
+	ImGui::InputInt("Port to Connect", &remoteServerPort, flags);
 	
 	static char playerNameStr[64] = "Username";
 	ImGui::InputText("Player Name", playerNameStr, sizeof(playerNameStr), flags);

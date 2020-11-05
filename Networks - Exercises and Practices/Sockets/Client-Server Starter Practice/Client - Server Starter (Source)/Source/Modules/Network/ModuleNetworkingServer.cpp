@@ -5,7 +5,7 @@
 
 
 // ---------------------- Virtual functions of Modules -----------------------
-bool ModuleNetworkingServer::Start(int port)
+bool ModuleNetworkingServer::Start(int port, const char* serverName)
 {
 	// TODO(jesus): TCP listen socket stuff
 	// - Create the listenSocket
@@ -15,6 +15,7 @@ bool ModuleNetworkingServer::Start(int port)
 	// - Add the listenSocket to the managed list of sockets using addSocket()
 
 	// --- ---
+	m_ServerName = serverName;
 	m_ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	
 	// If no error, set the class' socket
@@ -49,7 +50,7 @@ bool ModuleNetworkingServer::Start(int port)
 	else
 		ReportErrorAndClose(m_ListeningSocket, "[SERVER]: Error opening socket m_ListeningSocket in ", "SERVER", "ModuleNetworkingServer::start()");
 
-	APPCONSOLE_INFO_LOG("SERVER STARTED IN PORT %i", port);
+	APPCONSOLE_INFO_LOG("SERVER '%s' STARTED IN PORT %i", m_ServerName.c_str(), port);
 
 	// --- ---
 	return true;
@@ -60,14 +61,33 @@ bool ModuleNetworkingServer::GUI()
 	if (m_ServerState != ServerState::STOPPED)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
-		ImGui::Begin("Server Window");
-
+		std::string winTitle = m_ServerName + " Server Window";
+		ImGui::Begin(winTitle.c_str());
+		
+		// -- Header & Title --
 		Texture *tex = App->modResources->server;
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("List of connected sockets:");
+		std::string serverName = "****** " + m_ServerName + " Server******";
 
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.2f, 1.0f));
+		ImGui::SetWindowFontScale(1.2f);
+		
+		float x = serverName.size();
+		float xPos = ImGui::GetWindowSize().x / 2.0f - 145.0f;
+		float originalCursor = ImGui::GetCursorPosX();
+		ImGui::SetCursorPosX(xPos);
+
+
+		ImGui::Text("****** %s Server******", m_ServerName.c_str());
+		ImGui::PopStyleColor();
+		ImGui::SetWindowFontScale(1.0f);
+
+		// -- Information on Connections --
+		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine();
+		ImGui::Text("Server Address: %s", m_ServerAddress.c_str());
+		ImGui::Text("List of connected sockets:");
 		for (const auto& connectedSocket : m_ConnectedSockets)
 		{
 			ImGui::Separator();
@@ -83,7 +103,7 @@ bool ModuleNetworkingServer::GUI()
 			ImGui::Text("Client name: %s - ID: #%i", connectedSocket.second.client_name.c_str(), connectedSocket.first);
 		}
 
-		// Input message & Send button
+		// -- Input message & Send button --
 		static char buffer[250]{ "Write a Server Message" };
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
 
@@ -102,7 +122,7 @@ bool ModuleNetworkingServer::GUI()
 			sprintf_s(buffer, "");
 		}
 
-		// Disconnect Button
+		// -- Disconnect Button --
 		ImGui::SetCursorPos({ 145.0f, 650.0f });
 		ImGui::NewLine();
 		ImGui::Separator();
@@ -184,11 +204,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		case CLIENT_MESSAGE::CLIENT_CONNECTION:
 		{
+			packet >> m_ServerAddress;
 			connected_socket.client_name = message;
-			APPCONSOLE_INFO_LOG("Connected Client '%s #%i'", message.c_str(), s_index);
+			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", connected_socket.client_name.c_str(), s_index);
 
-			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s_index) + "') Connected";
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s_index, Colors::ConsoleBlue);
+			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s_index) + "') Connected\nWELCOME " + message + " TO " + m_ServerName + " SERVER!";
+			SetupPacket(server_response, SERVER_MESSAGE::SERVER_WELCOME, msg.c_str(), s_index, Colors::ConsoleBlue);
+			server_response << m_ServerName;
 
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(server_response, client.second.socket);
@@ -266,9 +288,9 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 
 			IN_ADDR inAddr = connectedSocket.address.sin_addr;
 			std::string add = std::to_string(inAddr.S_un.S_un_b.s_b1) + "." + std::to_string(inAddr.S_un.S_un_b.s_b2) + "." + std::to_string(inAddr.S_un.S_un_b.s_b3)
-								+ "." + std::to_string(inAddr.S_un.S_un_b.s_b4) + ":" + std::to_string(ntohs(connectedSocket.address.sin_port));
+				+ "." + std::to_string(inAddr.S_un.S_un_b.s_b4);// +":" + std::to_string(ntohs(connectedSocket.address.sin_port));
 
-			APPCONSOLE_INFO_LOG("Disconnected client '%s' with address %s and ID: %d", connectedSocket.client_name.c_str(), add.c_str(), connectedSocket.socket);
+			APPCONSOLE_INFO_LOG("Disconnected client '%s (#%i)' with address '%s' and Socket ID: %d", connectedSocket.client_name.c_str(), iterator.first, add.c_str(), connectedSocket.socket);
 			m_ConnectedSockets.erase(it);
 			break;
 		}

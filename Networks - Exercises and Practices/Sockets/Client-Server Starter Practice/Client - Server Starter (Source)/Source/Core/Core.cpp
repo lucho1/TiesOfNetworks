@@ -42,7 +42,7 @@ void PublicAppLog(int line, const char* msg, EntryType type)
 	//StringCchCopyA(message, strlen(msg) + 1, msg); // A safer function than lstrcpyA() --> lstrcpy has undefined behavior if src & dest buffers overlap
 	std::string cutted_message = msg;
 
-	size_t size = cutted_message.find_first_of(": ", 0) + 3;
+	size_t size = cutted_message.find_first_of(":  ", 0) + 3;
 	if (size != std::string::npos)
 		cutted_message = cutted_message.substr(size, cutted_message.size());
 

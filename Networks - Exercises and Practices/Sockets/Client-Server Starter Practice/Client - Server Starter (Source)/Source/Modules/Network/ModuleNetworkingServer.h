@@ -7,7 +7,7 @@ class ModuleNetworkingServer : public ModuleNetworking
 public:
 
 	// ModuleNetworkingServer public methods
-	bool Start(int port);
+	bool Start(int port, const char* serverName);
 	bool IsRunning() const { return m_ServerState != ServerState::STOPPED; }
 	
 
@@ -42,6 +42,8 @@ private:
 
 	// Variables
 	ServerState m_ServerState = ServerState::STOPPED;
+	std::string m_ServerName = "ServerName";
+	std::string m_ServerAddress = "NULL";
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
 	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
 
