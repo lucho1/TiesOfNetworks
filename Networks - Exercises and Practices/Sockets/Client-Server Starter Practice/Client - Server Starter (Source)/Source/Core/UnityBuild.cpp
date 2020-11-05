@@ -29,3 +29,6 @@
 #include "Screens/ScreenLoading.cpp"
 #include "Screens/ScreenMainMenu.cpp"
 #include "Screens/ScreenOverlay.cpp"
+
+// Utilities Include
+#include "Utilities/RandomGenerator.cpp"

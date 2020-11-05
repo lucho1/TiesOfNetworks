@@ -1,7 +1,6 @@
 #include "Core.h"
 #include "ScreenMainMenu.h"
 
-
 void ScreenMainMenu::Enable()
 {
 }
@@ -9,7 +8,7 @@ void ScreenMainMenu::Enable()
 void ScreenMainMenu::GUI()
 {
 	
-	int a = rn.GetRandomInt();
+	int a = rng::GetRandomInt();
 	//int b = rn.GetRandomInt_InRange(10, 15);
 	//std::vector<int> bV = rn.GetRandomIntVec(5);
 	//std::vector<int> aV = rn.GetRandomIntVec_InRange(10, 40, 150);

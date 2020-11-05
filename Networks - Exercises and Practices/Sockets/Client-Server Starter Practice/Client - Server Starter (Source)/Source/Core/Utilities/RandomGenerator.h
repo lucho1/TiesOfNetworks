@@ -1,14 +1,8 @@
-#pragma once
-#include <random>
+#ifndef CORE_UTILITIES_RANDOMGENERATOR_H
+#define CORE_UTILITIES_RANDOMGENERATOR_H
 
-class RandomGenerator
+namespace rng
 {
-public:
-
-	// Construction
-	RandomGenerator();
-	~RandomGenerator() = default;
-
 	// Random Ints
 	inline int GetRandomInt(); //Shouldn't give negative numbers
 	inline int GetRandomInt_InRange(int range_min, int range_max);
@@ -25,12 +19,6 @@ public:
 	std::vector<float>GetRandomFloatVec(int size);
 	std::vector<float>GetRandomFloatVec_InRange(int size, float range_min, float range_max);
 
+} //namespace rng
 
-private:
-
-	std::default_random_engine m_RNEngine;
-	std::random_device m_RandomDevice;
-
-	std::uniform_real_distribution<double> m_DoubleDistribution;
-	std::uniform_int_distribution<int> m_IntDistribution;
-};
+#endif //CORE_UTILITIES_RANDOMGENERATOR_H
