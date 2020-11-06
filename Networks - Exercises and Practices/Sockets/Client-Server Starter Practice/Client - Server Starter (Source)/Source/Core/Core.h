@@ -203,6 +203,7 @@ const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 #include "Modules/Scene/ModuleGameObject.h"
 #include "Modules/Scene/ModuleScreen.h"
 #include "Modules/Scene/ModuleUI.h"
+#include "Modules/Scene/ModuleGamesManager.h"
 
 // Screens Include
 #include "Screens/Screen.h"

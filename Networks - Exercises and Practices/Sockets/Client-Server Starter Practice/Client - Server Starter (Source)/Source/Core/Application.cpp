@@ -7,16 +7,17 @@
 Application::Application()
 {
 	// Create modules
-	ADD_MODULE(ModulePlatform,         modPlatform);
-	ADD_MODULE(ModuleRender,           modRender);
-	ADD_MODULE(ModuleNetworkingClient, modNetClient);
-	ADD_MODULE(ModuleNetworkingServer, modNetServer);
-	ADD_MODULE(ModuleTaskManager,      modTaskManager);
-	ADD_MODULE(ModuleTextures,         modTextures);
-	ADD_MODULE(ModuleResources,        modResources);
-	ADD_MODULE(ModuleGameObject,       modGameObject);
-	ADD_MODULE(ModuleScreen,           modScreen);
-	ADD_MODULE(ModuleUI,               modUI);
+	ADD_MODULE(ModulePlatform,			modPlatform);
+	ADD_MODULE(ModuleRender,			modRender);
+	ADD_MODULE(ModuleNetworkingClient,	modNetClient);
+	ADD_MODULE(ModuleNetworkingServer,	modNetServer);
+	ADD_MODULE(ModuleTaskManager,		modTaskManager);
+	ADD_MODULE(ModuleTextures,			modTextures);
+	ADD_MODULE(ModuleResources,			modResources);
+	ADD_MODULE(ModuleGameObject,		modGameObject);
+	ADD_MODULE(ModuleScreen,			modScreen);
+	ADD_MODULE(ModuleUI,				modUI);
+	ADD_MODULE(ModuleGamesManager,		modGames);
 }
 
 

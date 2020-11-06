@@ -40,6 +40,7 @@ public:
 	ModuleScreen *modScreen = nullptr;
 	ModuleUI *modUI = nullptr;
 	ModuleRender *modRender = nullptr;
+	ModuleGamesManager* modGames = nullptr;
 
 
 private:

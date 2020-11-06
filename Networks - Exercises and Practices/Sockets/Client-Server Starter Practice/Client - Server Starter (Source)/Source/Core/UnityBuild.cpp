@@ -22,6 +22,7 @@
 #include "Modules/Scene/ModuleGameObject.cpp"
 #include "Modules/Scene/ModuleScreen.cpp"
 #include "Modules/Scene/ModuleUI.cpp"
+#include "Modules/Scene/ModuleGamesManager.cpp"
 
 // Screens Include
 #include "Screens/ScreenBackground.cpp"
