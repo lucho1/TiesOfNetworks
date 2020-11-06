@@ -270,16 +270,43 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_COMMAND:
 		{
-			// First read the command and then make the response. For instance:
-			// Client reads the first char to decide sending CLIENT_COMMAND ("/")
-			// Client also reads the COMMAND_NAME ("whisper") and COMMAND_ARG ("user")
-			// if the command can solve the command ("help", "list" (?), ...) solve it there.
-			// Otherwise, in here place we make a switch() to decide what to do with the command sent
+			CLIENT_COMMANDS command;
+			packet >> command;
+			
+			switch (command) {
+			case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
+				{
+				std::string new_username;
+				packet >> new_username;
+				bool n_username = true;
 
-			//if (COMMAND_NAME == "change_name")
-			//{
-			//	We could make a "WARN" so the text is displayed yellow
-			//}
+				for (const auto& client : m_ConnectedSockets) {
+					if (client.first == s_index)
+						continue;
+
+					if (client.second.client_name == new_username) {
+						n_username = false;
+						break;
+					}
+				}
+
+				if (!n_username) {
+					std::string warning = "The username '" + new_username + "' is taken!";
+					server_response << SERVER_MESSAGE::SERVER_WARN << warning;
+					SendPacket(server_response, connected_socket.socket);
+				}
+				else {
+					std::string old_username = connected_socket.client_name;
+					connected_socket.client_name = new_username;
+					server_response << SERVER_MESSAGE::SERVER_USER_NEW_NICK << old_username << new_username << s_index;
+
+					for (const auto& client : m_ConnectedSockets)
+						SendPacket(server_response, client.second.socket);
+				}
+
+				break;
+				}
+			}
 
 			break;
 		}

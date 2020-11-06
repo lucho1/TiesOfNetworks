@@ -9,6 +9,7 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCommands["whisper"] = CLIENT_COMMANDS::COMMAND_WHISPER;
 	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
 	m_UserCommands["logout"] = CLIENT_COMMANDS::COMMAND_LOGOUT;
+	m_UserCommands["nick"] = CLIENT_COMMANDS::COMMAND_CHANGE_NICK;
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
@@ -134,6 +135,30 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 			m_ConnectedUsers.clear();
 			m_DisconnectedSockets.push_back(m_Socket);
+			break;
+			}
+
+		case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos == std::string::npos) {
+				std::string warning = "No username, use /nick [username]";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			pos = buffer.find_first_of(' ', start_pos);
+			std::string new_nickname = buffer.substr(start_pos, pos - start_pos);
+			if (new_nickname == m_ClientName) {
+				std::string warning = "No need to change your username, it already is '" + m_ClientName +"'!";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << new_nickname;
+			SendPacket(packet, m_Socket);
+
 			break;
 			}
 		case CLIENT_COMMANDS::COMMAND_INVALID:
@@ -326,6 +351,27 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 			packet >> m_ServerName >> welcome_msg >> m_ClientID >> m_ConnectedUsers;
 			welcome_msg = "<Server>: " + welcome_msg;
 			APPCONSOLE_INFO_LOG(welcome_msg.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_USER_NEW_NICK:
+		{
+			std::string old_username, new_username;
+			uint user_id;
+			packet >> old_username >> new_username >> user_id;
+
+			if (old_username == m_ClientName) {
+				m_ClientName = new_username;
+			}
+			else {
+				auto position = m_ConnectedUsers.find(old_username);
+				if (position != m_ConnectedUsers.end())
+					m_ConnectedUsers.erase(position);
+				m_ConnectedUsers[new_username] = user_id;
+			}
+
+			std::string message = "<Server>: User '" + old_username + "' is now known as '" + new_username + "'";
+			APPCONSOLE_INFO_LOG(message.c_str());
+
 			break;
 		}
 		case SERVER_MESSAGE::SERVER_DISCONNECTION:	m_ServerDisconnection = true;								break;
