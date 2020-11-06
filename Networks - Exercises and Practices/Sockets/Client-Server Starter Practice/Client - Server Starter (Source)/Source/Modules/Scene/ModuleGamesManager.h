@@ -4,7 +4,7 @@
 class ModuleGamesManager : public Module
 {
 	enum class GAME_TYPE { NONE = 0, RUSSIAN_ROULETTE, UNSCRAMBLE, SEXKILLMARRY };
-	enum class GAME_STATUS { NONE = 0, START, RUNNING, WAITING, STOP };
+	enum class GAME_STATUS { NONE = 0, START, RUNNING, WAITING };
 
 public:
 
@@ -22,16 +22,17 @@ private:
 
 	// Module Methods
 	virtual bool Update() override;
+	virtual bool GUI() override; // For debugging in meantime
 
 	// Class Private Methods
-	void SendServerNotification(const std::string& msg) const;
+	void SendServerNotification(const std::string& msg);
 	uint GetNextUserInList() const;
 	void ProcessAction(const std::string& action) const;
 
 	// Game Run Methods
-	const std::string& GetInitialMessage() const;
-	const std::string& GetRunningMessage() const;
-	const std::string& GetStopMessage() const;
+	const std::string GetInitialMessage() const;
+	const std::string GetRunningMessage() const;
+	const std::string GetStopMessage() const;
 
 	//const std::string& SetupNotification();
 
@@ -41,6 +42,9 @@ private:
 	uint m_CurrentUserID = 0;
 	GAME_TYPE m_CurrentGame = GAME_TYPE::NONE;
 	GAME_STATUS m_GameStatus = GAME_STATUS::NONE;
+
+	// Temporal - for Debugging purposes
+	std::vector<std::string> m_GameMessages;
 };
 
 #endif
