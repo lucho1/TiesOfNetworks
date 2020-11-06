@@ -21,9 +21,8 @@ private:
 	virtual void onSocketDisconnected(SOCKET socket) override;
 
 	// Private Module Methods
-	void SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, const Color& msg_color);
-	void ReadPacket(const InputMemoryStream& packet, SERVER_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color);
 	bool DrawUI_SendButton();
+	void ParseMessage(const std::string& buffer);
 
 private:
 
@@ -32,17 +31,22 @@ private:
 	{
 		STOPPED,
 		START,
-		LOGGING
+		LOGGING,
+		REJECTED,
+		ONLINE
 	};
 
 	// Variables
 	std::string m_ClientName;
+	uint m_ClientID;
 	ClientState m_ClientState = ClientState::STOPPED;
 	SOCKET m_Socket = INVALID_SOCKET;
 
 	std::string m_ServerAddressStr = {};
 	std::string m_ServerName = "ServerName";
 	Color m_UserTextColor = Colors::ConsoleGreen;
+	std::unordered_map<std::string, uint> m_ConnectedUsers;
+	std::unordered_map<std::string, CLIENT_COMMANDS> m_UserCommands;
 
 	bool m_ServerDisconnection = false;
 };

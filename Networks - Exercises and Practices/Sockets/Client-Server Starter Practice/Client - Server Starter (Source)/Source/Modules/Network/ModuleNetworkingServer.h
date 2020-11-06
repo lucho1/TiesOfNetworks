@@ -46,12 +46,11 @@ private:
 	std::string m_ServerAddress = "NULL";
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
 	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
+	std::unordered_map<std::string, uint> m_ConnectedNicknames;
 
 
 private:
 
 	// Class Methods
 	uint GetSocketIndex(const SOCKET& s);
-	void SetupPacket(OutputMemoryStream& packet, SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color);
-	void ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, Color& msg_color);
 };

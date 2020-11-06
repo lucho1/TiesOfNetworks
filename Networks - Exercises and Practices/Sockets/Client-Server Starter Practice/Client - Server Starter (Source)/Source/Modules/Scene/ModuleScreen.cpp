@@ -76,7 +76,7 @@ bool ModuleScreen::CleanUp()
 void ModuleScreen::SwapScreensWithTransition(Screen *oldScene, Screen *newScene)
 {
 	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes passed don't Exist");
-	ASSERT((!screenOverlay->enabled), "Screen Overlay was Disabled!");
+	ASSERT((!screenOverlay->enabled), "Screen Overlay was enabled!");
 
 	screenOverlay->oldScene = oldScene;
 	screenOverlay->newScene = newScene;
