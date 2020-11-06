@@ -86,8 +86,8 @@ bool ModuleNetworkingServer::GUI()
 		ImGui::SetWindowFontScale(1.0f);
 
 		// -- Information on Connections --
-		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine();
-		ImGui::Text("Server Address: %s", m_ServerAddress.c_str());
+		ImGui::NewLine(); /*ImGui::NewLine(); ImGui::NewLine();*/
+		//ImGui::Text("Server Address: %s", m_ServerAddress.c_str()); //Sergi: We would need a connection anyway, no point
 		ImGui::Text("List of connected sockets:");
 		for (const auto& connectedSocket : m_ConnectedSockets)
 		{

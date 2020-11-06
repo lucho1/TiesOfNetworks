@@ -2,14 +2,18 @@
 
 // -- Delivery by Lucho Suaya and Sergi Parra --
 
+
+
+ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
+	// mTODO Sergi: Add commands to map here
+	m_UserCommands["whisper"] = CLIENT_COMMANDS::COMMAND_WHISPER;
+	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
+}
+
 // ------------------ ModuleNetworkingClient public methods ------------------
 bool  ModuleNetworkingClient::Start(const char * serverAddressStr, int serverPort, const char * clientName)
 {
 	m_ClientName = clientName;
-
-	// mTODO Sergi: Add commands to map here
-	m_UserCommands["whisper"] = CLIENT_COMMANDS::COMMAND_WHISPER;
-	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
 
 	// TODO(jesus): TCP connection stuff
 	// - Create the socket

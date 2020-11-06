@@ -5,6 +5,7 @@
 class ModuleNetworkingClient : public ModuleNetworking
 {
 public:
+	ModuleNetworkingClient();
 
 	// ModuleNetworkingClient public methods
 	bool Start(const char *serverAddress, int serverPort, const char *clientName);
