@@ -8,6 +8,7 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	// mTODO Sergi: Add commands to map here
 	m_UserCommands["whisper"] = CLIENT_COMMANDS::COMMAND_WHISPER;
 	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
+	m_UserCommands["logout"] = CLIENT_COMMANDS::COMMAND_LOGOUT;
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
@@ -124,6 +125,17 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 			break;
 			}
+
+		case CLIENT_COMMANDS::COMMAND_LOGOUT:
+			{
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_DISCONNECTION;
+			SendPacket(packet, m_Socket);
+
+			m_ConnectedUsers.clear();
+			m_DisconnectedSockets.push_back(m_Socket);
+			break;
+			}
 		case CLIENT_COMMANDS::COMMAND_INVALID:
 			{
 			std::string warning = "The command '" + command + "' does not exist!";
@@ -191,8 +203,6 @@ bool ModuleNetworkingClient::GUI()
 
 			m_ConnectedUsers.clear();
 			m_DisconnectedSockets.push_back(m_Socket);
-			m_ClientState = ClientState::STOPPED;
-			//App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
 		ImGui::End();
