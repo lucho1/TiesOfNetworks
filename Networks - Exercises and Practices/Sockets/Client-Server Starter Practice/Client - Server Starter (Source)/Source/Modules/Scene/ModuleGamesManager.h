@@ -29,26 +29,47 @@ private:
 
 	// Class Private Methods
 	void SendServerNotification(const std::string& msg);
-	uint GetNextUserInList();
+	void GetNextUserInList();
 	void ProcessAction(const std::string& action);
 
 	// Game Run Methods
-	const std::string GetInitialMessage() const;
-	const std::string GetRunningMessage() const;
+	const std::string GetInitialMessage();
+	const std::string GetRunningMessage();
 	const std::string GetStopMessage() const;
-
-	//const std::string& SetupNotification();
+	const std::string GetUserLabel() const;
+	bool CompareWords(const std::string& compared_word);
+	void ArrangeWord();
 
 
 private:
 
 	GAME_TYPE m_CurrentGame = GAME_TYPE::NONE;
 	GAME_STATUS m_GameStatus = GAME_STATUS::NONE;
-	std::pair<std::string, uint> m_CurrentUser = { "NULL", -1 };
+
 	std::unordered_map<std::string, GAME_COMMANDS> m_GameCommands;
+	std::pair<std::string, uint> m_CurrentUser = { "NULL", -1 };
 
 	// Temporal - for Debugging purposes
 	std::vector<std::string> m_GameMessages;
+
+	struct GameData
+	{
+		// Russian Roulette variables
+		uint bullet_slot_number = 0;
+		std::vector<uint> alive_players;
+
+		//SexKillMarry variables
+		bool sex = false, kill = false, marry = false;
+		std::string users_answered = "";
+
+		// Unscramble variables
+		std::string original_word = "";
+		std::string ordered_word = "";
+		std::string last_word = "";
+		std::unordered_map<uint, uint> unscramble_ranking;
+	};
+
+	GameData m_GamesData;
 };
 
 #endif

@@ -12,6 +12,7 @@ public:
 
 	const std::pair<std::string, uint> GetUserFromID(uint ID);
 	const std::pair<std::string, uint> GetNextUser(uint current_userID);
+	uint GetUsersNumber() const { return m_ConnectedNicknames.size(); }
 
 
 private:
