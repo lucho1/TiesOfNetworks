@@ -78,6 +78,27 @@ public:
 		}
 	}
 
+	// Generic write for std::unordered_map of arithmetic types
+	template< typename T>
+	void Write(const std::unordered_map< uint, T>& inMap) {
+		uint32 elementCount = static_cast<uint32>(inMap.size());
+		Write( elementCount );
+		for (const auto& element : inMap) {
+			Write(element.first);
+			Write(element.second);
+		}
+	}
+	
+	template< typename T>
+	void Write(const std::unordered_map< T, uint>& inMap) {
+		uint32 elementCount = static_cast<uint32>(inMap.size());
+		Write(elementCount);
+		for (const auto& element : inMap) {
+			Write(element.first);
+			Write(element.second);
+		}
+	}
+
 	// Write for strings
 	void Write( const std::string& inString )
 	{
@@ -178,6 +199,32 @@ public:
 		for( T& element : inVector)
 		{
 			Read( element );
+		}
+	}
+
+	// Generic read for unordered_maps of arithmetic types
+	template< typename T >
+	void Read(std::unordered_map< uint, T >& inMap) const {
+		uint32 elementCount;
+		Read(elementCount);
+		inMap.reserve(elementCount);
+		uint key;
+		for (int i = 0; i < elementCount; ++i) {
+			Read(key);
+			Read(inMap[key]);
+		}
+	}
+
+	// Generic read for unordered_maps of arithmetic types
+	template< typename T >
+	void Read(std::unordered_map< T, uint >& inMap) const {
+		uint32 elementCount;
+		Read(elementCount);
+		inMap.reserve(elementCount);
+		T key;
+		for (int i = 0; i < elementCount; ++i) {
+			Read(key);
+			Read(inMap[key]);
 		}
 	}
 

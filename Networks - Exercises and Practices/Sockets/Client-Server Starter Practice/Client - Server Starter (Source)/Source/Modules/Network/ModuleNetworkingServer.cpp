@@ -1,4 +1,5 @@
 #include "ModuleNetworkingServer.h"
+#include <iomanip>
 
 // -- Delivery by Lucho Suaya and Sergi Parra --
 
@@ -85,8 +86,8 @@ bool ModuleNetworkingServer::GUI()
 		ImGui::SetWindowFontScale(1.0f);
 
 		// -- Information on Connections --
-		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine();
-		ImGui::Text("Server Address: %s", m_ServerAddress.c_str());
+		ImGui::NewLine(); /*ImGui::NewLine(); ImGui::NewLine();*/
+		//ImGui::Text("Server Address: %s", m_ServerAddress.c_str()); //Sergi: We would need a connection anyway, no point
 		ImGui::Text("List of connected sockets:");
 		for (const auto& connectedSocket : m_ConnectedSockets)
 		{
@@ -114,7 +115,7 @@ bool ModuleNetworkingServer::GUI()
 		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || ImGui::Button("Send"))
 		{
 			OutputMemoryStream packet;
-			SetupPacket(packet, SERVER_MESSAGE::SERVER_WARN, std::string(buffer), 0, Colors::ConsoleYellow);
+			packet << SERVER_MESSAGE::SERVER_WARN << std::string(buffer) << Colors::ConsoleYellow;
 			
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(packet, client.second.socket);
@@ -130,7 +131,7 @@ bool ModuleNetworkingServer::GUI()
 		if (ImGui::Button("Disconnect"))
 		{
 			OutputMemoryStream packet;
-			SetupPacket(packet, SERVER_MESSAGE::SERVER_DISCONNECTION, "", 0, Colors::ConsoleYellow);
+			packet << SERVER_MESSAGE::SERVER_DISCONNECTION;
 
 			for (const auto& s : m_ConnectedSockets)
 			{
@@ -167,18 +168,6 @@ uint ModuleNetworkingServer::GetSocketIndex(const SOCKET& socket)
 	return -1;
 }
 
-void ModuleNetworkingServer::SetupPacket(OutputMemoryStream& packet, SERVER_MESSAGE msg_type, std::string msg, uint src_id, const Color& msg_color)
-{
-	packet << (int)msg_type << msg << src_id << msg_color;
-}
-
-void ModuleNetworkingServer::ReadPacket(const InputMemoryStream& packet, CLIENT_MESSAGE& msg_type, std::string& msg, Color& msg_color)
-{
-	int int_type = -1;
-	packet >> int_type >> msg >> msg_color;
-	msg_type = (CLIENT_MESSAGE)int_type;
-}
-
 
 
 // ----------------- Virtual functions of ModuleNetworking -------------------
@@ -191,10 +180,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	// --- If found, read data & prepare response ---
 	CLIENT_MESSAGE message_type;
-	std::string message;
-	uint source_id = -1;
-	Color message_color;
-	ReadPacket(packet, message_type, message, message_color);
+	packet >> message_type;
 
 	ConnectedSocket& connected_socket = m_ConnectedSockets[s_index];
 	OutputMemoryStream server_response;
@@ -204,22 +190,61 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		case CLIENT_MESSAGE::CLIENT_CONNECTION:
 		{
-			packet >> m_ServerAddress;
-			connected_socket.client_name = message;
-			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", connected_socket.client_name.c_str(), s_index);
+			std::string username;
+			packet >> username;
+			connected_socket.client_name = username;
+			bool n_username = true;
+			std::unordered_map<std::string, uint> client_names;
+			std::vector<SOCKET> other_sockets;
 
-			std::string msg = "[SERVER]: Client '" + message + "' (ID '#" + std::to_string(s_index) + "') Connected\nWELCOME " + message + " TO " + m_ServerName + " SERVER!";
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_WELCOME, msg.c_str(), s_index, Colors::ConsoleBlue);
-			server_response << m_ServerName;
+			for (const auto& client : m_ConnectedSockets) {
+				if (client.first == s_index)
+					continue;
 
-			for (const auto& client : m_ConnectedSockets)
-				SendPacket(server_response, client.second.socket);
+				if (client.second.client_name == username) {
+					n_username = false;
+					break;
+				}
+				else {
+					client_names[client.second.client_name] = client.first;
+					other_sockets.push_back(client.second.socket);
+				}
+			}
+
+			if (!n_username || username == "") { // Disconnect the client because name already exists or invalid
+				server_response << SERVER_MESSAGE::SERVER_REJECTION;
+				SendPacket(server_response, connected_socket.socket);
+				break; // We don't need to do anything else so break out of the switch
+			}
+			// Implicit else
+
+			
+			// Send welcome to only client
+			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", username, s_index);
+			std::string welcome_msg = "Welcome to " + m_ServerName + "!";
+			server_response << SERVER_MESSAGE::SERVER_WELCOME << m_ServerName << welcome_msg;
+			server_response << s_index << client_names;
+			SendPacket(server_response, connected_socket.socket);
+
+			// Send connection message to everyone
+			server_response.Clear();
+			welcome_msg = "'" + username + "' connected.";
+			server_response << SERVER_MESSAGE::SERVER_USER_CONNECTION << username << s_index << welcome_msg;
+
+			for (const auto& socket : other_sockets) {
+				SendPacket(server_response, socket);
+			}
 
 			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_TEXT:
 		{
-			SetupPacket(server_response, SERVER_MESSAGE::CLIENT_TEXT, message, s_index, message_color);
+			// Get inputs
+			std::string message;
+			Color message_color;
+			packet >> message >> message_color;
+
+			server_response << SERVER_MESSAGE::CLIENT_TEXT << connected_socket.client_name << message << message_color;
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(server_response, client.second.socket);
 
@@ -227,37 +252,69 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			for (const auto& client : m_ConnectedSockets)
-			{
-				if (client.first == source_id)
+			// Get inputs
+			int dst_id;
+			std::string message;
+			packet >> dst_id >> message;
+
+			if (m_ConnectedSockets.find(dst_id) != m_ConnectedSockets.end()) {
+				const ConnectedSocket& destination = m_ConnectedSockets[dst_id];
+				server_response << SERVER_MESSAGE::CLIENT_PRIVATE_TEXT << connected_socket.client_name << message;
+				SendPacket(server_response, destination.socket);
+			}
+			else {
+				server_response << SERVER_MESSAGE::SERVER_ERROR << "User does not exist!";
+				SendPacket(server_response, connected_socket.socket);
+			}
+			break;
+		}
+		case CLIENT_MESSAGE::CLIENT_COMMAND:
+		{
+			CLIENT_COMMANDS command;
+			packet >> command;
+			
+			switch (command) {
+			case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
 				{
-					SetupPacket(server_response, SERVER_MESSAGE::CLIENT_PRIVATE_TEXT, message, s_index, message_color);
-					SendPacket(server_response, client.second.socket);
+				std::string new_username;
+				packet >> new_username;
+				bool n_username = true;
+
+				for (const auto& client : m_ConnectedSockets) {
+					if (client.first == s_index)
+						continue;
+
+					if (client.second.client_name == new_username) {
+						n_username = false;
+						break;
+					}
+				}
+
+				if (!n_username) {
+					std::string warning = "The username '" + new_username + "' is taken!";
+					server_response << SERVER_MESSAGE::SERVER_WARN << warning;
+					SendPacket(server_response, connected_socket.socket);
+				}
+				else {
+					std::string old_username = connected_socket.client_name;
+					connected_socket.client_name = new_username;
+					server_response << SERVER_MESSAGE::SERVER_USER_NEW_NICK << old_username << new_username << s_index;
+
+					for (const auto& client : m_ConnectedSockets)
+						SendPacket(server_response, client.second.socket);
+				}
+
+				break;
 				}
 			}
 
 			break;
 		}
-		case CLIENT_MESSAGE::CLIENT_COMMAND:
-		{
-			// First read the command and then make the response. For instance:
-			// Client reads the first char to decide sending CLIENT_COMMAND ("/")
-			// Client also reads the COMMAND_NAME ("whisper") and COMMAND_ARG ("user")
-			// if the command can solve the command ("help", "list" (?), ...) solve it there.
-			// Otherwise, in here place we make a switch() to decide what to do with the command sent
-
-			//if (COMMAND_NAME == "change_name")
-			//{
-			//	We could make a "WARN" so the text is displayed yellow
-			//}
-
-			break;
-		}
 		case CLIENT_MESSAGE::CLIENT_DISCONNECTION:
 		{
-			std::string msg = "[SERVER]: Client '" + connected_socket.client_name + "' (ID '#" + std::to_string(s_index) + "') Disconnected";
+			std::string msg = "'" + connected_socket.client_name + "' disconnected.";
 
-			SetupPacket(server_response, SERVER_MESSAGE::SERVER_INFO, msg.c_str(), s_index, Colors::ConsoleBlue);
+			server_response << SERVER_MESSAGE::SERVER_USER_DISCONNECTION << connected_socket.client_name << msg;
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(server_response, client.second.socket);
 

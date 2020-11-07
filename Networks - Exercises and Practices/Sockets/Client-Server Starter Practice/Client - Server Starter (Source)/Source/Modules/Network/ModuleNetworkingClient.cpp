@@ -2,6 +2,16 @@
 
 // -- Delivery by Lucho Suaya and Sergi Parra --
 
+
+
+ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
+	// mTODO Sergi: Add commands to map here
+	m_UserCommands["whisper"] = CLIENT_COMMANDS::COMMAND_WHISPER;
+	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
+	m_UserCommands["logout"] = CLIENT_COMMANDS::COMMAND_LOGOUT;
+	m_UserCommands["nick"] = CLIENT_COMMANDS::COMMAND_CHANGE_NICK;
+}
+
 // ------------------ ModuleNetworkingClient public methods ------------------
 bool  ModuleNetworkingClient::Start(const char * serverAddressStr, int serverPort, const char * clientName)
 {
@@ -45,20 +55,6 @@ bool ModuleNetworkingClient::IsRunning() const
 	return m_ClientState != ClientState::STOPPED;
 }
 
-void ModuleNetworkingClient::SetupPacket(OutputMemoryStream& packet, CLIENT_MESSAGE msg_type, std::string msg, const Color& msg_color)
-{
-	packet << (int)msg_type << msg << msg_color;
-}
-
-void ModuleNetworkingClient::ReadPacket(const InputMemoryStream& packet, SERVER_MESSAGE& msg_type, std::string& msg, uint& src_id, Color& msg_color)
-{
-	int int_type = -1;
-	packet >> int_type >> msg >> src_id >> msg_color;
-	msg_type = (SERVER_MESSAGE)int_type;
-}
-
-
-
 // ---------------------- Virtual functions of Modules -----------------------
 bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually better
 {
@@ -66,9 +62,128 @@ bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually
 	return ImGui::Button("Send");
 }
 
+void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
+	OutputMemoryStream packet;
+
+	if (buffer[0] == '/') { 		// Is a command
+		if (buffer.size() == 1)
+			return; //nothing to do here, it's an empty command
+
+		std::size_t pos = buffer.find_first_of(' ');
+		std::string command;
+
+		if (pos == std::string::npos)
+			command = buffer.substr(1);
+		else
+			command = buffer.substr(1, pos - 1);
+
+		CLIENT_COMMANDS m_command;
+		try {
+			m_command = m_UserCommands.at(command);
+		} catch (const std::out_of_range & e) {
+			m_command = CLIENT_COMMANDS::COMMAND_INVALID;
+		}
+
+		switch (m_command) {
+		case CLIENT_COMMANDS::COMMAND_WHISPER:
+			{
+			std::string dst_user, msg;
+
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos == std::string::npos) {
+				std::string warning = "No username, use /whisper username [message]";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			pos = buffer.find_first_of(' ', start_pos);
+			dst_user = buffer.substr(start_pos, pos - start_pos);
+
+			start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos == std::string::npos) {
+				std::string warning = "No message, use /whisper username [message]";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			msg = buffer.substr(start_pos);
+
+			uint dst_id;
+			try {
+				dst_id = m_ConnectedUsers.at(dst_user);
+			}
+			catch (const std::out_of_range & e) {
+				std::string warning = "The user '" + dst_user + "' is not in this chat!";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			packet << CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT << dst_id << msg;
+			SendPacket(packet, m_Socket);
+
+			std::string displayed_message = "    Whisper to <" + dst_user + ">: " + msg;
+			App->modUI->PrintMessageInConsole(displayed_message.c_str());
+
+			break;
+			}
+
+		case CLIENT_COMMANDS::COMMAND_LOGOUT:
+			{
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_DISCONNECTION;
+			SendPacket(packet, m_Socket);
+
+			m_ConnectedUsers.clear();
+			m_DisconnectedSockets.push_back(m_Socket);
+			break;
+			}
+
+		case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos == std::string::npos) {
+				std::string warning = "No username, use /nick [username]";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			pos = buffer.find_first_of(' ', start_pos);
+			std::string new_nickname = buffer.substr(start_pos, pos - start_pos);
+			if (new_nickname == m_ClientName) {
+				std::string warning = "No need to change your username, it already is '" + m_ClientName +"'!";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << new_nickname;
+			SendPacket(packet, m_Socket);
+
+			break;
+			}
+		case CLIENT_COMMANDS::COMMAND_INVALID:
+			{
+			std::string warning = "The command '" + command + "' does not exist!";
+			APPCONSOLE_WARN_LOG(warning.c_str());
+
+			break;
+			}
+		} //switch (m_command)
+
+
+
+	}
+	else {
+		// Regular message
+		packet << CLIENT_MESSAGE::CLIENT_TEXT << std::string(buffer) << m_UserTextColor;
+		SendPacket(packet, m_Socket);
+	}
+
+}
+
 bool ModuleNetworkingClient::GUI()
 {
-	if (m_ClientState != ClientState::STOPPED)
+	if (m_ClientState == ClientState::ONLINE)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Client Window");
@@ -90,9 +205,7 @@ bool ModuleNetworkingClient::GUI()
 
 		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || DrawUI_SendButton())
 		{
-			OutputMemoryStream packet;
-			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_TEXT, std::string(buffer), m_UserTextColor);
-			SendPacket(packet, m_Socket);
+			ParseMessage(buffer);
 			sprintf_s(buffer, "");
 		}
 
@@ -110,12 +223,11 @@ bool ModuleNetworkingClient::GUI()
 		{
 			// Notify Disconnection
 			OutputMemoryStream packet;
-			SetupPacket(packet, CLIENT_MESSAGE::CLIENT_DISCONNECTION, "", Colors::ConsoleBlue);
+			packet << CLIENT_MESSAGE::CLIENT_DISCONNECTION;
 			SendPacket(packet, m_Socket);
 
+			m_ConnectedUsers.clear();
 			m_DisconnectedSockets.push_back(m_Socket);
-			m_ClientState = ClientState::STOPPED;
-			App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
 		}
 
 		ImGui::End();
@@ -126,14 +238,19 @@ bool ModuleNetworkingClient::GUI()
 
 bool ModuleNetworkingClient::Update()
 {
-	if (m_ClientState == ClientState::START)
-	{
+	switch (m_ClientState) {
+	case ClientState::START: 
+		{
 		OutputMemoryStream packet;
-		SetupPacket(packet, CLIENT_MESSAGE::CLIENT_CONNECTION, m_ClientName, Colors::ConsoleBlue);
-		packet << m_ServerAddressStr;
+		packet << CLIENT_MESSAGE::CLIENT_CONNECTION << m_ClientName;
 
 		SendPacket(packet, m_Socket);
 		m_ClientState = ClientState::LOGGING;
+		break;
+		}
+
+	default:
+		break;
 	}
 
 	return true;
@@ -146,43 +263,126 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 {
 	// -- Read Data --
 	SERVER_MESSAGE message_type;
-	std::string message;
-	uint source_id;
-	Color message_color;
-
-	ReadPacket(packet, message_type, message, source_id, message_color);
+	packet >> message_type;
 
 	switch (message_type)
 	{
 		case SERVER_MESSAGE::CLIENT_TEXT:
 		{
-			std::string displayed_message = "[#" + std::to_string(source_id) + std::string("]: ") + message;
+			std::string username, message;
+			Color message_color;
+
+			packet >> username >> message >> message_color;
+			std::string displayed_message = "<" + username + ">: " + message;
 			App->modUI->PrintMessageInConsole(displayed_message.c_str(), message_color);
 			break;
 		}
 		case SERVER_MESSAGE::CLIENT_PRIVATE_TEXT:
 		{
-			std::string displayed_message = "- [PRIV] - [" + std::to_string(source_id) + std::string("]: ") + message;
-			App->modUI->PrintMessageInConsole(displayed_message.c_str(), message_color);
+			std::string username, message;
+
+			packet >> username >> message;
+			std::string displayed_message = "    Whisper from <" + username + ">: " + message;
+			App->modUI->PrintMessageInConsole(displayed_message.c_str());
 			break;
 		}
-		case SERVER_MESSAGE::SERVER_INFO:			APPCONSOLE_INFO_LOG(message.c_str());						break;
-		case SERVER_MESSAGE::SERVER_WARN:			APPCONSOLE_WARN_LOG(message.c_str());						break;
-		case SERVER_MESSAGE::SERVER_ERROR:			APPCONSOLE_ERROR_LOG(message.c_str());						break;
-		case SERVER_MESSAGE::SERVER_DISCONNECTION:	m_ServerDisconnection = true;								break;
-		case SERVER_MESSAGE::SERVER_WELCOME:
+		case SERVER_MESSAGE::SERVER_USER_CONNECTION:
 		{
-			packet >> m_ServerName;
+			std::string username, message;
+			uint user_id;
+			packet >> username >> user_id >> message;
+
+			message = "<Server>: " + message;
+			m_ConnectedUsers[username] = user_id;
+
 			APPCONSOLE_INFO_LOG(message.c_str());
 			break;
 		}
+		case SERVER_MESSAGE::SERVER_USER_DISCONNECTION:
+		{
+			std::string username, message;
+			packet >> username >> message;
+
+			message = "<Server>: " + message;
+			auto user = m_ConnectedUsers.find(username);
+			if (user != m_ConnectedUsers.end())
+				m_ConnectedUsers.erase(user);
+
+			APPCONSOLE_INFO_LOG(message.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_INFO:
+		{
+			std::string message;
+			packet >> message;
+
+			message = "<Server>: " + message;
+			APPCONSOLE_INFO_LOG(message.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_WARN:	
+		{
+			std::string message;
+			packet >> message;
+
+			message = "<Server>: " + message;
+			APPCONSOLE_WARN_LOG(message.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_ERROR:
+		{
+			std::string message;
+			packet >> message;
+
+			message = "<Server>: " + message;
+			APPCONSOLE_ERROR_LOG(message.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_REJECTION:
+		{
+			m_DisconnectedSockets.push_back(m_Socket);
+			m_ClientState = ClientState::REJECTED;
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_WELCOME:
+		{
+			m_ClientState = ClientState::ONLINE;
+			std::string welcome_msg;
+			packet >> m_ServerName >> welcome_msg >> m_ClientID >> m_ConnectedUsers;
+			welcome_msg = "<Server>: " + welcome_msg;
+			APPCONSOLE_INFO_LOG(welcome_msg.c_str());
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_USER_NEW_NICK:
+		{
+			std::string old_username, new_username;
+			uint user_id;
+			packet >> old_username >> new_username >> user_id;
+
+			if (old_username == m_ClientName) {
+				m_ClientName = new_username;
+			}
+			else {
+				auto position = m_ConnectedUsers.find(old_username);
+				if (position != m_ConnectedUsers.end())
+					m_ConnectedUsers.erase(position);
+				m_ConnectedUsers[new_username] = user_id;
+			}
+
+			std::string message = "<Server>: User '" + old_username + "' is now known as '" + new_username + "'";
+			APPCONSOLE_INFO_LOG(message.c_str());
+
+			break;
+		}
+		case SERVER_MESSAGE::SERVER_DISCONNECTION:	m_ServerDisconnection = true;								break;
+
 	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
 	// Disconnect Socket
-	m_DisconnectedSockets.push_back(m_Socket);
+	//m_DisconnectedSockets.push_back(m_Socket);
 	
 	if (shutdown(socket, 2) == SOCKET_ERROR)
 		ReportErrorAndClose(socket, { "[CLIENT]: Error shuting down the socket of client '" + m_ClientName + "'"}, m_ClientName + " CLIENT", "ModuleNetworkingClient::onSocketDisconnected()");
@@ -191,6 +391,9 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 
 	// Clear Client Console & Log/Change State
 	App->modUI->ClearConsoleMessages();
+	if (m_ClientState == ClientState::REJECTED)
+		APPCONSOLE_ERROR_LOG("<Server>: Invalid nickname or nickname in use");
+
 	m_ClientState = ClientState::STOPPED;
 	APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s' (IP: %s)", m_ClientName.c_str(), m_ServerName.c_str(), m_ServerAddressStr.c_str());
 
