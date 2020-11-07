@@ -9,7 +9,10 @@ public:
 	// ModuleNetworkingServer public methods
 	bool Start(int port, const char* serverName);
 	bool IsRunning() const { return m_ServerState != ServerState::STOPPED; }
-	
+
+	const std::pair<std::string, uint> GetUserFromID(uint ID);
+	const std::pair<std::string, uint> GetNextUser(uint current_userID);
+
 
 private:
 

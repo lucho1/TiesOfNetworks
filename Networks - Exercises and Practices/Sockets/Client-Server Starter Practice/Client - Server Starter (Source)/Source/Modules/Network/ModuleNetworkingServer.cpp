@@ -162,12 +162,43 @@ uint ModuleNetworkingServer::GetSocketIndex(const SOCKET& socket)
 		if (conn_sockets.second.socket == socket)
 			return conn_sockets.first;
 
-	//for (uint i = 0; i < m_ConnectedSockets.size(); ++i)
-	//	if (m_ConnectedSockets[i].socket == socket)
-	//		return i;
 	return -1;
 }
 
+const std::pair<std::string, uint> ModuleNetworkingServer::GetUserFromID(uint ID)
+{
+	if (m_ConnectedNicknames.empty())
+		return { "NULL", -1 };
+
+	for (const auto& connected_users : m_ConnectedNicknames)
+		if (connected_users.second == ID)
+			return connected_users;
+
+	return { "NULL", -1 };
+}
+
+const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint current_userID)
+{
+	if (m_ConnectedNicknames.empty())
+		return { "NULL",  -1 };
+
+	auto it = m_ConnectedNicknames.begin();
+	if (current_userID == 0)
+		return *it;
+
+	for (it; it != m_ConnectedNicknames.end(); ++it)
+	{
+		if ((*it).second == current_userID)
+		{
+			if (it++ != m_ConnectedNicknames.end())
+				return (*it++);
+			else
+				return *m_ConnectedNicknames.begin();
+		}
+	}
+
+	return { "NULL",  -1 };
+}
 
 
 // ----------------- Virtual functions of ModuleNetworking -------------------

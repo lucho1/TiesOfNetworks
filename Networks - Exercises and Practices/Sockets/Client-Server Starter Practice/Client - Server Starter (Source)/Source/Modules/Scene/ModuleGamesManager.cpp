@@ -1,15 +1,39 @@
 
+ModuleGamesManager::ModuleGamesManager()
+{
+	m_GameCommands["next"] = GAME_COMMANDS::NEXT;
+	m_GameCommands["n"] = GAME_COMMANDS::NEXT;
+
+	m_GameCommands["rr bullet at"] = GAME_COMMANDS::BULLET_NUM;
+	m_GameCommands["rr shoot"] = GAME_COMMANDS::SHOOT;
+
+	m_GameCommands["skm sex"] = GAME_COMMANDS::SEX;
+	m_GameCommands["skm s"] = GAME_COMMANDS::SEX;
+	m_GameCommands["skm kill"] = GAME_COMMANDS::KILL;
+	m_GameCommands["skm k"] = GAME_COMMANDS::KILL;
+	m_GameCommands["skm marry"] = GAME_COMMANDS::MARRY;
+	m_GameCommands["skm m"] = GAME_COMMANDS::MARRY;
+
+	m_GameCommands["unscramble word"] = GAME_COMMANDS::UNSCRAMBLE_WORD;
+}
+
 
 // --- Class Public Methods ---
 void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 {
-	if (gameType != GAME_TYPE::NONE /*&& first_user != 0*/) // TODO: Would be great to check if user exists!
+	if (gameType != GAME_TYPE::NONE)
 	{
-		m_CurrentUserID = first_user;
-		m_CurrentGame = gameType;
-		m_GameStatus = GAME_STATUS::START;
+		m_CurrentUser = App->modNetServer->GetNextUser(first_user);
+		if (m_CurrentUser.second != -1)
+		{
+			m_CurrentGame = gameType;
+			m_GameStatus = GAME_STATUS::START;
+		}
+		else
+			SendServerNotification("Couldn't begin game, user to begin was invalid!");
 	}
-	// TODO: Would be also great to communicate we couldn't start a game!
+	else
+		SendServerNotification("Game to begin was invalid!");
 }
 
 void ModuleGamesManager::StopGame()
@@ -17,7 +41,7 @@ void ModuleGamesManager::StopGame()
 	std::string msg = GetStopMessage();
 	SendServerNotification(msg);
 
-	m_CurrentUserID = 0;
+	m_CurrentUser = { "NULL", -1 };
 	m_CurrentGame = GAME_TYPE::NONE;
 	m_GameStatus = GAME_STATUS::NONE;
 }
@@ -31,66 +55,117 @@ void ModuleGamesManager::SendServerNotification(const std::string& msg)
 	m_GameMessages.push_back(msg);
 }
 
-uint ModuleGamesManager::GetNextUserInList() const
+uint ModuleGamesManager::GetNextUserInList()
 {
-	// Server::GetNextUserInList(m_CurrentUserID);
+	m_CurrentUser = App->modNetServer->GetNextUser(m_CurrentUser.second);
+	if (m_CurrentUser.second == -1)
+	{
+		StopGame();
+		SendServerNotification("Next user was invalid! Stopping Game");
+	}
+
 	return 0;
 }
 
-void ModuleGamesManager::ProcessAction(const std::string& action) const
+void ModuleGamesManager::ProcessAction(const std::string& action)
 {
 	if (m_CurrentGame == GAME_TYPE::NONE)
 		return;
 
-	std::string command = action.substr(0, action.find_first_of(" "));
-	if (command == "/next")
-	{
+	// Get Command Type
+	GAME_COMMANDS gCommand;
+	try	{ gCommand = m_GameCommands.at(action); }
+	catch (const std::out_of_range & e) { gCommand = GAME_COMMANDS::INVALID_COMMAND; }
 
-	}
-	else
+	// Find Command Order
+	std::size_t start_pos = action.find_first_not_of(' ');
+	if (start_pos == std::string::npos)
+		APPCONSOLE_WARN_LOG("Invalid Command!");
+
+
+	bool update_game_status = false;
+	switch (gCommand)
 	{
-		switch (m_CurrentGame)
+		case GAME_COMMANDS::NEXT:
 		{
-		case GAME_TYPE::RUSSIAN_ROULETTE:
-
-			if (command == "/bullet_num")
-			{
-
-			}
-			else if (command == "/shoot")
-			{
-
-			}
-
 			break;
-
-		case GAME_TYPE::SEXKILLMARRY:
-
-			if (command == "/sex")
+		}
+		case GAME_COMMANDS::BULLET_NUM:
+		{
+			if (m_CurrentGame != GAME_TYPE::RUSSIAN_ROULETTE)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
 			{
-
-			}
-			else if (command == "/kill")
-			{
-
-			}
-			else if (command == "/marry")
-			{
-
-			}
-
-			break;
-
-		case GAME_TYPE::UNSCRAMBLE:
-
-			if (command == "/unscramble")
-			{
-
+				update_game_status = true;
 			}
 
 			break;
 		}
+		case GAME_COMMANDS::SHOOT:
+		{
+			if (m_CurrentGame != GAME_TYPE::RUSSIAN_ROULETTE)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
+			{
+				update_game_status = true;
+			}
+
+			break;
+		}
+		case GAME_COMMANDS::SEX:
+		{
+			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
+			{
+				update_game_status = true;
+			}
+
+			break;
+		}
+		case GAME_COMMANDS::KILL:
+		{
+			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
+			{
+				update_game_status = true;
+			}
+
+			break;
+		}
+		case GAME_COMMANDS::MARRY:
+		{
+			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
+			{
+				update_game_status = true;
+			}
+
+			break;
+		}
+		case GAME_COMMANDS::UNSCRAMBLE_WORD:
+		{
+			if (m_CurrentGame != GAME_TYPE::UNSCRAMBLE)
+				APPCONSOLE_WARN_LOG("Invalid Command for this Game!");
+			else
+			{
+				update_game_status = true;
+			}
+
+			break;
+		}
+		case GAME_COMMANDS::INVALID_COMMAND:
+		{
+			std::string warning = "The game command '" + action + "' does not exist!";
+			APPCONSOLE_WARN_LOG(warning.c_str());
+			break;
+		}
 	}
+
+	if (update_game_status)
+		m_GameStatus = GAME_STATUS::RUNNING; // TODO: ChooseUser
 }
 
 
@@ -165,16 +240,17 @@ const std::string ModuleGamesManager::GetInitialMessage() const
 		case GAME_TYPE::SEXKILLMARRY:
 		{
 			std::string line1 = "In SEX/KILL/MARRY a user will have to choose, among 3 proposed users, which one it would kill, with which one it would have sex and to which one it would marry";
-			return (line1 + "\n\n\n** Do so by typing '/skm 'user_sex' 'user_kill' 'user_marry' **" + std::string("\n\nAre you ready? User ") + std::to_string(m_CurrentUserID) + " Begins!\n\n\n");
+			return (line1 + "\n\n\n** Do so by typing '/skm 'user_sex' 'user_kill' 'user_marry' **" + std::string("\n\nAre you ready? User ") + m_CurrentUser.first
+					+ "(#" + std::to_string(m_CurrentUser.second) + ") Begins!\n\n\n");
 		}
 		case GAME_TYPE::UNSCRAMBLE:
 		{
 			std::string line1 = "In Unscramble a user will write a word and the others will have to write a word with the same letters";
-			return (line1 + "\n\n\n** Do so by typing '/unscramble word' **" + std::string("\n\nAre you ready? User ") + std::to_string(m_CurrentUserID) + " Begins!\n\n\n");
+			return (line1 + "\n\n\n** Do so by typing '/unscramble word' **" + std::string("\n\nAre you ready? User ") + m_CurrentUser.first + "(#" + std::to_string(m_CurrentUser.second) + ") Begins!\n\n\n");
 		}
 	}
 
-	return "";
+	return "NULL";
 }
 
 const std::string ModuleGamesManager::GetRunningMessage() const
@@ -182,16 +258,16 @@ const std::string ModuleGamesManager::GetRunningMessage() const
 	switch (m_CurrentGame)
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
-			return ("User " + std::to_string(m_CurrentUserID) + " your turn! Shoot when you are ready, comarade!\n\n"); // TODO: + username
+			return ("User " + m_CurrentUser.first + "(#" + std::to_string(m_CurrentUser.second) + ") your turn! Shoot when you are ready, comarade!\n\n");
 
 		case GAME_TYPE::SEXKILLMARRY:
-			return ("SPICY! User " + std::to_string(m_CurrentUserID) + " your turn to kill, fuck and get married! What happens in this server stays in this server ;)\n\n"); // TODO: + username
+			return ("SPICY! User " + m_CurrentUser.first + "(#" + std::to_string(m_CurrentUser.second) + ") your turn to kill, fuck and get married! What happens in this server stays in this server ;)\n\n");
 
 		case GAME_TYPE::UNSCRAMBLE:
-			return ("User " + std::to_string(m_CurrentUserID) + " your turn! Write a word with the same letters than '' \n\n"); //TODO: + Previous Word + username
+			return ("User " + m_CurrentUser.first + "(#" + std::to_string(m_CurrentUser.second) + ") your turn! Write a word with the same letters than '' \n\n"); //TODO: + Previous Word
 	}
 
-	return "";
+	return "NULL";
 }
 
 const std::string ModuleGamesManager::GetStopMessage() const
@@ -199,14 +275,14 @@ const std::string ModuleGamesManager::GetStopMessage() const
 	switch (m_CurrentGame)
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
-			return ("Oh! User " + std::to_string(m_CurrentUserID) + " has stopped the game! :(\n\n\nThe comarades standing are: ! Bye!\n\n\n"); // TODO: + username
+			return ("Oh! User " + m_CurrentUser.first + " (#" + std::to_string(m_CurrentUser.second) + ") has stopped the game! :(\n\n\nThe comarades standing are: ! Bye!\n\n\n"); // TODO: winners
 
 		case GAME_TYPE::SEXKILLMARRY:
-			return ("Oh! User " + std::to_string(m_CurrentUserID) + " has stopped the game! :O\n\n\nNo more fun :( ... Bye!\n\n\n"); // TODO: + username
+			return ("Oh! User " + m_CurrentUser.first + " (#" + std::to_string(m_CurrentUser.second) + ") has stopped the game! :O\n\n\nNo more fun :( ... Bye!\n\n\n");
 
 		case GAME_TYPE::UNSCRAMBLE:
-			return ("Oh! User " + std::to_string(m_CurrentUserID) + " has stopped the game! :(\n\n\nThe winner is: with X points Congratulations! Bye!\n\n\n"); // TODO: + Winner + Points + username
+			return ("Oh! User " + m_CurrentUser.first + " (#" + std::to_string(m_CurrentUser.second) + ") has stopped the game! :(\n\n\nThe winner is: with X points Congratulations! Bye!\n\n\n"); // TODO: + Winner + Points
 	}
 
-	return "";
+	return "NULL";
 }
