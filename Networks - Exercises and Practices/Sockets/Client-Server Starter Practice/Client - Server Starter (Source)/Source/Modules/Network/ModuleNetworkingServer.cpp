@@ -224,22 +224,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			std::string username;
 			packet >> username;
 			connected_socket.client_name = username;
-			bool n_username = true;
-			std::unordered_map<std::string, uint> client_names;
-			std::vector<SOCKET> other_sockets;
+			bool n_username = false;
 
-			for (const auto& client : m_ConnectedSockets) {
-				if (client.first == s_index)
-					continue;
-
-				if (client.second.client_name == username) {
-					n_username = false;
-					break;
-				}
-				else {
-					client_names[client.second.client_name] = client.first;
-					other_sockets.push_back(client.second.socket);
-				}
+			try {
+				m_ConnectedNicknames.at(username);
+			}
+			catch (const std::out_of_range & e) {
+				n_username = true;
 			}
 
 			if (!n_username || username == "") { // Disconnect the client because name already exists or invalid
@@ -254,16 +245,21 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", username, s_index);
 			std::string welcome_msg = "Welcome to " + m_ServerName + "!";
 			server_response << SERVER_MESSAGE::SERVER_WELCOME << m_ServerName << welcome_msg;
-			server_response << s_index << client_names;
+			server_response << s_index << m_ConnectedNicknames;
 			SendPacket(server_response, connected_socket.socket);
+
+			// Add nickname to list
+			m_ConnectedNicknames[username] = s_index;
 
 			// Send connection message to everyone
 			server_response.Clear();
 			welcome_msg = "'" + username + "' connected.";
 			server_response << SERVER_MESSAGE::SERVER_USER_CONNECTION << username << s_index << welcome_msg;
 
-			for (const auto& socket : other_sockets) {
-				SendPacket(server_response, socket);
+			for (const auto& socket : m_ConnectedSockets) {
+				if (socket.second.socket == connected_socket.socket)
+					continue;
+				SendPacket(server_response, socket.second.socket);
 			}
 
 			break;
@@ -309,16 +305,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 				{
 				std::string new_username;
 				packet >> new_username;
-				bool n_username = true;
+				bool n_username = false;
 
-				for (const auto& client : m_ConnectedSockets) {
-					if (client.first == s_index)
-						continue;
-
-					if (client.second.client_name == new_username) {
-						n_username = false;
-						break;
-					}
+				try {
+					m_ConnectedNicknames.at(new_username);
+				}
+				catch (const std::out_of_range & e) {
+					n_username = true;
 				}
 
 				if (!n_username) {
@@ -366,14 +359,17 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in&
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 {
-	// Remove the connected socket from the list
 	for (auto it = m_ConnectedSockets.begin(); it != m_ConnectedSockets.end(); ++it)
 	{
 		auto& iterator = *it;
 		if (iterator.second.socket == socket)
 		{
-			ConnectedSocket connectedSocket = iterator.second;
+			auto nickname = m_ConnectedNicknames.find(iterator.second.client_name);
+			if (nickname != m_ConnectedNicknames.end()) {
+				m_ConnectedNicknames.erase(nickname);
+			}
 
+			ConnectedSocket connectedSocket = iterator.second;
 			IN_ADDR inAddr = connectedSocket.address.sin_addr;
 			std::string add = std::to_string(inAddr.S_un.S_un_b.s_b1) + "." + std::to_string(inAddr.S_un.S_un_b.s_b2) + "." + std::to_string(inAddr.S_un.S_un_b.s_b3)
 				+ "." + std::to_string(inAddr.S_un.S_un_b.s_b4);// +":" + std::to_string(ntohs(connectedSocket.address.sin_port));
