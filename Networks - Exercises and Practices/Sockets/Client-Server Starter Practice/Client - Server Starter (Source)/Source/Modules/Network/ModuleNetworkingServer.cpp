@@ -115,10 +115,12 @@ bool ModuleNetworkingServer::GUI()
 		if (ImGui::InputText("##ConsoleInputText", buffer, 250, flags) || ImGui::Button("Send"))
 		{
 			OutputMemoryStream packet;
-			packet << SERVER_MESSAGE::SERVER_WARN << std::string(buffer) << Colors::ConsoleYellow;
+			packet << SERVER_MESSAGE::SERVER_WARN << std::string(buffer);
 			
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(packet, client.second.socket);
+
+			APPCONSOLE_WARN_LOG(buffer);
 
 			sprintf_s(buffer, "");
 		}
@@ -211,7 +213,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 			
 			// Send welcome to only client
-			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", username, s_index);
+			APPCONSOLE_INFO_LOG("Connected Client '%s (#%i)'", username.c_str(), s_index);
 			std::string welcome_msg = "Welcome to " + m_ServerName + "!";
 			server_response << SERVER_MESSAGE::SERVER_WELCOME << m_ServerName << welcome_msg;
 			server_response << s_index << m_ConnectedNicknames;
@@ -244,6 +246,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			for (const auto& client : m_ConnectedSockets)
 				SendPacket(server_response, client.second.socket);
 
+			// Print it in server console
+			std::string print = "<" + connected_socket.client_name + ">: " + message;
+			App->modUI->PrintMessageInConsole(print, message_color);
+
 			break;
 		}
 		case CLIENT_MESSAGE::CLIENT_PRIVATE_TEXT:
@@ -257,6 +263,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 				const ConnectedSocket& destination = m_ConnectedSockets[dst_id];
 				server_response << SERVER_MESSAGE::CLIENT_PRIVATE_TEXT << connected_socket.client_name << message;
 				SendPacket(server_response, destination.socket);
+
+				// Print it in server console
+				std::string print = "    <" + connected_socket.client_name + "> to <" + destination.client_name + ">: " + message;
+				App->modUI->PrintMessageInConsole(print);
 			}
 			else {
 				server_response << SERVER_MESSAGE::SERVER_ERROR << "User does not exist!";
@@ -295,6 +305,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 					for (const auto& client : m_ConnectedSockets)
 						SendPacket(server_response, client.second.socket);
+
+					// Print it in server console
+					std::string print = "<" + old_username + "> is now <" + new_username + ">.";
+					APPCONSOLE_INFO_LOG(print.c_str());
 				}
 
 				break;

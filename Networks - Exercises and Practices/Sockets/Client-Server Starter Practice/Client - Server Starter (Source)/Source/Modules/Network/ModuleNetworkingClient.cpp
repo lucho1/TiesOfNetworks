@@ -108,6 +108,12 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 			msg = buffer.substr(start_pos);
 
+			if (dst_user == m_ClientName) {
+				std::string warning = "No need for a chat to message yourself!";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
+			}
+
 			uint dst_id;
 			try {
 				dst_id = m_ConnectedUsers.at(dst_user);
