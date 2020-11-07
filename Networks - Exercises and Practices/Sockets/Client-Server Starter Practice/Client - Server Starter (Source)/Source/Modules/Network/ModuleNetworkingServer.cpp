@@ -141,6 +141,8 @@ bool ModuleNetworkingServer::GUI()
 				m_DisconnectedSockets.push_back(s.second.socket);
 			}
 
+			m_ConnectedSockets.clear();
+			m_ConnectedNicknames.clear();
 			m_ServerDisconnection = true;
 			m_ServerState = ServerState::STOPPED;
 			App->modScreen->SwapScreensWithTransition(App->modScreen->screenGame, App->modScreen->screenMainMenu);
@@ -205,7 +207,8 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 
 			if (!n_username || username == "") { // Disconnect the client because name already exists or invalid
-				server_response << SERVER_MESSAGE::SERVER_REJECTION;
+				std::string reject_message = "Username is invalid or already in use.";
+				server_response << SERVER_MESSAGE::SERVER_REJECTION << reject_message;
 				SendPacket(server_response, connected_socket.socket);
 				break; // We don't need to do anything else so break out of the switch
 			}
@@ -226,7 +229,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			server_response.Clear();
 			welcome_msg = "'" + username + "' connected.";
 			server_response << SERVER_MESSAGE::SERVER_USER_CONNECTION << username << s_index << welcome_msg;
-
+			
 			for (const auto& socket : m_ConnectedSockets) {
 				if (socket.second.socket == connected_socket.socket)
 					continue;
@@ -310,10 +313,43 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 					std::string print = "<" + old_username + "> is now <" + new_username + ">.";
 					APPCONSOLE_INFO_LOG(print.c_str());
 				}
-
 				break;
 				}
-			}
+
+			case CLIENT_COMMANDS::COMMAND_KICK:
+			{
+				int client_id;
+				packet >> client_id;
+
+				try {
+					ConnectedSocket& kicked_user = m_ConnectedSockets.at(client_id);
+					// Inform all other clients
+					std::string kick_message = "User <" + kicked_user.client_name + "> has been kicked out by <" + connected_socket.client_name + ">.";
+					server_response << SERVER_MESSAGE::SERVER_INFO << kick_message;
+					for (const auto& client : m_ConnectedSockets) {
+						if (client.second.socket == kicked_user.socket) continue;
+						SendPacket(server_response, client.second.socket);
+					}
+
+					//Display in info
+					APPCONSOLE_INFO_LOG(kick_message.c_str());
+
+					OutputMemoryStream kick_response;
+
+					kick_message = "You have been kicked by <" + connected_socket.client_name + ">.";
+					kick_response << SERVER_MESSAGE::SERVER_FORCE_DISCONNECTION << kick_message;
+					SendPacket(kick_response, kicked_user.socket);
+				}
+				catch (const std::out_of_range & e) {
+					std::string error_message = "User not found!";
+					server_response << SERVER_MESSAGE::SERVER_ERROR << error_message;
+					SendPacket(server_response, connected_socket.socket);
+				}
+
+
+				break;
+			} //COMMAND_KICK
+			} //switch (command)
 
 			break;
 		}
@@ -322,8 +358,10 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			std::string msg = "'" + connected_socket.client_name + "' disconnected.";
 
 			server_response << SERVER_MESSAGE::SERVER_USER_DISCONNECTION << connected_socket.client_name << msg;
-			for (const auto& client : m_ConnectedSockets)
+			for (const auto& client : m_ConnectedSockets) {
+				if (client.second.socket == connected_socket.socket) continue;
 				SendPacket(server_response, client.second.socket);
+			}
 
 			break;
 		}
@@ -337,7 +375,12 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in&
 	connectedSocket.socket = socket;
 	connectedSocket.address = socketAddress;
 
-	m_ConnectedSockets.insert({ m_ConnectedSockets.size(), connectedSocket });
+	uint socketID = rng::GetRandomInt_InRange(0, 99);
+
+	while (m_ConnectedSockets.find(socketID) != m_ConnectedSockets.end())
+		socketID = rng::GetRandomInt_InRange(0, 99);
+
+	m_ConnectedSockets[socketID] = connectedSocket;
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)

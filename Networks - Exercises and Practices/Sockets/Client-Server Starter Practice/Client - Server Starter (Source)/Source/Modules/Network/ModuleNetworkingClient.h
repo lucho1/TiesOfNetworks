@@ -50,5 +50,7 @@ private:
 	std::unordered_map<std::string, CLIENT_COMMANDS> m_UserCommands;
 	std::unordered_map<CLIENT_COMMANDS, std::string> m_UserCmdDescriptions;
 
+	std::string reject_message;
+
 	bool m_ServerDisconnection = false;
 };

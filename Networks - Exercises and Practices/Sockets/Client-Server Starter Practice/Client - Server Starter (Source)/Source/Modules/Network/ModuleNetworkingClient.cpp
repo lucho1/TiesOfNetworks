@@ -12,13 +12,16 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCommands["nick"] = CLIENT_COMMANDS::COMMAND_CHANGE_NICK;
 	m_UserCommands["help"] = CLIENT_COMMANDS::COMMAND_HELP;
 	m_UserCommands["h"] = CLIENT_COMMANDS::COMMAND_HELP;
+	m_UserCommands["kick"] = CLIENT_COMMANDS::COMMAND_KICK;
+	m_UserCommands["k"] = CLIENT_COMMANDS::COMMAND_KICK;
 
 
 	// mTODO Sergi: Add descriptions to commands here
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_HELP] = "/help or /h - Displays help on command(s), syntax is \"/help (command)\"";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_WHISPER] = "/whisper or /w - Message someone privately, syntax is \"/whisper [username] [message]\"";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_LOGOUT] = "/logout - Disconnects from chat";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_CHANGE_NICK] = "/nick - Changes your name in the chat, syntax is \"/nick [new_username]\"";
-	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_HELP] = "/help or /h - Displays help on command(s), syntax is \"/help (command)\"";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_KICK] = "/kick or /k - Kicks user out of server, syntax is \"/kick [username]\"";
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
@@ -140,7 +143,7 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 			App->modUI->PrintMessageInConsole(displayed_message.c_str());
 
 			break;
-			}
+			} //COMMAND_WHISPER
 
 		case CLIENT_COMMANDS::COMMAND_LOGOUT:
 			{
@@ -151,7 +154,7 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 			m_ConnectedUsers.clear();
 			m_DisconnectedSockets.push_back(m_Socket);
 			break;
-			}
+			} //COMMAND_LOGOUT
 
 		case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
 			{
@@ -175,9 +178,10 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 			SendPacket(packet, m_Socket);
 
 			break;
-			}
+			} //COMMAND_CHANGE_NICK 
+
 		case CLIENT_COMMANDS::COMMAND_HELP:
-			{
+		{
 			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
 			if (start_pos != std::string::npos) {
 				pos = buffer.find_first_of(' ', start_pos);
@@ -186,7 +190,8 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 				try {
 					help_command_enum = m_UserCommands.at(help_command);
-				} catch (const std::out_of_range & e) {
+				}
+				catch (const std::out_of_range & e) {
 					std::string warning = "Command '" + help_command + "' does not exist, type /help for a list of commands.";
 					APPCONSOLE_WARN_LOG(warning.c_str());
 					break;
@@ -207,14 +212,42 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 					App->modUI->PrintMessageInConsole(cmd_description.second.c_str(), Colors::ConsoleBlue);
 			}
 			break;
+			} // COMMAND_HELP
+			
+		case CLIENT_COMMANDS::COMMAND_KICK:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos == std::string::npos) {
+				std::string warning = "No username, use /kick [username]";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break;
 			}
+			pos = buffer.find_first_of(' ', start_pos);
+			std::string kicked_user = buffer.substr(start_pos, pos - start_pos);
+
+			int user_id = -1;
+			try {
+				user_id = m_ConnectedUsers.at(kicked_user);
+			} catch (const std::out_of_range & e) {
+				std::string warning = "User '" + kicked_user + "' does not exist.";
+				APPCONSOLE_WARN_LOG(warning.c_str());
+				break; //nothing to do, this command has no description
+			}
+
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << user_id;
+			SendPacket(packet, m_Socket);
+
+			break;
+			} //COMMAND_KICK
+
 		case CLIENT_COMMANDS::COMMAND_INVALID:
 			{
 			std::string warning = "The command '" + command + "' does not exist!";
 			APPCONSOLE_WARN_LOG(warning.c_str());
 
 			break;
-			}
+			} //COMMAND_INVALID
 		} //switch (m_command)
 
 
@@ -387,6 +420,24 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		}
 		case SERVER_MESSAGE::SERVER_REJECTION:
 		{
+			packet >> reject_message;
+
+			reject_message = "<Server>: " + reject_message;
+			m_DisconnectedSockets.push_back(m_Socket);
+			m_ClientState = ClientState::REJECTED;
+			break;
+		}case SERVER_MESSAGE::SERVER_FORCE_DISCONNECTION:
+		{
+			packet >> reject_message;
+
+			reject_message = "<Server>: " + reject_message;
+
+			// Notify Disconnection
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_DISCONNECTION;
+			SendPacket(packet, m_Socket);
+
+			m_ConnectedUsers.clear();
 			m_DisconnectedSockets.push_back(m_Socket);
 			m_ClientState = ClientState::REJECTED;
 			break;
@@ -439,10 +490,11 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 	// Clear Client Console & Log/Change State
 	App->modUI->ClearConsoleMessages();
 	if (m_ClientState == ClientState::REJECTED)
-		APPCONSOLE_ERROR_LOG("<Server>: Invalid nickname or nickname in use");
+		APPCONSOLE_ERROR_LOG(reject_message.c_str());
+	else
+		APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s' (IP: %s)", m_ClientName.c_str(), m_ServerName.c_str(), m_ServerAddressStr.c_str());
 
 	m_ClientState = ClientState::STOPPED;
-	APPCONSOLE_INFO_LOG("Disconnected Client '%s' from Server '%s' (IP: %s)", m_ClientName.c_str(), m_ServerName.c_str(), m_ServerAddressStr.c_str());
 
 	// If server was Disconnected, notify
 	if (m_ServerDisconnection)
