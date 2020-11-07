@@ -10,6 +10,15 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCommands["w"] = CLIENT_COMMANDS::COMMAND_WHISPER;
 	m_UserCommands["logout"] = CLIENT_COMMANDS::COMMAND_LOGOUT;
 	m_UserCommands["nick"] = CLIENT_COMMANDS::COMMAND_CHANGE_NICK;
+	m_UserCommands["help"] = CLIENT_COMMANDS::COMMAND_HELP;
+	m_UserCommands["h"] = CLIENT_COMMANDS::COMMAND_HELP;
+
+
+	// mTODO Sergi: Add descriptions to commands here
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_WHISPER] = "/whisper or /w - Message someone privately, syntax is \"/whisper [username] [message]\"";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_LOGOUT] = "/logout - Disconnects from chat";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_CHANGE_NICK] = "/nick - Changes your name in the chat, syntax is \"/nick [new_username]\"";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_HELP] = "/help or /h - Displays help on command(s), syntax is \"/help (command)\"";
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
@@ -165,6 +174,38 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << new_nickname;
 			SendPacket(packet, m_Socket);
 
+			break;
+			}
+		case CLIENT_COMMANDS::COMMAND_HELP:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			if (start_pos != std::string::npos) {
+				pos = buffer.find_first_of(' ', start_pos);
+				std::string help_command = buffer.substr(start_pos, pos - start_pos);
+				CLIENT_COMMANDS help_command_enum;
+
+				try {
+					help_command_enum = m_UserCommands.at(help_command);
+				} catch (const std::out_of_range & e) {
+					std::string warning = "Command '" + help_command + "' does not exist, type /help for a list of commands.";
+					APPCONSOLE_WARN_LOG(warning.c_str());
+					break;
+				}
+
+				std::string help_message;
+				try {
+					help_message = m_UserCmdDescriptions.at(help_command_enum);
+				}
+				catch (const std::out_of_range & e) {
+					break; //nothing to do, this command has no description
+				}
+
+				App->modUI->PrintMessageInConsole(help_message.c_str(), Colors::ConsoleBlue);
+			}
+			else {
+				for (auto cmd_description : m_UserCmdDescriptions)
+					App->modUI->PrintMessageInConsole(cmd_description.second.c_str(), Colors::ConsoleBlue);
+			}
 			break;
 			}
 		case CLIENT_COMMANDS::COMMAND_INVALID:
