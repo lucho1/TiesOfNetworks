@@ -1,5 +1,6 @@
 #include "Core.h"
 #include "ScreenMainMenu.h"
+#include <regex>
 
 void ScreenMainMenu::Enable()
 {
@@ -55,13 +56,19 @@ void ScreenMainMenu::GUI()
 
 	if (ImGui::Button("Connect to Server"))
 	{
-		App->modScreen->screenGame->SetAsServer(false);
-		App->modScreen->screenGame->SetServerPort(remoteServerPort);
-		App->modScreen->screenGame->SetServerAddress(serverAddressStr);
-		App->modScreen->screenGame->SetClientName(playerNameStr);
+		std::regex reg("(.*)[<>'\\/\"`´](.*)");
 
-		App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
-		App->modUI->ClearConsoleMessages();
+		if (std::regex_match(playerNameStr, reg))
+			APPCONSOLE_WARN_LOG("Invalid characters in your name!");
+		else {
+			App->modScreen->screenGame->SetAsServer(false);
+			App->modScreen->screenGame->SetServerPort(remoteServerPort);
+			App->modScreen->screenGame->SetServerAddress(serverAddressStr);
+			App->modScreen->screenGame->SetClientName(playerNameStr);
+
+			App->modScreen->SwapScreensWithTransition(this, App->modScreen->screenGame);
+			App->modUI->ClearConsoleMessages();
+		}
 	}
 
 	ImGui::End();
