@@ -12,7 +12,7 @@ public:
 
 	const std::pair<std::string, uint> GetUserFromID(uint ID);
 	const std::pair<std::string, uint> GetNextUser(uint current_userID);
-	uint GetUsersNumber() const { return m_ConnectedNicknames.size(); }
+	uint GetUsersNumber() const { return m_ConnectedSockets.size(); }
 
 	const std::unordered_map<std::string, uint>& GetUserNicknames() const { return m_ConnectedNicknames; }
 

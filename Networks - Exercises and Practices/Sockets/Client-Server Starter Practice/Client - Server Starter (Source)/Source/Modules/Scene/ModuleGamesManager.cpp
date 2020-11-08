@@ -155,6 +155,13 @@ bool ModuleGamesManager::Update()
 
 		case GAME_STATUS::RUNNING:
 		{
+			uint nUsers = App->modNetServer->GetUsersNumber();
+			if (!(((m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE || m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS) && nUsers > 1)
+				|| (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && nUsers > 3))) {
+				StopGame();
+				break;
+			}
+
 			if (m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE && m_GamesData.alive_players.size() == 1)
 			{
 				std::string win_statement = "Congratulations Comarade " + GetUserLabel() + "! You have won the game and a promotion comrade-administrator!";
@@ -163,7 +170,7 @@ bool ModuleGamesManager::Update()
 				break;
 			}
 
-			if (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
+			else if (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
 			{
 				std::string next_statement = "Illuminating answer from user " + GetUserLabel() + ", which would" + m_GamesData.users_answered;
 				App->modNetServer->SendServerNotification(next_statement, EntryType::APP_INFO_LOG);
@@ -176,7 +183,7 @@ bool ModuleGamesManager::Update()
 				GetNextUserInList();
 			}
 			
-			if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
+			else if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
 				GetNextUserInList();
 
 			App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
