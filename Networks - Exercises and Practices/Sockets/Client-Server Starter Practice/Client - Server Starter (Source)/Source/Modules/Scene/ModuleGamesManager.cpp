@@ -59,7 +59,7 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 		App->modNetServer->SendServerNotification("Game to begin was invalid!", EntryType::APP_WARN_LOG, first_user);
 }
 
-void ModuleGamesManager::StopGame()
+void ModuleGamesManager::StopGame(uint user)
 {
 	// Reset Games variables
 	m_GamesData.bullet_slot_number = 0;
@@ -73,7 +73,8 @@ void ModuleGamesManager::StopGame()
 	m_GamesData.unscramble_ranking.clear();
 
 	// Send Stop Notification
-	App->modNetServer->SendServerNotification(GetStopMessage(), APP_INFO_LOG);
+	std::string username = App->modNetServer->GetUserFromID(user).first;
+	App->modNetServer->SendServerNotification(GetStopMessage(username), APP_INFO_LOG);
 
 	// Reset user, game type & status
 	m_CurrentUser = { "NULL", -1 };
@@ -265,7 +266,7 @@ const std::string ModuleGamesManager::GetRunningMessage()
 	return "NULL";
 }
 
-const std::string ModuleGamesManager::GetStopMessage() const
+const std::string ModuleGamesManager::GetStopMessage(const std::string& username) const
 {
 	switch (m_CurrentGame)
 	{
@@ -275,10 +276,10 @@ const std::string ModuleGamesManager::GetStopMessage() const
 			for (uint user : m_GamesData.alive_players)
 				winners_str += App->modNetServer->GetUserFromID(user).first + " ";
 
-			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe comrades standing are: " + winners_str + "! Bye!\n\n\n");
+			return ("Oh! User " + username + " has stopped the game! :(\nThe comrades standing are: " + winners_str + "! Bye!");
 		}
 		case GAME_TYPE::SEXKILLMARRY:
-			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :O\n\n\nNo more fun :( ... Bye!\n\n\n");
+			return ("Oh! User " + username + " has stopped the game! :O\nNo more fun :( ... Bye!");
 		case GAME_TYPE::UNSCRAMBLE:
 		{
 			uint winnerID = 0, winnerPoints = 0;
@@ -291,9 +292,9 @@ const std::string ModuleGamesManager::GetStopMessage() const
 				if (ranker.second == winnerPoints)
 					winners += App->modNetServer->GetUserFromID(ranker.first).first + " ";
 
-			std::string ret = "\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe winner is:"
+			std::string ret = "Oh! User " + username + " has stopped the game! :(\nThe winner is:"
 								+ App->modNetServer->GetUserFromID(winnerID).first +" with " + std::to_string(winnerID) + " points."
-								+ " users " + winners + "have the same punctuation.\n\nCongratulations! Bye!\n\n\n";
+								+ " users " + winners + "have the same punctuation.\nCongratulations! Bye!";
 
 			return (ret);
 		}
@@ -309,9 +310,9 @@ const std::string ModuleGamesManager::GetStopMessage() const
 				if (ranker.second == winnerPoints)
 					winners += App->modNetServer->GetUserFromID(ranker.first).first + " ";
 
-			std::string ret = "\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe winner is:"
+			std::string ret = "Oh! User " + username + " has stopped the game! :(\nThe winner is:"
 				+ App->modNetServer->GetUserFromID(winnerID).first + " with " + std::to_string(winnerID) + " points."
-				+ " users " + winners + "have the same punctuation.\n\nCongratulations! Bye!\n\n\n";
+				+ " users " + winners + "have the same punctuation.\nCongratulations! Bye!";
 
 			return (ret);
 		}
@@ -407,10 +408,15 @@ inline void ModuleGamesManager::GenerateKSMNames() {
 }
 
 void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id) {
-	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+	if (command == GAME_COMMANDS::STOP) {
+		StopGame();
+		return;
+	}
+	if (user_id != GetCurrentUserPlaying()) {
 		App->modNetServer->SendServerNotification("Hey! Not your turn yet comrade!", EntryType::APP_WARN_LOG, user_id);
 		return;
 	}
+
 	switch (command) {
 	default:
 		App->modNetServer->SendServerNotification("Invalid command! Try /rr help", EntryType::APP_WARN_LOG, user_id);
@@ -418,7 +424,9 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 	case GAME_COMMANDS::NEXT:
 	{
 		std::string response = "That's not very brave from you ex-comrade >:( " + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
-		m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
+		auto player = std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second);
+		if (player != m_GamesData.alive_players.end())
+			m_GamesData.alive_players.erase(player);
 
 		GetNextUserInList();
 		response += "\n\nAnyway, the game still runs **reloads**...\nNext user is " + GetUserLabel();
@@ -490,7 +498,11 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 }
 
 void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::string& args, uint user_id) {
-	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+	if (command == GAME_COMMANDS::STOP) {
+		StopGame();
+		return;
+	}
+	if (user_id != GetCurrentUserPlaying()) {
 		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
 		return;
 	}
@@ -607,7 +619,11 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 }
 
 void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::string& args, uint user_id) {
-	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+	if (command == GAME_COMMANDS::STOP) {
+		StopGame();
+		return;
+	}
+	if (user_id != GetCurrentUserPlaying()) {
 		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
 		return;
 	}
@@ -660,7 +676,11 @@ void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::str
 }
 
 void ModuleGamesManager::ProcessChainedWords(GAME_COMMANDS command, const std::string& args, uint user_id) {
-	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+	if (command == GAME_COMMANDS::STOP) {
+		StopGame();
+		return;
+	}
+	if (user_id != GetCurrentUserPlaying()) {
 		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
 		return;
 	}

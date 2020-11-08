@@ -13,7 +13,7 @@ public:
 
 	// Class Public Methods
 	void StartGame(GAME_TYPE gameType, uint first_user);
-	void StopGame();
+	void StopGame(uint user);
 
 	// Getters
 	bool IsGameRunning()				const { return (m_GameStatus == GAME_STATUS::NONE); }
@@ -34,7 +34,7 @@ private:
 	// Game Run Methods
 	const std::string GetInitialMessage();
 	const std::string GetRunningMessage();
-	const std::string GetStopMessage() const;
+	const std::string GetStopMessage(const std::string& user_name) const;
 	const std::string GetUserLabel() const;
 	bool CompareWords(const std::string& compared_word);
 	void ArrangeWord();

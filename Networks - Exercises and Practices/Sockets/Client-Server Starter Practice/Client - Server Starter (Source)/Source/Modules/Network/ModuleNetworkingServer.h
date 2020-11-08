@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModuleNetworking.h"
+#include <chrono>
 
 class ModuleNetworkingServer : public ModuleNetworking
 {
@@ -56,6 +57,7 @@ private:
 
 	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
 	std::unordered_map<std::string, uint> m_ConnectedNicknames;
+	std::chrono::steady_clock::time_point not_timer = std::chrono::steady_clock::now();
 
 
 private:

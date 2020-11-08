@@ -18,6 +18,7 @@ bool ModuleNetworkingServer::Start(int port, const char* serverName)
 	// --- ---
 	m_ServerName = serverName;
 	m_ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	not_timer = std::chrono::steady_clock::now();
 	
 	// If no error, set the class' socket
 	if (m_ListeningSocket != INVALID_SOCKET)
@@ -187,7 +188,7 @@ const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint curr
 		return { "NULL",  -1 };
 
 	auto it = m_ConnectedNicknames.begin();
-	if (current_userID == 0)
+	if (current_userID == -1)
 		return *it;
 
 	for (it; it != m_ConnectedNicknames.end(); ++it)
@@ -205,8 +206,18 @@ const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint curr
 }
 
 void ModuleNetworkingServer::SendServerNotification(const std::string& msg, EntryType type, int user_id) {
+	using namespace std::chrono;
+
+	steady_clock::time_point crr_timer;
+	duration<double> time_span;
+	do {
+		crr_timer = steady_clock::now();
+		time_span = duration_cast<duration<double>>(crr_timer - not_timer);
+
+	} while (time_span.count() < 0.2);
+
+
 	OutputMemoryStream packet;
-	
 
 	if (user_id == -1) { // Send to all clients
 		switch (type) {
@@ -253,6 +264,7 @@ void ModuleNetworkingServer::SendServerNotification(const std::string& msg, Entr
 		}
 	}
 
+	not_timer = steady_clock::now();
 }
 
 
