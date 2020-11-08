@@ -7,6 +7,7 @@ ModuleGamesManager::ModuleGamesManager()
 	m_GameCommands["start"] = GAME_COMMANDS::START;
 	m_GameCommands["help"] = GAME_COMMANDS::HELP;
 	m_GameCommands["h"] = GAME_COMMANDS::HELP;
+	m_GameCommands["stop"] = GAME_COMMANDS::STOP;
 
 	// Russian Roulette
 	m_GameCommands["bullet"] = GAME_COMMANDS::BULLET_NUM;
