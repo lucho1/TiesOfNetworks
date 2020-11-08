@@ -59,7 +59,7 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 		App->modNetServer->SendServerNotification("Game to begin was invalid!", EntryType::APP_WARN_LOG, first_user);
 }
 
-void ModuleGamesManager::StopGame(uint user)
+void ModuleGamesManager::StopGame(int user)
 {
 	// Reset Games variables
 	m_GamesData.bullet_slot_number = 0;
@@ -73,8 +73,10 @@ void ModuleGamesManager::StopGame(uint user)
 	m_GamesData.unscramble_ranking.clear();
 
 	// Send Stop Notification
-	std::string username = App->modNetServer->GetUserFromID(user).first;
-	App->modNetServer->SendServerNotification(GetStopMessage(username), APP_INFO_LOG);
+	if (user == -1)
+		App->modNetServer->SendServerNotification("Game was Stopped", APP_INFO_LOG);
+	else
+		App->modNetServer->SendServerNotification(GetStopMessage(App->modNetServer->GetUserFromID(user).first), APP_INFO_LOG);
 
 	// Reset user, game type & status
 	m_CurrentUser = { "NULL", -1 };
@@ -87,7 +89,7 @@ void ModuleGamesManager::GetNextUserInList()
 	m_CurrentUser = App->modNetServer->GetNextUser(m_CurrentUser.second);
 	if (m_CurrentUser.second == -1)
 	{
-		StopGame();
+		StopGame(-1);
 		App->modNetServer->SendServerNotification("Next user doesn't exists! Stopping Game", EntryType::APP_WARN_LOG);
 	}
 }
@@ -158,8 +160,9 @@ bool ModuleGamesManager::Update()
 		{
 			uint nUsers = App->modNetServer->GetUsersNumber();
 			if (!(((m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE || m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS) && nUsers > 1)
-				|| (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && nUsers > 3))) {
-				StopGame();
+				|| (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && nUsers > 3)))
+			{
+				StopGame(-1);
 				break;
 			}
 
@@ -167,7 +170,7 @@ bool ModuleGamesManager::Update()
 			{
 				std::string win_statement = "Congratulations Comarade " + GetUserLabel() + "! You have won the game and a promotion comrade-administrator!";
 				App->modNetServer->SendServerNotification(win_statement, EntryType::APP_INFO_LOG);
-				StopGame();
+				StopGame(-1);
 				break;
 			}
 
@@ -409,7 +412,7 @@ inline void ModuleGamesManager::GenerateKSMNames() {
 
 void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id) {
 	if (command == GAME_COMMANDS::STOP) {
-		StopGame();
+		StopGame(user_id);
 		return;
 	}
 	if (user_id != GetCurrentUserPlaying()) {
@@ -499,7 +502,7 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 
 void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::string& args, uint user_id) {
 	if (command == GAME_COMMANDS::STOP) {
-		StopGame();
+		StopGame(user_id);
 		return;
 	}
 	if (user_id != GetCurrentUserPlaying()) {
@@ -620,7 +623,7 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 
 void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::string& args, uint user_id) {
 	if (command == GAME_COMMANDS::STOP) {
-		StopGame();
+		StopGame(user_id);
 		return;
 	}
 	if (user_id != GetCurrentUserPlaying()) {
@@ -677,7 +680,7 @@ void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::str
 
 void ModuleGamesManager::ProcessChainedWords(GAME_COMMANDS command, const std::string& args, uint user_id) {
 	if (command == GAME_COMMANDS::STOP) {
-		StopGame();
+		StopGame(user_id);
 		return;
 	}
 	if (user_id != GetCurrentUserPlaying()) {

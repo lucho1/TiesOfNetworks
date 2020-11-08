@@ -79,12 +79,6 @@ bool ModuleNetworkingClient::IsRunning() const
 }
 
 // ---------------------- Virtual functions of Modules -----------------------
-bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually better
-{
-	ImGui::SameLine();
-	return ImGui::Button("Send");
-}
-
 void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 	if (buffer.size() == 0) //Nothing to parse, empty message
 		return;
@@ -292,13 +286,21 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 }
 
+bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually better
+{
+	ImGui::SameLine();
+	return ImGui::Button("Send");
+}
+
 bool ModuleNetworkingClient::GUI()
 {
 	if (m_ClientState == ClientState::ONLINE)
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
+		static char buffer[250]{ "Write a Message" }; // Buffer for message writing (up here so we can change it from users list - whisper)
 		ImGui::Begin("Client Window");
 
+		// Image rendering
 		Texture* tex = App->modResources->client;
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
@@ -307,12 +309,14 @@ bool ModuleNetworkingClient::GUI()
 		ImGui::Text("Server Address: %s", m_ServerAddressStr.c_str());
 
 		// Users List
-		ImGui::NewLine(); ImGui::Separator();
-		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-		ImGui::BeginChild("#ScrollRegion", ImVec2(0, footer_height_to_reserve * 13), false, ImGuiWindowFlags_HorizontalScrollbar);		
-
 		static bool open_options = false;
 		static ImVec2 popup_menu_pos = ImVec2(0.0f, 0.0f);
+		static std::string whisper_msg = "/w ";
+		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+		
+		ImGui::NewLine(); ImGui::Separator();
+		ImGui::BeginChild("#ScrollRegion", ImVec2(0, footer_height_to_reserve * 13), false, ImGuiWindowFlags_HorizontalScrollbar);		
+		
 		if (ImGui::TreeNodeEx("Connected Users List", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
@@ -322,6 +326,7 @@ bool ModuleNetworkingClient::GUI()
 
 				if (ImGui::IsItemHovered() && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
 				{
+					whisper_msg += user.first + " ";
 					popup_menu_pos.y = ImGui::GetCursorPos().y;
 					popup_menu_pos.x = ImGui::GetMousePos().x;
 					open_options = !open_options;
@@ -339,8 +344,14 @@ bool ModuleNetworkingClient::GUI()
 		{
 			ImGui::SetCursorPos(popup_menu_pos);
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+			
 			if (ImGui::Selectable("Whisper", false, 0, ImVec2(48, 0)))
+			{
+				sprintf_s(buffer, whisper_msg.c_str());
 				open_options = false;
+				whisper_msg = "/w ";
+			}
+
 			ImGui::PopStyleColor();
 		}
 
@@ -348,8 +359,7 @@ bool ModuleNetworkingClient::GUI()
 		
 
 		// Input message, text olor change & Send button
-		static char buffer[250]{ "Write a Message" };
-		ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+		ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue;// | ImGuiInputTextFlags_AutoSelectAll;
 		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
 			ImGui::SetKeyboardFocusHere(0);
 

@@ -13,7 +13,7 @@ public:
 
 	// Class Public Methods
 	void StartGame(GAME_TYPE gameType, uint first_user);
-	void StopGame(uint user);
+	void StopGame(int user);
 
 	// Getters
 	bool IsGameRunning()				const { return (m_GameStatus == GAME_STATUS::NONE); }
