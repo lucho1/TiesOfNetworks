@@ -13,5 +13,7 @@ Made by Lucho Suaya (@lucho1) and Sergi Parra (@t3m1x)
 - To enter a server, specify its public address and port through which to enter (you'll need port forwarding!)
 - To host a server, just type the port from which clients can connect and a name you want to use for it
 
-## Chat Commands
+## Chat Commands & Usability
+In the client side, you will be able to click/right-click a user to send a whisper. To close the popup window that will show up, just double-click anywhere.
+
 Try using one of our chat commands:

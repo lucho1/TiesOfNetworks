@@ -24,6 +24,21 @@ bool ModuleUI::Init()
 	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 	banner = App->modTextures->LoadTexture("Assets/Textures/banner.jpg");
+
+	// Set Time variables
+	std::time_t current_time = std::time(0);
+	std::tm tm_current_time;
+	char full_time[32];
+
+	// Retrieve System Time
+	ctime_s(full_time, 32, &current_time);
+	localtime_s(&tm_current_time, &current_time);
+	std::string full_time_str = full_time;
+
+	// Build up final time string
+	std::string numeric_time = std::to_string(tm_current_time.tm_mday) + "/" + std::to_string(tm_current_time.tm_mon + 1) + "/" + std::to_string(tm_current_time.tm_year + 1900);
+	time_str = full_time_str.substr(0, full_time_str.find_first_of(":") - 2) + " (" + numeric_time + ")";
+	
 	return true;
 }
 
@@ -56,6 +71,7 @@ bool ModuleUI::GUI()
 {
 	ImGui::Begin("Logging window");
 
+	// Clear Console Button
 	const char* console_name = "Clear Console";
 	if (App->modNetClient->IsRunning())
 		console_name = "Clear Chat";
@@ -63,6 +79,8 @@ bool ModuleUI::GUI()
 	if (ImGui::Button(console_name))
 		App->modUI->ClearConsoleMessages();
 
+	// Log messages
+	ImGui::Text("---------------------- MESSAGES FROM %s ----------------------", time_str.c_str());
 	for (auto& msg_pair : m_ChatMessages)
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(msg_pair.second.r, msg_pair.second.g, msg_pair.second.b, msg_pair.second.a));

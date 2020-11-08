@@ -96,4 +96,5 @@ namespace Colors
 	extern Color ConsoleYellow = Color(0.8f, 0.8f, 0.1f);
 	extern Color ConsoleBlue = Color(0.3f, 0.3f, 1.0f);
 	extern Color ConsoleGreen = Color(0.2f, 1.0f, 0.2f);
+	//extern Color ServerGreen = Color(0.2f, 0.8f, 0.2f);
 }

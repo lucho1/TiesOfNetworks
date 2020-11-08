@@ -268,18 +268,57 @@ bool ModuleNetworkingClient::GUI()
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Client Window");
 
-		Texture *tex = App->modResources->client;
+		Texture* tex = App->modResources->client;
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		ImGui::Text("Welcome '%s' to the '%s' server!", m_ClientName.c_str(), m_ServerName.c_str());
+		ImGui::Text("Welcome '%s (#%i)' to the '%s' server!", m_ClientName.c_str(), m_ClientID, m_ServerName.c_str());
 		ImGui::Text("Server Address: %s", m_ServerAddressStr.c_str());
 
-		// Input message & Send button
+		// Users List
+		ImGui::NewLine(); ImGui::Separator();
+		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+		ImGui::BeginChild("#ScrollRegion", ImVec2(0, footer_height_to_reserve * 13), false, ImGuiWindowFlags_HorizontalScrollbar);		
+
+		static bool open_options = false;
+		static ImVec2 popup_menu_pos = ImVec2(0.0f, 0.0f);
+		if (ImGui::TreeNodeEx("Connected Users List", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+			for (auto user : m_ConnectedUsers)
+			{
+				ImGui::Text("  '%s'  ID: #%i", user.first.c_str(), user.second);
+
+				if (ImGui::IsItemHovered() && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
+				{
+					popup_menu_pos.y = ImGui::GetCursorPos().y;
+					popup_menu_pos.x = ImGui::GetMousePos().x;
+					open_options = !open_options;
+				}
+			}
+		
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+		
+		if (ImGui::IsAnyWindowHovered() && ImGui::IsMouseDoubleClicked(0))
+			open_options = false;
+
+		if (open_options)
+		{
+			ImGui::SetCursorPos(popup_menu_pos);
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+			if (ImGui::Selectable("Whisper", false, 0, ImVec2(48, 0)))
+				open_options = false;
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndChild(); ImGui::Separator();
+		
+
+		// Input message, text olor change & Send button
 		static char buffer[250]{ "Write a Message" };
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
-
-		ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::NewLine(); ImGui::Separator();
 		if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0))
 			ImGui::SetKeyboardFocusHere(0);
 
@@ -292,9 +331,6 @@ bool ModuleNetworkingClient::GUI()
 		ImGuiColorEditFlags color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueWheel;
 		ImGui::SameLine();
 		ImGui::ColorEdit4("Text Color", &m_UserTextColor, color_flags);
-
-		// Add functionality for Private Text & Commands here
-
 
 		// Disconnect Button
 		ImGui::SetCursorPos({ 145.0f, 650.0f });

@@ -21,4 +21,5 @@ public:
 private:
 
 	std::vector<std::pair<std::string, const Color>> m_ChatMessages;
+	std::string time_str;
 };

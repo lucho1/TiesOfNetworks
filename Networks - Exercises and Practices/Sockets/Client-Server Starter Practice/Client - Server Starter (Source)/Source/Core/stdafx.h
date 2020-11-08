@@ -5,7 +5,6 @@
 // We can include here all files that are not likely going
 // to change. System files and standard headers that we will
 // never edit are good examples of files to include here.
-
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
@@ -26,6 +25,7 @@
 #include <math.h>  // ldexp, pow
 #include <algorithm>
 #include <limits.h>
+#include <ctime>
 
 #include <thread>
 #include <mutex>
