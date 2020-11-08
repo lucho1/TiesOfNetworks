@@ -79,13 +79,15 @@ void ModuleGamesManager::StopGame(int user)
 	m_GamesData.sex = false;
 	m_GamesData.kill = false;
 	m_GamesData.marry = false;
-	m_GamesData.users_answered = "";
 	m_GamesData.original_word = "";
 	m_GamesData.ordered_word = "";
 	m_GamesData.unscramble_ranking.clear();
 	m_GamesData.ksm_names[0] = "";
 	m_GamesData.ksm_names[1] = "";
 	m_GamesData.ksm_names[2] = "";
+	m_GamesData.users_selected[0] = "";
+	m_GamesData.users_selected[1] = "";
+	m_GamesData.users_selected[2] = "";
 
 	// Reset user, game type & status
 	m_CurrentUser = { "NULL", -1 };
@@ -167,6 +169,7 @@ bool ModuleGamesManager::Update()
 
 		case GAME_STATUS::RUNNING:
 		{
+			bool update_ksm = false;
 			uint nUsers = App->modNetServer->GetUsersNumber();
 			if (!(((m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE || m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS) && nUsers > 1)
 				|| (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && nUsers > 3)))
@@ -182,20 +185,23 @@ bool ModuleGamesManager::Update()
 				StopGame(-1);
 				break;
 			}
-
 			else if (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
 			{
-				std::string next_statement = "Illuminating answer from user " + GetUserLabel() + ", which would" + m_GamesData.users_answered;
+				std::string next_statement = "Illuminating answer from user " + GetUserLabel() + ", which would have sex with " + m_GamesData.users_selected[0] + ", would kill "
+					+ m_GamesData.users_selected[1] + ", and would marry with " + m_GamesData.users_selected[2] + ", how beautiful!";
+
 				App->modNetServer->SendServerNotification(next_statement, EntryType::APP_INFO_LOG);
 				
 				m_GamesData.kill = false;
 				m_GamesData.marry = false;
 				m_GamesData.sex = false;
-				m_GamesData.users_answered = "";
+				m_GamesData.users_selected[0] = "";
+				m_GamesData.users_selected[1] = "";
+				m_GamesData.users_selected[2] = "";
 
+				update_ksm = true;
 				GetNextUserInList();
-			}
-			
+			}			
 			else if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
 				GetNextUserInList();
 
@@ -203,7 +209,7 @@ bool ModuleGamesManager::Update()
 				App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
 			else
 			{
-				if (m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
+				if (update_ksm)
 					App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
 			}
 
@@ -562,17 +568,23 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 
 		bool is_name = false;
 		for (int i = 0; i < 3 && !is_name; ++i)
-			is_name = user_str == m_GamesData.ksm_names[i];
+			is_name = (user_str == m_GamesData.ksm_names[i] && user_str != m_CurrentUser.first);
 
 		if (!is_name) {
 			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
 			break;
 		}
 
+		if (user_str == m_GamesData.users_selected[1] || user_str == m_GamesData.users_selected[2])
+		{
+			App->modNetServer->SendServerNotification("That user is already selected!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.sex = true;
+		m_GamesData.users_selected[0] = user_str;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		m_GamesData.users_answered += " have Sex with: " + user_str;
 
 		// Make response
 		std::string response = "Spicy answer " + GetUserLabel() + "!";
@@ -594,17 +606,23 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 
 		bool is_name = false;
 		for (int i = 0; i < 3 && !is_name; ++i)
-			is_name = user_str == m_GamesData.ksm_names[i];
+			is_name = (user_str == m_GamesData.ksm_names[i] && user_str != m_CurrentUser.first);
 
 		if (!is_name) {
 			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
 			break;
 		}
 
+		if (user_str == m_GamesData.users_selected[0] || user_str == m_GamesData.users_selected[2])
+		{
+			App->modNetServer->SendServerNotification("That user is already selected!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.kill = true;
+		m_GamesData.users_selected[1] = user_str;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		m_GamesData.users_answered += " Kill: " + user_str;
 
 		// Make response
 		std::string response = "Revealing answer " + GetUserLabel() + "!";
@@ -626,17 +644,23 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 
 		bool is_name = false;
 		for (int i = 0; i < 3 && !is_name; ++i)
-			is_name = user_str == m_GamesData.ksm_names[i];
+			is_name = (user_str == m_GamesData.ksm_names[i] && user_str != m_CurrentUser.first);
 
 		if (!is_name) {
 			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
 			break;
 		}
 
+		if (user_str == m_GamesData.users_selected[0] || user_str == m_GamesData.users_selected[1])
+		{
+			App->modNetServer->SendServerNotification("That user is already selected!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.marry = true;
+		m_GamesData.users_selected[2] = user_str;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		m_GamesData.users_answered += " Marry with: " + user_str;
 
 		// Make response
 		std::string response = "Beautiful answer " + GetUserLabel() + "!";

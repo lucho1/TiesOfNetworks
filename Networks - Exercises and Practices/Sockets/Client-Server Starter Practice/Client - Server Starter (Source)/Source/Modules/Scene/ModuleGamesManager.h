@@ -64,8 +64,8 @@ private:
 
 		//SexKillMarry variables
 		bool sex = false, kill = false, marry = false;
-		std::string ksm_names[3];
-		std::string users_answered = "";
+		std::string ksm_names[3] = {"", "", ""};
+		std::string users_selected[3] = { "", "", "" };
 
 		// Unscramble variables
 		std::string original_word = "";
