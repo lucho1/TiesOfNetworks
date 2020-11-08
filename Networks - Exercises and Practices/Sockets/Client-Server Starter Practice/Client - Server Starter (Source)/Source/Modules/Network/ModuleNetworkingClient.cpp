@@ -256,7 +256,12 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 		case CLIENT_COMMANDS::COMMAND_PLAY:
 			{
 			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
-			std::string args = buffer.substr(start_pos);
+
+			std::string args;
+			if (start_pos != std::string::npos)
+				args = buffer.substr(start_pos);
+			else
+				args = "";
 
 			GAME_TYPE game = m_UserGames[command];
 			OutputMemoryStream packet;
