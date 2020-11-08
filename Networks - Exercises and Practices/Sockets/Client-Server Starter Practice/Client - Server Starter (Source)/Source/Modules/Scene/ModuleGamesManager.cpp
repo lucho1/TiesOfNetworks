@@ -37,7 +37,7 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 			if (((gameType == GAME_TYPE::RUSSIAN_ROULETTE || gameType == GAME_TYPE::UNSCRAMBLE || gameType == GAME_TYPE::CHAINED_WORDS) && App->modNetServer->GetUsersNumber() > 1)
 				|| (gameType == GAME_TYPE::SEXKILLMARRY && App->modNetServer->GetUsersNumber() > 3))
 			{
-				m_CurrentUser = { "NULL", -1 };
+				m_CurrentUser = App->modNetServer->GetUserFromID(first_user);
 				m_CurrentGame = gameType;
 				m_GameStatus = GAME_STATUS::START;
 
@@ -102,8 +102,8 @@ void ModuleGamesManager::ProcessAction(GAME_TYPE game_action, uint user_id, cons
 	std::string command, args;
 	std::size_t pos = action.find_first_of(' ');
 	command = action.substr(0, pos);
-	if (pos != std::string::npos)
-		args = action.substr(pos);
+	if (pos != std::string::npos && pos != action.size())
+		args = action.substr(pos + 1);
 	else
 		args = "";
 
@@ -450,7 +450,7 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 	} //SHOOT
 	case GAME_COMMANDS::BULLET_NUM:
 	{
-		if (m_GamesData.bullet_slot_number == 0)
+		if (m_GamesData.bullet_slot_number != 0)
 			App->modNetServer->SendServerNotification("You can't change the slot of the bullet, you cheaty comrade! Back in the USSR, that would have been a reason to send you to Siberia >:(", EntryType::APP_WARN_LOG, user_id);
 		else {
 

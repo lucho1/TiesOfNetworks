@@ -194,8 +194,8 @@ const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint curr
 	{
 		if ((*it).second == current_userID)
 		{
-			if (it++ != m_ConnectedNicknames.end())
-				return (*it++);
+			if (++it != m_ConnectedNicknames.end())
+				return (*it);
 			else
 				return *m_ConnectedNicknames.begin();
 		}
