@@ -14,6 +14,8 @@ public:
 	const std::pair<std::string, uint> GetNextUser(uint current_userID);
 	uint GetUsersNumber() const { return m_ConnectedNicknames.size(); }
 
+	void SendServerNotification(const std::string& msg, EntryType type, int user_id = -1);
+
 
 private:
 
@@ -49,6 +51,7 @@ private:
 	std::string m_ServerName = "ServerName";
 	std::string m_ServerAddress = "NULL";
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
+
 	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
 	std::unordered_map<std::string, uint> m_ConnectedNicknames;
 

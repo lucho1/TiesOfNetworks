@@ -1,21 +1,25 @@
+#include "ModuleGamesManager.h"
 
 ModuleGamesManager::ModuleGamesManager()
 {
-	m_GameCommands["game next"] = GAME_COMMANDS::NEXT;
-	m_GameCommands["game n"] = GAME_COMMANDS::NEXT;
+	m_GameCommands["next"] = GAME_COMMANDS::NEXT;
+	m_GameCommands["n"] = GAME_COMMANDS::NEXT;
+	m_GameCommands["start"] = GAME_COMMANDS::START;
 
-	m_GameCommands["rr bullet"] = GAME_COMMANDS::BULLET_NUM;
-	m_GameCommands["rr shoot"] = GAME_COMMANDS::SHOOT;
+	// Russian Roulette
+	m_GameCommands["bullet"] = GAME_COMMANDS::BULLET_NUM;
+	m_GameCommands["shoot"] = GAME_COMMANDS::SHOOT;
 
-	m_GameCommands["skm sex"] = GAME_COMMANDS::SEX;
-	m_GameCommands["skm s"] = GAME_COMMANDS::SEX;
-	m_GameCommands["skm kill"] = GAME_COMMANDS::KILL;
-	m_GameCommands["skm k"] = GAME_COMMANDS::KILL;
-	m_GameCommands["skm marry"] = GAME_COMMANDS::MARRY;
-	m_GameCommands["skm m"] = GAME_COMMANDS::MARRY;
+	// Sex Kill Marry
+	m_GameCommands["sex"] = GAME_COMMANDS::SEX;
+	m_GameCommands["s"] = GAME_COMMANDS::SEX;
+	m_GameCommands["kill"] = GAME_COMMANDS::KILL;
+	m_GameCommands["k"] = GAME_COMMANDS::KILL;
+	m_GameCommands["marry"] = GAME_COMMANDS::MARRY;
+	m_GameCommands["m"] = GAME_COMMANDS::MARRY;
 
-	m_GameCommands["unscramble word"] = GAME_COMMANDS::UNSCRAMBLE_WORD;
-	m_GameCommands["chained word"] = GAME_COMMANDS::CHAINED_WORD;
+	// Unscramble and Chain
+	m_GameCommands["word"] = GAME_COMMANDS::WORD;
 }
 
 
@@ -43,13 +47,13 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 						m_GamesData.unscramble_ranking.insert({ App->modNetServer->GetNextUser(i).second, 0 });
 			}
 			else
-				SendServerNotification("Couldn't begin game, not enough users connected");
+				App->modNetServer->SendServerNotification("Couldn't begin game, not enough users connected", EntryType::APP_WARN_LOG, first_user);
 		}
 		else
-			SendServerNotification("Couldn't begin game, user to begin was invalid!");
+			App->modNetServer->SendServerNotification("Couldn't begin game, user to begin was invalid!", EntryType::APP_WARN_LOG, first_user);
 	}
 	else
-		SendServerNotification("Game to begin was invalid!");
+		App->modNetServer->SendServerNotification("Game to begin was invalid!", EntryType::APP_WARN_LOG, first_user);
 }
 
 void ModuleGamesManager::StopGame()
@@ -66,21 +70,12 @@ void ModuleGamesManager::StopGame()
 	m_GamesData.unscramble_ranking.clear();
 
 	// Send Stop Notification
-	SendServerNotification(GetStopMessage());
+	App->modNetServer->SendServerNotification(GetStopMessage(), APP_INFO_LOG);
 
 	// Reset user, game type & status
 	m_CurrentUser = { "NULL", -1 };
 	m_CurrentGame = GAME_TYPE::NONE;
 	m_GameStatus = GAME_STATUS::NONE;
-}
-
-
-// --- Class Private Methods ---
-void ModuleGamesManager::SendServerNotification(const std::string& msg)
-{
-	// std::string message = msg + whatever + "xDD";
-	// Server::SendMessageFromGame(message);
-	m_GameMessages.push_back(msg);
 }
 
 void ModuleGamesManager::GetNextUserInList()
@@ -89,309 +84,69 @@ void ModuleGamesManager::GetNextUserInList()
 	if (m_CurrentUser.second == -1)
 	{
 		StopGame();
-		SendServerNotification("Next user doesn't exists! Stopping Game");
+		App->modNetServer->SendServerNotification("Next user doesn't exists! Stopping Game", EntryType::APP_WARN_LOG);
 	}
 }
 
-void ModuleGamesManager::ProcessAction(const std::string& action)
+void ModuleGamesManager::ProcessAction(GAME_TYPE game_action, uint user_id, const std::string& action)
 {
-	if (m_CurrentGame == GAME_TYPE::NONE)
+	if (m_CurrentGame != GAME_TYPE::NONE && m_CurrentGame != game_action) {
+		App->modNetServer->SendServerNotification("We are not playing that game!", EntryType::APP_WARN_LOG, user_id);
 		return;
+	}
+
+	//Find command
+	std::string command, args;
+	std::size_t pos = action.find_first_of(' ');
+	command = action.substr(0, pos);
+	if (pos != std::string::npos)
+		args = action.substr(pos);
+	else
+		args = "";
 
 	// Get Command Type
 	GAME_COMMANDS gCommand;
-	try	{ gCommand = m_GameCommands.at(action); }
+	try	{ gCommand = m_GameCommands.at(command); }
 	catch (const std::out_of_range & e) { gCommand = GAME_COMMANDS::INVALID_COMMAND; }
 
-	// Find Command Order
-	std::size_t start_pos = action.find_first_not_of(' ');
-	if (start_pos == std::string::npos)
-		SendServerNotification("Invalid Command!");
-
 	// Process Command Order
-	bool update_game_status = false;
-	switch (gCommand)
+	switch (m_CurrentGame)
 	{
-		case GAME_COMMANDS::NEXT:
-		{
-			std::string response;
-			if (m_CurrentGame != GAME_TYPE::RUSSIAN_ROULETTE)
-			{
-				response = "That's not very brave from you ex-comarade >:(" + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
-				m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
-				
-				GetNextUserInList();
-				response += "\n\nAnyway, the game still runs **reloads**...\nNext user is " + GetUserLabel();
-			}
-			else
-			{
-				response = "Oh! User " + GetUserLabel() + " has passed! :(\n\nNext user is ";
-				GetNextUserInList();
-				response += GetUserLabel();				
-			}
-
-			SendServerNotification(response);
-			break;
+	case GAME_TYPE::NONE:
+		if (gCommand == GAME_COMMANDS::START)
+			StartGame(game_action, user_id);
+		else {
+			App->modNetServer->SendServerNotification("We are not playing yet, might want to try starting first!", EntryType::APP_WARN_LOG, user_id);
 		}
-		case GAME_COMMANDS::BULLET_NUM:
-		{
-			if (m_CurrentGame != GAME_TYPE::RUSSIAN_ROULETTE)
-				SendServerNotification("Invalid Command for this Game!");
-			else if(m_GamesData.bullet_slot_number == 0)
-				SendServerNotification("You can't change the slot of the bullet, you cheaty comarade! Back in the USSR, that would have been a reason to send you to Siberia >:(");
-			else
-			{
-				size_t number_pos = action.find_first_not_of(' ', start_pos);
-				std::string number_str = action.substr(number_pos, action.find_first_of(' ', number_pos) - 1);
+		break;
 
-				m_GamesData.bullet_slot_number = std::stoi(number_str);
-				std::string response = "\n\nReceived, Comarade! Bullet will be in the slot " + number_str
-										+ ". Anyone shooting will hit a random slot. Luckily for you, it won't be the chosen one. You are the first, comarade " + GetUserLabel();
-				
-				SendServerNotification(response);
-			}
+	case GAME_TYPE::RUSSIAN_ROULETTE:
+		ProcessRussianRoulette(gCommand, args, user_id);
+		break;
+	
+	case GAME_TYPE::SEXKILLMARRY:
+		ProcessSexKillMarry(gCommand, args, user_id);
+		break;
 
-			break;
-		}
-		case GAME_COMMANDS::SHOOT:
-		{
-			if (m_CurrentGame != GAME_TYPE::RUSSIAN_ROULETTE)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				if (m_GamesData.bullet_slot_number == 0)
-					SendServerNotification("You must chose a bullet slot first! True comarades play with fire >:(");
-				else
-				{
-					std::string last_user = m_CurrentUser.first;
-					std::string response;
-					uint slot_hit = rng::GetRandomInt_InRange(1, 6);
+	case GAME_TYPE::UNSCRAMBLE:
+		ProcessUnscramble(gCommand, args, user_id);
+		break;
 
-					if (slot_hit == m_GamesData.bullet_slot_number)
-					{
-						m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
-
-						GetNextUserInList();						
-						while(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) != m_GamesData.alive_players.end())
-							GetNextUserInList();
-
-						response = "Oh, how sad! " + last_user + " lies in the ground with a bullet in the head, the paths of the old Lenin are mysterious. Well... game goes on **reloads**\nNext user is " + GetUserLabel();
-					}
-					else
-					{
-						GetNextUserInList();
-						response = "Well played comarade " + last_user + " you don't have your brain in the ground!\nYou hitted slot " + std::to_string(slot_hit);
-						+ "\n\n\nWell... game goes on **reloads**\nNext user is " + GetUserLabel();
-						
-					}
-
-					SendServerNotification(response);
-					update_game_status = true;
-				}
-			}
-
-			break;
-		}
-		case GAME_COMMANDS::SEX:
-		{
-			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				m_GamesData.sex = true;
-				update_game_status = true;
-
-				size_t user_pos = action.find_first_not_of(' ', start_pos);
-				std::string user_str = action.substr(user_pos, action.find_first_of(' ', user_pos) - 1);
-				m_GamesData.users_answered += " have Sex with: " + user_str;
-
-				// Make response
-				std::string response = "Spicy answer " + GetUserLabel() + "!";
-				if(!m_GamesData.kill && !m_GamesData.marry)
-					response += "\nYou still have to answer with whom you would marry and who you would kill, little assassin";
-				else if (!m_GamesData.kill)
-					response += "\nYou still have to answer who you would kill, little assassin";
-				else if (!m_GamesData.marry)
-					response += "\nYou still have to answer with whom you would marry, we don't want you to live alone :(";
-
-				SendServerNotification(response);
-			}
-
-			break;
-		}
-		case GAME_COMMANDS::KILL:
-		{
-			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				m_GamesData.kill = true;
-				update_game_status = true;
-
-				size_t user_pos = action.find_first_not_of(' ', start_pos);
-				std::string user_str = action.substr(user_pos, action.find_first_of(' ', user_pos) - 1);
-				m_GamesData.users_answered += " Kill: " + user_str;
-
-				// Make response
-				std::string response = "Revealing answer " + GetUserLabel() + "!";
-				if (!m_GamesData.sex && !m_GamesData.marry)
-					response += "\nYou still have to answer with whom you would marry and with whom you would have sex, don't be embarrassed!";
-				else if (!m_GamesData.sex)
-					response += "\nYou still have to answer with whom you would have sex, don't be embarrassed!";
-				else if (!m_GamesData.marry)
-					response += "\nYou still have to answer with whom you would marry, we don't want you to live alone :(";
-
-				SendServerNotification(response);
-			}
-
-			break;
-		}
-		case GAME_COMMANDS::MARRY:
-		{
-			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				m_GamesData.marry = true;
-				update_game_status = true;
-				
-				size_t user_pos = action.find_first_not_of(' ', start_pos);
-				std::string user_str = action.substr(user_pos, action.find_first_of(' ', user_pos) - 1);
-				m_GamesData.users_answered += " Marry with: " + user_str;
-				
-				// Make response
-				std::string response = "Beautiful answer " + GetUserLabel() + "!";
-				if (!m_GamesData.sex && !m_GamesData.kill)
-					response += "\nYou still have to answer whom you would kill and with whom you would have sex, don't be embarrassed, little assassin!";
-				else if (!m_GamesData.sex)
-					response += "\nYou still have to answer with whom you would have sex, don't be embarrassed!";
-				else if (!m_GamesData.kill)
-					response += "\nYou still have to answer whom you would kill, little assassin!";
-
-				SendServerNotification(response);
-			}
-
-			break;
-		}
-		case GAME_COMMANDS::UNSCRAMBLE_WORD:
-		{
-			if (m_CurrentGame != GAME_TYPE::UNSCRAMBLE)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				std::string response;
-				update_game_status = true;
-
-				size_t word_pos = action.find_first_not_of(' ', start_pos);
-				std::string word_str = action.substr(word_pos, action.find_first_of(' ', word_pos) - 1);
-
-				if (m_GamesData.original_word == "")
-				{
-					response = "Nice word " + GetUserLabel() + "!";
-					m_GamesData.original_word = word_str;
-					ArrangeWord();
-				}
-				else
-				{					
-					if (CompareWords(word_str))
-						response = "Good answer " + GetUserLabel() + "!\n\n\n";
-					else
-					{
-						response = "Incorrect answer " + GetUserLabel() + "! :(\n\nTry Again!\n\n\n";						
-						update_game_status = false;
-					}
-				}
-
-				SendServerNotification(response);
-			}
-
-			break;
-		}
-		case GAME_COMMANDS::CHAINED_WORD:
-		{
-			if (m_CurrentGame != GAME_TYPE::CHAINED_WORDS)
-				SendServerNotification("Invalid Command for this Game!");
-			else
-			{
-				std::string response;
-				update_game_status = true;
-
-				size_t word_pos = action.find_first_not_of(' ', start_pos);
-				std::string word_str = action.substr(word_pos, action.find_first_of(' ', word_pos) - 1);
-
-				if (m_GamesData.original_word == "")
-				{
-					response = "Nice word " + GetUserLabel() + "!";
-					m_GamesData.original_word =  word_str;
-				}
-				else
-				{
-					if (word_str[0] == m_GamesData.original_word[0])
-					{
-						m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
-						m_GamesData.original_word = word_str;
-						response = "Good answer " + GetUserLabel() + "!\n\n\n";
-					}
-					else
-					{
-						response = "Incorrect answer " + GetUserLabel() + "! :(\n\nTry Again!\n\n\n";
-						update_game_status = false;
-					}
-				}
-
-				SendServerNotification(response);
-			}
-		}
-		case GAME_COMMANDS::INVALID_COMMAND:
-		{
-			std::string warning = "The game command '" + action + "' does not exist!";
-			SendServerNotification(warning.c_str());
-			break;
-		}
+	case GAME_TYPE::CHAINED_WORDS:
+		ProcessChainedWords(gCommand, args, user_id);
+		break;
 	}
-
-	if (update_game_status)
-		m_GameStatus = GAME_STATUS::RUNNING;
 }
 
 
 // --- Module Methods ---
-bool ModuleGamesManager::GUI()
-{
-	ImGui::Begin("GAMES DEBUGGER");
-	ImGui::SetWindowSize({ 400.0f, 400.0f });
-
-	if (ImGui::Button("Begin Unscramble"))
-		StartGame(GAME_TYPE::UNSCRAMBLE, 0);
-
-	if (ImGui::Button("Begin Russian Roulette"))
-		StartGame(GAME_TYPE::RUSSIAN_ROULETTE, 0);
-
-	if (ImGui::Button("Begin SexKillMarry"))
-		StartGame(GAME_TYPE::SEXKILLMARRY, 0);
-
-
-	if (ImGui::Button("End Game & Clear Text"))
-	{
-		StopGame();
-		m_GameMessages.clear();
-	}
-
-	for (auto& msg_pair : m_GameMessages)
-		ImGui::TextWrapped("%s", msg_pair.c_str());
-
-
-	ImGui::End();
-	return true;
-}
-
 bool ModuleGamesManager::Update()
 {
 	switch (m_GameStatus)
 	{
 		case GAME_STATUS::START:
 		{
-			SendServerNotification(GetInitialMessage()); // (SHOULD BE SOLVED) Bug: This pass from start to update will make the games to log initmsg, to log updatemsg and make the transition jumping a step
+			App->modNetServer->SendServerNotification(GetInitialMessage(), EntryType::APP_INFO_LOG); // (SHOULD BE SOLVED) Bug: This pass from start to update will make the games to log initmsg, to log updatemsg and make the transition jumping a step
 			break;
 		}
 
@@ -400,7 +155,7 @@ bool ModuleGamesManager::Update()
 			if (m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE && m_GamesData.alive_players.size() == 1)
 			{
 				std::string win_statement = "Congratulations Comarade " + GetUserLabel() + "! You have won the game and a promotion comarade-administrator!";
-				SendServerNotification(win_statement);
+				App->modNetServer->SendServerNotification(win_statement, EntryType::APP_INFO_LOG);
 				StopGame();
 				break;
 			}
@@ -408,7 +163,7 @@ bool ModuleGamesManager::Update()
 			if (m_CurrentGame == GAME_TYPE::SEXKILLMARRY && m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
 			{
 				std::string next_statement = "Illuminating answer from user " + GetUserLabel() + ", which would" + m_GamesData.users_answered;
-				SendServerNotification(next_statement);
+				App->modNetServer->SendServerNotification(next_statement, EntryType::APP_INFO_LOG);
 				
 				m_GamesData.kill = false;
 				m_GamesData.marry = false;
@@ -421,7 +176,7 @@ bool ModuleGamesManager::Update()
 			if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
 				GetNextUserInList();
 
-			SendServerNotification(GetRunningMessage());
+			App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
 			m_GameStatus = GAME_STATUS::WAITING;
 
 			break;
@@ -589,4 +344,246 @@ void ModuleGamesManager::ArrangeWord()
 		if (std::find(m_GamesData.ordered_word.begin(), m_GamesData.ordered_word.end(), m_GamesData.original_word[i]) == m_GamesData.ordered_word.end())
 			m_GamesData.ordered_word.push_back(m_GamesData.original_word[i]);
 	}
+}
+
+void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id) {
+	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+		App->modNetServer->SendServerNotification("Hey! Not your turn yet comrade!", EntryType::APP_WARN_LOG, user_id);
+		return;
+	}
+	switch (command) {
+	default:
+		App->modNetServer->SendServerNotification("Invalid command! Try /rr help", EntryType::APP_WARN_LOG, user_id);
+		break;
+	case GAME_COMMANDS::NEXT:
+	{
+		std::string response = "That's not very brave from you ex-comarade >:( " + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
+		m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
+
+		GetNextUserInList();
+		response += "\n\nAnyway, the game still runs **reloads**...\nNext user is " + GetUserLabel();
+		App->modNetServer->SendServerNotification(response, EntryType::APP_WARN_LOG);
+		break;
+	} //NEXT
+	case GAME_COMMANDS::SHOOT:
+	{
+		if (m_GamesData.bullet_slot_number == 0)
+			App->modNetServer->SendServerNotification("You must chose a bullet slot first! True comarades play with fire >:(", EntryType::APP_WARN_LOG, user_id);
+		else {
+			std::string last_user = m_CurrentUser.first;
+			std::string response;
+			uint slot_hit = rng::GetRandomInt_InRange(1, 6);
+
+			if (slot_hit == m_GamesData.bullet_slot_number) {
+				m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
+
+				GetNextUserInList();
+				while (std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) != m_GamesData.alive_players.end())
+					GetNextUserInList();
+
+				response = "Oh, how sad! " + last_user + " lies in the ground with a bullet in the head, the paths of the old Lenin are mysterious. Well... game goes on **reloads**\nNext user is " + GetUserLabel();
+			}
+			else {
+				GetNextUserInList();
+				response = "Well played comarade " + last_user + " you don't have your brain in the ground!\nYou hitted slot " + std::to_string(slot_hit);
+				+"\n\n\nWell... game goes on **reloads**\nNext user is " + GetUserLabel();
+
+			}
+
+			App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG);
+			m_GameStatus = GAME_STATUS::RUNNING;
+		}
+		break;
+	} //SHOOT
+	case GAME_COMMANDS::BULLET_NUM:
+	{
+		if (m_GamesData.bullet_slot_number == 0)
+			App->modNetServer->SendServerNotification("You can't change the slot of the bullet, you cheaty comrade! Back in the USSR, that would have been a reason to send you to Siberia >:(", EntryType::APP_WARN_LOG, user_id);
+		else {
+
+			size_t pos = args.find_first_of(' ');
+			std::string number_str = args.substr(0, pos);
+
+			m_GamesData.bullet_slot_number = std::stoi(number_str);
+			std::string response = "Received, Comrade! Bullet will be in the slot " + number_str
+				+ ". Anyone shooting will hit a random slot. If you are lucky, it won't be the chosen one. You are the first, comrade " + GetUserLabel();
+
+			App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG, user_id);
+
+			std::string announcement = "Comrade " + GetUserLabel() + " has choosen a slot, let the fun begin!";
+			App->modNetServer->SendServerNotification(announcement, EntryType::APP_INFO_LOG);
+		}
+		break;
+	} //BULLET_NUM
+
+	}// switch (command)
+}
+
+void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::string& args, uint user_id) {
+	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
+		return;
+	}
+
+	switch (command) {
+	default:
+		App->modNetServer->SendServerNotification("Invalid command! Try /ksm help", EntryType::APP_WARN_LOG, user_id);
+		break;
+	case GAME_COMMANDS::SEX:
+	{
+		m_GamesData.sex = true;
+		m_GameStatus = GAME_STATUS::RUNNING;
+
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+		m_GamesData.users_answered += " have Sex with: " + user_str;
+
+		// Make response
+		std::string response = "Spicy answer " + GetUserLabel() + "!";
+		if (!m_GamesData.kill && !m_GamesData.marry)
+			response += "\nYou still have to answer with whom you would marry and who you would kill, little assassin";
+		else if (!m_GamesData.kill)
+			response += "\nYou still have to answer who you would kill, little assassin";
+		else if (!m_GamesData.marry)
+			response += "\nYou still have to answer with whom you would marry, we don't want you to live alone :(";
+
+		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG, user_id);
+
+		break;
+	} //SEX
+	case GAME_COMMANDS::KILL:
+	{
+		m_GamesData.kill = true;
+		m_GameStatus = GAME_STATUS::RUNNING;
+
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+		m_GamesData.users_answered += " Kill: " + user_str;
+
+		// Make response
+		std::string response = "Revealing answer " + GetUserLabel() + "!";
+		if (!m_GamesData.sex && !m_GamesData.marry)
+			response += "\nYou still have to answer with whom you would marry and with whom you would have sex, don't be embarrassed!";
+		else if (!m_GamesData.sex)
+			response += "\nYou still have to answer with whom you would have sex, don't be embarrassed!";
+		else if (!m_GamesData.marry)
+			response += "\nYou still have to answer with whom you would marry, we don't want you to live alone :(";
+
+		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG, user_id);
+
+		break;
+	} //KILL
+	case GAME_COMMANDS::MARRY:
+	{
+		m_GamesData.marry = true;
+		m_GameStatus = GAME_STATUS::RUNNING;
+
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+		m_GamesData.users_answered += " Marry with: " + user_str;
+
+		// Make response
+		std::string response = "Beautiful answer " + GetUserLabel() + "!";
+		if (!m_GamesData.sex && !m_GamesData.kill)
+			response += "\nYou still have to answer whom you would kill and with whom you would have sex, don't be embarrassed, little assassin!";
+		else if (!m_GamesData.sex)
+			response += "\nYou still have to answer with whom you would have sex, don't be embarrassed!";
+		else if (!m_GamesData.kill)
+			response += "\nYou still have to answer whom you would kill, little assassin!";
+
+		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG, user_id);
+
+		break;
+	} //MARRY
+	}// switch (command)
+}
+
+void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::string& args, uint user_id) {
+	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
+		return;
+	}
+
+	switch (command) {
+	default:
+		App->modNetServer->SendServerNotification("Invalid command! Try /unscramble help", EntryType::APP_WARN_LOG, user_id);
+		break;
+	case GAME_COMMANDS::WORD:
+	{
+		std::string response;
+		bool update_game_status = true;
+
+		size_t word_pos = args.find_first_of(' ');
+		std::string word_str = args.substr(0, word_pos);
+
+		response = GetUserLabel() + " said the word \"" + word_str + "\"\n";
+
+		if (m_GamesData.original_word == "") {
+			response = "Nice word " + GetUserLabel() + "!";
+			m_GamesData.original_word = word_str;
+			ArrangeWord();
+		}
+		else {
+			if (CompareWords(word_str))
+				response = "Good answer " + GetUserLabel() + "!";
+			else {
+				response = "Incorrect answer " + GetUserLabel() + "! :(\nTry Again!";
+				update_game_status = false;
+			}
+		}
+
+		if (update_game_status)
+			m_GameStatus = GAME_STATUS::RUNNING;
+
+
+		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG);
+		break;
+	} //WORD
+	} //switch (command)
+}
+
+void ModuleGamesManager::ProcessChainedWords(GAME_COMMANDS command, const std::string& args, uint user_id) {
+	if (command != GAME_COMMANDS::STOP && user_id != GetCurrentUserPlaying()) {
+		App->modNetServer->SendServerNotification("Hey! It's not your turn!", EntryType::APP_WARN_LOG, user_id);
+		return;
+	}
+
+	switch (command) {
+	default:
+		App->modNetServer->SendServerNotification("Invalid command! Try /unscramble help", EntryType::APP_WARN_LOG, user_id);
+		break;
+	case GAME_COMMANDS::WORD:
+	{
+		std::string response;
+		bool update_game_status = true;
+
+		size_t word_pos = args.find_first_of(' ');
+		std::string word_str = args.substr(0, word_pos);
+
+		response = GetUserLabel() + " said the word \"" + word_str + "\"\n";
+
+		if (m_GamesData.original_word == "") {
+			response = "Nice word " + GetUserLabel() + "!";
+			m_GamesData.original_word = word_str;
+		}
+		else {
+			if (word_str[0] == m_GamesData.original_word[0]) {
+				m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
+				m_GamesData.original_word = word_str;
+				response = "Good answer " + GetUserLabel() + "!\n\n\n";
+			}
+			else {
+				response = "Incorrect answer " + GetUserLabel() + "! :(\n\nTry Again!\n\n\n";
+				update_game_status = false;
+			}
+		}
+
+		if (update_game_status)
+			m_GameStatus = GAME_STATUS::RUNNING;
+
+
+		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG);
+		break;
+	} //WORD
+	} //switch (command)
 }

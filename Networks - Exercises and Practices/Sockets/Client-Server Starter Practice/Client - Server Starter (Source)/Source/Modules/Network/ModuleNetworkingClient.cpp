@@ -15,6 +15,16 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCommands["kick"] = CLIENT_COMMANDS::COMMAND_KICK;
 	m_UserCommands["k"] = CLIENT_COMMANDS::COMMAND_KICK;
 
+	//Games
+	m_UserCommands["ksm"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["ksm"] = GAME_TYPE::SEXKILLMARRY;
+	m_UserCommands["rr"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["rr"] = GAME_TYPE::RUSSIAN_ROULETTE;
+	m_UserCommands["unscramble"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["unscramble"] = GAME_TYPE::UNSCRAMBLE;
+	m_UserCommands["chained"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["chained"] = GAME_TYPE::CHAINED_WORDS;
+
 
 	// mTODO Sergi: Add descriptions to commands here
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_HELP] = "/help or /h - Displays help on command(s), syntax is \"/help (command)\"";
@@ -240,6 +250,19 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 			break;
 			} //COMMAND_KICK
+
+		case CLIENT_COMMANDS::COMMAND_PLAY:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+			std::string args = buffer.substr(start_pos);
+
+			GAME_TYPE game = m_UserGames[command];
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << game << args;
+			SendPacket(packet, m_Socket);
+
+			break;
+			} //COMMAND_PLAY
 
 		case CLIENT_COMMANDS::COMMAND_INVALID:
 			{
