@@ -85,7 +85,7 @@ bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually
 }
 
 void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
-	if (buffer.size == 0) //Nothing to parse, empty message
+	if (buffer.size() == 0) //Nothing to parse, empty message
 		return;
 
 	OutputMemoryStream packet;
