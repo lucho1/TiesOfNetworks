@@ -3,9 +3,9 @@
 
 class ModuleGamesManager : public Module
 {
-	enum class GAME_TYPE { NONE = 0, RUSSIAN_ROULETTE, UNSCRAMBLE, SEXKILLMARRY };
+	enum class GAME_TYPE { NONE = 0, RUSSIAN_ROULETTE, UNSCRAMBLE, SEXKILLMARRY, CHAINED_WORDS };
 	enum class GAME_STATUS { NONE = 0, START, RUNNING, WAITING };
-	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, UNSCRAMBLE_WORD };
+	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, UNSCRAMBLE_WORD, CHAINED_WORD };
 
 public:
 
@@ -65,7 +65,6 @@ private:
 		// Unscramble variables
 		std::string original_word = "";
 		std::string ordered_word = "";
-		std::string last_word = "";
 		std::unordered_map<uint, uint> unscramble_ranking;
 	};
 

@@ -15,6 +15,7 @@ ModuleGamesManager::ModuleGamesManager()
 	m_GameCommands["skm m"] = GAME_COMMANDS::MARRY;
 
 	m_GameCommands["unscramble word"] = GAME_COMMANDS::UNSCRAMBLE_WORD;
+	m_GameCommands["chained word"] = GAME_COMMANDS::CHAINED_WORD;
 }
 
 
@@ -26,7 +27,8 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 		m_CurrentUser = App->modNetServer->GetUserFromID(first_user);
 		if (m_CurrentUser.second != -1)
 		{
-			if (((gameType == GAME_TYPE::RUSSIAN_ROULETTE || gameType == GAME_TYPE::UNSCRAMBLE) && App->modNetServer->GetUsersNumber() > 1) || (gameType == GAME_TYPE::SEXKILLMARRY && App->modNetServer->GetUsersNumber() > 3))
+			if (((gameType == GAME_TYPE::RUSSIAN_ROULETTE || gameType == GAME_TYPE::UNSCRAMBLE || gameType == GAME_TYPE::CHAINED_WORDS) && App->modNetServer->GetUsersNumber() > 1)
+				|| (gameType == GAME_TYPE::SEXKILLMARRY && App->modNetServer->GetUsersNumber() > 3))
 			{
 				m_CurrentUser = { "NULL", -1 };
 				m_CurrentGame = gameType;
@@ -36,7 +38,7 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 					for (uint i = -1; i < App->modNetServer->GetUsersNumber() - 1; ++i)
 						m_GamesData.alive_players.push_back(App->modNetServer->GetNextUser(i).second);
 
-				if (gameType == GAME_TYPE::UNSCRAMBLE)
+				if (gameType == GAME_TYPE::UNSCRAMBLE || gameType == GAME_TYPE::CHAINED_WORDS)
 					for (uint i = -1; i < App->modNetServer->GetUsersNumber() - 1; ++i)
 						m_GamesData.unscramble_ranking.insert({ App->modNetServer->GetNextUser(i).second, 0 });
 			}
@@ -61,7 +63,6 @@ void ModuleGamesManager::StopGame()
 	m_GamesData.users_answered = "";
 	m_GamesData.original_word = "";
 	m_GamesData.ordered_word = "";
-	m_GamesData.last_word = "";
 	m_GamesData.unscramble_ranking.clear();
 
 	// Send Stop Notification
@@ -287,7 +288,7 @@ void ModuleGamesManager::ProcessAction(const std::string& action)
 				if (m_GamesData.original_word == "")
 				{
 					response = "Nice word " + GetUserLabel() + "!";
-					m_GamesData.original_word = m_GamesData.last_word = word_str;
+					m_GamesData.original_word = word_str;
 					ArrangeWord();
 				}
 				else
@@ -305,6 +306,41 @@ void ModuleGamesManager::ProcessAction(const std::string& action)
 			}
 
 			break;
+		}
+		case GAME_COMMANDS::CHAINED_WORD:
+		{
+			if (m_CurrentGame != GAME_TYPE::CHAINED_WORDS)
+				SendServerNotification("Invalid Command for this Game!");
+			else
+			{
+				std::string response;
+				update_game_status = true;
+
+				size_t word_pos = action.find_first_not_of(' ', start_pos);
+				std::string word_str = action.substr(word_pos, action.find_first_of(' ', word_pos) - 1);
+
+				if (m_GamesData.original_word == "")
+				{
+					response = "Nice word " + GetUserLabel() + "!";
+					m_GamesData.original_word =  word_str;
+				}
+				else
+				{
+					if (word_str[0] == m_GamesData.original_word[0])
+					{
+						m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
+						m_GamesData.original_word = word_str;
+						response = "Good answer " + GetUserLabel() + "!\n\n\n";
+					}
+					else
+					{
+						response = "Incorrect answer " + GetUserLabel() + "! :(\n\nTry Again!\n\n\n";
+						update_game_status = false;
+					}
+				}
+
+				SendServerNotification(response);
+			}
 		}
 		case GAME_COMMANDS::INVALID_COMMAND:
 		{
@@ -382,7 +418,7 @@ bool ModuleGamesManager::Update()
 				GetNextUserInList();
 			}
 			
-			if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE)
+			if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
 				GetNextUserInList();
 
 			SendServerNotification(GetRunningMessage());
@@ -422,8 +458,15 @@ const std::string ModuleGamesManager::GetInitialMessage()
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
 
-			std::string line1 = "\n\n\nIn Unscramble a user will write a word and the other users will have to write a word with the same letters";
+			std::string line1 = "\n\n\nIn Unscramble, a user will write a word and the other users will have to write a word with the same letters";
 			return (line1 + "\n\n\n** Do so by typing '/unscramble word [word]' **" + std::string("\n\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!\n\n\n");
+		}
+		case GAME_TYPE::CHAINED_WORDS:
+		{
+			m_GameStatus = GAME_STATUS::WAITING;
+
+			std::string line1 = "\n\n\nIn Chained Words, a user will write a word and the other users will have to write a word with the same  first letter";
+			return (line1 + "\n\n\n** Do so by typing '/chained word [word]' **" + std::string("\n\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!\n\n\n");
 		}
 	}
 
@@ -436,16 +479,12 @@ const std::string ModuleGamesManager::GetRunningMessage()
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
 			return ("\n\n\nUser " + GetUserLabel() + " your turn! Shoot when you are ready, comarade! Remember Order 227: Not a step back!\n\n");
-
 		case GAME_TYPE::SEXKILLMARRY:
 			return ("\n\n\nSPICY! User " + GetUserLabel() + " your turn to kill, fuck and get married! What happens in this server stays in this server ;)\n\n");
-
 		case GAME_TYPE::UNSCRAMBLE:
-		{
-			std::string msg = "\n\n\nUser " + GetUserLabel() + " your turn! Write a word with the same letters than '" + m_GamesData.original_word + "'\n\n";
-			m_GamesData.original_word = m_GamesData.original_word;
-			return (msg);
-		}
+			return("\n\n\nUser " + GetUserLabel() + " your turn! Write a word with the same letters than '" + m_GamesData.original_word + "'\n\n");
+		case GAME_TYPE::CHAINED_WORDS:
+			return ("\n\n\nUser " + GetUserLabel() + " your turn! Write a word with the same 1st letter than '" + m_GamesData.original_word + "'\n\n");
 	}
 
 	return "NULL";
@@ -463,10 +502,8 @@ const std::string ModuleGamesManager::GetStopMessage() const
 
 			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe comarades standing are: " + winners_str + "! Bye!\n\n\n");
 		}
-
 		case GAME_TYPE::SEXKILLMARRY:
 			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :O\n\n\nNo more fun :( ... Bye!\n\n\n");
-
 		case GAME_TYPE::UNSCRAMBLE:
 		{
 			uint winnerID = 0, winnerPoints = 0;
@@ -482,6 +519,24 @@ const std::string ModuleGamesManager::GetStopMessage() const
 			std::string ret = "\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe winner is:"
 								+ App->modNetServer->GetUserFromID(winnerID).first +" with " + std::to_string(winnerID) + " points."
 								+ " users " + winners + "have the same punctuation.\n\nCongratulations! Bye!\n\n\n";
+
+			return (ret);
+		}
+		case GAME_TYPE::CHAINED_WORDS:
+		{
+			uint winnerID = 0, winnerPoints = 0;
+			for (auto ranker : m_GamesData.unscramble_ranking)
+				if (ranker.second > winnerPoints)
+					winnerID = ranker.first;
+
+			std::string winners = "";
+			for (auto ranker : m_GamesData.unscramble_ranking)
+				if (ranker.second == winnerPoints)
+					winners += App->modNetServer->GetUserFromID(ranker.first).first + " ";
+
+			std::string ret = "\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe winner is:"
+				+ App->modNetServer->GetUserFromID(winnerID).first + " with " + std::to_string(winnerID) + " points."
+				+ " users " + winners + "have the same punctuation.\n\nCongratulations! Bye!\n\n\n";
 
 			return (ret);
 		}
@@ -515,7 +570,6 @@ bool ModuleGamesManager::CompareWords(const std::string& compared_word)
 	if (words_found >= ordered_word_backup.size() && m_GamesData.ordered_word.empty())
 	{
 		m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
-		m_GamesData.last_word = m_GamesData.original_word;
 		m_GamesData.original_word = compared_word; // Word Passes
 
 		ArrangeWord();
