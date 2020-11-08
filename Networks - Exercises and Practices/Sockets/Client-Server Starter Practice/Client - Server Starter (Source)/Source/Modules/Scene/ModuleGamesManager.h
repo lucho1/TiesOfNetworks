@@ -53,7 +53,7 @@ private:
 	GAME_STATUS m_GameStatus = GAME_STATUS::NONE;
 
 	std::unordered_map<std::string, GAME_COMMANDS> m_GameCommands;
-	std::pair<std::string, uint> m_CurrentUser = { "NULL", -1 };
+	std::pair<std::string, int> m_CurrentUser = { "NULL", -1 };
 
 
 	struct GameData

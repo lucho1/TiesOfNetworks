@@ -170,7 +170,7 @@ uint ModuleNetworkingServer::GetSocketIndex(const SOCKET& socket)
 	return -1;
 }
 
-const std::pair<std::string, uint> ModuleNetworkingServer::GetUserFromID(uint ID)
+const std::pair<std::string, int> ModuleNetworkingServer::GetUserFromID(uint ID)
 {
 	if (m_ConnectedNicknames.empty())
 		return { "NULL", -1 };
@@ -182,7 +182,30 @@ const std::pair<std::string, uint> ModuleNetworkingServer::GetUserFromID(uint ID
 	return { "NULL", -1 };
 }
 
-const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint current_userID)
+const std::pair<std::string, int> ModuleNetworkingServer::GetNextUser(int index)
+{
+	if (m_ConnectedNicknames.empty())
+		return { "NULL",  -1 };
+
+	auto it = m_ConnectedNicknames.begin();
+	if (index == -1 || index == m_ConnectedNicknames.size() - 1)
+		return *it;
+
+	if (index < m_ConnectedNicknames.size())
+	{
+		for (int i = 0; i < index; ++i)
+			++it;
+
+		if(++it != m_ConnectedNicknames.end())
+			return (*it);
+		else
+			return *m_ConnectedNicknames.begin();
+	}
+
+	return { "NULL",  -1 };
+}
+
+const std::pair<std::string, int> ModuleNetworkingServer::GetNextUserFromID(uint current_userID)
 {
 	if (m_ConnectedNicknames.empty())
 		return { "NULL",  -1 };

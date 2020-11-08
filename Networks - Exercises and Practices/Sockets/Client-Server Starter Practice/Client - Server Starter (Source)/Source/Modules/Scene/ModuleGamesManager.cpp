@@ -42,12 +42,18 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 				m_GameStatus = GAME_STATUS::START;
 
 				if (gameType == GAME_TYPE::RUSSIAN_ROULETTE)
-					for (uint i = -1; i < App->modNetServer->GetUsersNumber() - 1; ++i)
+				{
+					uint nUsers = App->modNetServer->GetUsersNumber();
+					for (int i = -1; i < nUsers - 1; ++i)
 						m_GamesData.alive_players.push_back(App->modNetServer->GetNextUser(i).second);
+				}
 
 				if (gameType == GAME_TYPE::UNSCRAMBLE || gameType == GAME_TYPE::CHAINED_WORDS)
-					for (uint i = -1; i < App->modNetServer->GetUsersNumber() - 1; ++i)
+				{
+					int nUsers = App->modNetServer->GetUsersNumber();
+					for (int i = -1; i < nUsers - 1; ++i)
 						m_GamesData.unscramble_ranking.insert({ App->modNetServer->GetNextUser(i).second, 0 });
+				}
 			}
 			else
 				App->modNetServer->SendServerNotification("Couldn't begin game, not enough users connected", EntryType::APP_WARN_LOG, first_user);
@@ -61,6 +67,12 @@ void ModuleGamesManager::StartGame(GAME_TYPE gameType, uint first_user)
 
 void ModuleGamesManager::StopGame(int user)
 {
+	// Send Stop Notification
+	if (user == -1)
+		App->modNetServer->SendServerNotification("Game was Stopped", APP_INFO_LOG);
+	else
+		App->modNetServer->SendServerNotification(GetStopMessage(App->modNetServer->GetUserFromID(user).first), APP_INFO_LOG);
+
 	// Reset Games variables
 	m_GamesData.bullet_slot_number = 0;
 	m_GamesData.alive_players.clear();
@@ -71,12 +83,9 @@ void ModuleGamesManager::StopGame(int user)
 	m_GamesData.original_word = "";
 	m_GamesData.ordered_word = "";
 	m_GamesData.unscramble_ranking.clear();
-
-	// Send Stop Notification
-	if (user == -1)
-		App->modNetServer->SendServerNotification("Game was Stopped", APP_INFO_LOG);
-	else
-		App->modNetServer->SendServerNotification(GetStopMessage(App->modNetServer->GetUserFromID(user).first), APP_INFO_LOG);
+	m_GamesData.ksm_names[0] = "";
+	m_GamesData.ksm_names[1] = "";
+	m_GamesData.ksm_names[2] = "";
 
 	// Reset user, game type & status
 	m_CurrentUser = { "NULL", -1 };
@@ -86,7 +95,7 @@ void ModuleGamesManager::StopGame(int user)
 
 void ModuleGamesManager::GetNextUserInList()
 {
-	m_CurrentUser = App->modNetServer->GetNextUser(m_CurrentUser.second);
+	m_CurrentUser = App->modNetServer->GetNextUserFromID(m_CurrentUser.second);
 	if (m_CurrentUser.second == -1)
 	{
 		StopGame(-1);
@@ -190,9 +199,15 @@ bool ModuleGamesManager::Update()
 			else if (m_CurrentGame == GAME_TYPE::UNSCRAMBLE || m_CurrentGame == GAME_TYPE::CHAINED_WORDS)
 				GetNextUserInList();
 
-			App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
-			m_GameStatus = GAME_STATUS::WAITING;
+			if (m_CurrentGame != GAME_TYPE::SEXKILLMARRY)
+				App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
+			else
+			{
+				if (m_GamesData.sex && m_GamesData.kill && m_GamesData.marry)
+					App->modNetServer->SendServerNotification(GetRunningMessage(), EntryType::APP_INFO_LOG);
+			}
 
+			m_GameStatus = GAME_STATUS::WAITING;
 			break;
 		}
 	}
@@ -250,7 +265,10 @@ const std::string ModuleGamesManager::GetRunningMessage()
 	switch (m_CurrentGame)
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
-			return ("User " + GetUserLabel() + " your turn! Shoot when you are ready, comrade! Remember Order 227: Not a step back!");
+			if (m_GamesData.alive_players.size() > 1)
+				return ("User " + GetUserLabel() + " your turn! Shoot when you are ready, comrade! Remember Order 227: Not a step back!" + "\nRemember bullet slot is " + std::to_string(m_GamesData.bullet_slot_number));
+			else
+				return "";
 		case GAME_TYPE::SEXKILLMARRY: 
 		{
 			GenerateKSMNames();
@@ -277,7 +295,7 @@ const std::string ModuleGamesManager::GetStopMessage(const std::string& username
 		{
 			std::string winners_str = "";
 			for (uint user : m_GamesData.alive_players)
-				winners_str += App->modNetServer->GetUserFromID(user).first + " ";
+				winners_str += App->modNetServer->GetUserFromID(user).first + ", ";
 
 			return ("Oh! User " + username + " has stopped the game! :(\nThe comrades standing are: " + winners_str + "! Bye!");
 		}
@@ -287,17 +305,22 @@ const std::string ModuleGamesManager::GetStopMessage(const std::string& username
 		{
 			uint winnerID = 0, winnerPoints = 0;
 			for (auto ranker : m_GamesData.unscramble_ranking)
+			{
 				if (ranker.second > winnerPoints)
+				{
 					winnerID = ranker.first;
+					winnerPoints = ranker.second;
+				}
+			}
 
 			std::string winners = "";
 			for(auto ranker : m_GamesData.unscramble_ranking)
 				if (ranker.second == winnerPoints)
-					winners += App->modNetServer->GetUserFromID(ranker.first).first + " ";
+					winners += App->modNetServer->GetUserFromID(ranker.first).first + ", ";
 
 			std::string ret = "Oh! User " + username + " has stopped the game! :(\nThe winner is:"
-								+ App->modNetServer->GetUserFromID(winnerID).first +" with " + std::to_string(winnerID) + " points."
-								+ " users " + winners + "have the same punctuation.\nCongratulations! Bye!";
+								+ App->modNetServer->GetUserFromID(winnerID).first +" with " + std::to_string(winnerPoints) + " points."
+								+ "\nUsers " + winners + " have the same punctuation.\n\nCongratulations! Bye!";
 
 			return (ret);
 		}
@@ -305,17 +328,22 @@ const std::string ModuleGamesManager::GetStopMessage(const std::string& username
 		{
 			uint winnerID = 0, winnerPoints = 0;
 			for (auto ranker : m_GamesData.unscramble_ranking)
+			{
 				if (ranker.second > winnerPoints)
+				{
 					winnerID = ranker.first;
+					winnerPoints = ranker.second;
+				}
+			}
 
 			std::string winners = "";
 			for (auto ranker : m_GamesData.unscramble_ranking)
 				if (ranker.second == winnerPoints)
-					winners += App->modNetServer->GetUserFromID(ranker.first).first + " ";
+					winners += App->modNetServer->GetUserFromID(ranker.first).first + ", ";
 
 			std::string ret = "Oh! User " + username + " has stopped the game! :(\nThe winner is:"
-				+ App->modNetServer->GetUserFromID(winnerID).first + " with " + std::to_string(winnerID) + " points."
-				+ " users " + winners + "have the same punctuation.\nCongratulations! Bye!";
+				+ App->modNetServer->GetUserFromID(winnerID).first + " with " + std::to_string(winnerPoints) + " points."
+				+ "\nUsers " + winners + "have the same punctuation.\n\nCongratulations! Bye!";
 
 			return (ret);
 		}
@@ -348,9 +376,11 @@ bool ModuleGamesManager::CompareWords(const std::string& compared_word)
 	// Return comparison result
 	if (words_found >= ordered_word_backup.size() && m_GamesData.ordered_word.empty())
 	{
-		m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
-		m_GamesData.original_word = compared_word; // Word Passes
+		auto it = m_GamesData.unscramble_ranking.find(m_CurrentUser.second);
+		if (it != m_GamesData.unscramble_ranking.end())
+			(*it).second++;
 
+		m_GamesData.original_word = compared_word; // Word Passes
 		ArrangeWord();
 		return true;
 	}
@@ -376,8 +406,8 @@ inline void ModuleGamesManager::GenerateKSMNames() {
 
 	uint name1, name2, name3;
 	std::string& ksm_name1 = m_GamesData.ksm_names[0];
-	std::string& ksm_name2 = m_GamesData.ksm_names[2];
-	std::string& ksm_name3 = m_GamesData.ksm_names[3];
+	std::string& ksm_name2 = m_GamesData.ksm_names[1];
+	std::string& ksm_name3 = m_GamesData.ksm_names[2];
 
 	do {
 		name1 = rng::GetRandomInt_InRange(0, nusers - 1);
@@ -427,12 +457,16 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 	case GAME_COMMANDS::NEXT:
 	{
 		std::string response = "That's not very brave from you ex-comrade >:( " + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
+		
 		auto player = std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second);
 		if (player != m_GamesData.alive_players.end())
 			m_GamesData.alive_players.erase(player);
 
 		GetNextUserInList();
-		response += "\n\nAnyway, the game still runs **reloads**...\nNext user is " + GetUserLabel();
+		while (std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) == m_GamesData.alive_players.end())
+			GetNextUserInList();
+
+		response += "\n\nAnyway, the game still runs **reloads gun**...\nNext user is " + GetUserLabel() + ". Remember bullet slot is " + std::to_string(m_GamesData.bullet_slot_number);
 		App->modNetServer->SendServerNotification(response, EntryType::APP_WARN_LOG);
 		break;
 	} //NEXT
@@ -445,19 +479,26 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 			std::string response;
 			uint slot_hit = rng::GetRandomInt_InRange(1, 6);
 
-			if (slot_hit == m_GamesData.bullet_slot_number) {
-				m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
-
+			if (slot_hit == m_GamesData.bullet_slot_number)
+			{
+				auto it = std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second);
+				if(it != m_GamesData.alive_players.end())
+					m_GamesData.alive_players.erase(it);
+				
+				response = "Oh, how sad! " + last_user + " lies in the ground with a bullet in the head, the paths of the old Lenin are mysterious. Well... game goes on **reloads gun**\nNext user is " + GetUserLabel();
+				
 				GetNextUserInList();
-				while (std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) != m_GamesData.alive_players.end())
+				while (std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) == m_GamesData.alive_players.end())
+					GetNextUserInList();
+			}
+			else
+			{
+				GetNextUserInList();
+				while (std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second) == m_GamesData.alive_players.end())
 					GetNextUserInList();
 
-				response = "Oh, how sad! " + last_user + " lies in the ground with a bullet in the head, the paths of the old Lenin are mysterious. Well... game goes on **reloads**\nNext user is " + GetUserLabel();
-			}
-			else {
-				GetNextUserInList();
 				response = "Well played comrade " + last_user + " you don't have your brain in the ground!\nYou hitted slot " + std::to_string(slot_hit);
-				+"\n\n\nWell... game goes on **reloads**\nNext user is " + GetUserLabel();
+				+"\n\n\nWell... game goes on **reloads gun**\nNext user is " + GetUserLabel() + ". Remember bullet slot is " + std::to_string(m_GamesData.bullet_slot_number);
 
 			}
 
@@ -707,8 +748,12 @@ void ModuleGamesManager::ProcessChainedWords(GAME_COMMANDS command, const std::s
 			m_GamesData.original_word = word_str;
 		}
 		else {
-			if (word_str[0] == m_GamesData.original_word[0]) {
-				m_GamesData.unscramble_ranking[m_CurrentUser.second]++;
+			if (word_str[0] == m_GamesData.original_word[0])
+			{
+				auto it = m_GamesData.unscramble_ranking.find(m_CurrentUser.second);
+				if (it != m_GamesData.unscramble_ranking.end())
+					(*it).second++;
+
 				m_GamesData.original_word = word_str;
 				response = "Good answer " + GetUserLabel() + "!\n\n\n";
 			}

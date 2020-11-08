@@ -88,6 +88,7 @@ bool ModuleUI::GUI()
 		ImGui::PopStyleColor();
 	}
 
+	ImGui::SetScrollHere(1.0f);
 	ImGui::End();
 
 	return true;

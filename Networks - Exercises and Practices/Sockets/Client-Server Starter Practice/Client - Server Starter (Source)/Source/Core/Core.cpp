@@ -51,7 +51,7 @@ void PublicAppLog(int line, const char* msg, EntryType type)
 	{
 		case APP_ERROR_LOG:	color.SetColor(Colors::ConsoleRed);		break; // Red
 		case APP_WARN_LOG:	color.SetColor(Colors::ConsoleYellow);	break; // Yellow
-		case APP_INFO_LOG:	color.SetColor(Colors::ConsoleGreen);	break; // Blue
+		case APP_INFO_LOG:	color.SetColor(Colors::ServerGreen);	break; // Blue
 	}
 
 	if (App && App->modUI)

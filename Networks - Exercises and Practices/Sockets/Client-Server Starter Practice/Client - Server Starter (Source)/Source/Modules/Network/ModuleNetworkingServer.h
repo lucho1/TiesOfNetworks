@@ -11,8 +11,9 @@ public:
 	bool Start(int port, const char* serverName);
 	bool IsRunning() const { return m_ServerState != ServerState::STOPPED; }
 
-	const std::pair<std::string, uint> GetUserFromID(uint ID);
-	const std::pair<std::string, uint> GetNextUser(uint current_userID);
+	const std::pair<std::string, int> GetUserFromID(uint ID);
+	const std::pair<std::string, int> GetNextUser(int index);
+	const std::pair<std::string, int> GetNextUserFromID(uint current_userID);
 	uint GetUsersNumber() const { return m_ConnectedSockets.size(); }
 
 	const std::unordered_map<std::string, uint>& GetUserNicknames() const { return m_ConnectedNicknames; }
