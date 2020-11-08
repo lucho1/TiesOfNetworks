@@ -5,7 +5,7 @@
 class ModuleGamesManager : public Module
 {
 	enum class GAME_STATUS { NONE = 0, START, RUNNING, WAITING };
-	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, WORD, START, STOP };
+	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, WORD, START, STOP, HELP };
 
 public:
 

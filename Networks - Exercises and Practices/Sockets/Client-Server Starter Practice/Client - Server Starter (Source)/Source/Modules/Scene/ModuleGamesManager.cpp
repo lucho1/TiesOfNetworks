@@ -5,6 +5,8 @@ ModuleGamesManager::ModuleGamesManager()
 	m_GameCommands["next"] = GAME_COMMANDS::NEXT;
 	m_GameCommands["n"] = GAME_COMMANDS::NEXT;
 	m_GameCommands["start"] = GAME_COMMANDS::START;
+	m_GameCommands["help"] = GAME_COMMANDS::HELP;
+	m_GameCommands["h"] = GAME_COMMANDS::HELP;
 
 	// Russian Roulette
 	m_GameCommands["bullet"] = GAME_COMMANDS::BULLET_NUM;
@@ -154,7 +156,7 @@ bool ModuleGamesManager::Update()
 		{
 			if (m_CurrentGame == GAME_TYPE::RUSSIAN_ROULETTE && m_GamesData.alive_players.size() == 1)
 			{
-				std::string win_statement = "Congratulations Comarade " + GetUserLabel() + "! You have won the game and a promotion comarade-administrator!";
+				std::string win_statement = "Congratulations Comarade " + GetUserLabel() + "! You have won the game and a promotion comrade-administrator!";
 				App->modNetServer->SendServerNotification(win_statement, EntryType::APP_INFO_LOG);
 				StopGame();
 				break;
@@ -196,7 +198,7 @@ const std::string ModuleGamesManager::GetInitialMessage()
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
 
-			std::string line1 = "In the Russian Roulette all comarades in the chat will have to shoot themselves to test their luck for the motherland!";
+			std::string line1 = "In the Russian Roulette all comrades in the chat will have to shoot themselves to test their luck for the motherland!";
 			std::string line2 = "\nThe first user chooses in which gunslot to put the bullet, from slot 1 to 6, decide it by typing '/rr bullet [number from 1-6]'";
 			std::string line3 = "\nThe other users will have to wait its turn and type '/rr shoot' when they are ready to fire. The last one standing wins!";
 			
@@ -236,7 +238,7 @@ const std::string ModuleGamesManager::GetRunningMessage()
 	switch (m_CurrentGame)
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
-			return ("User " + GetUserLabel() + " your turn! Shoot when you are ready, comarade! Remember Order 227: Not a step back!");
+			return ("User " + GetUserLabel() + " your turn! Shoot when you are ready, comrade! Remember Order 227: Not a step back!");
 		case GAME_TYPE::SEXKILLMARRY: 
 		{
 			GenerateKSMNames();
@@ -265,7 +267,7 @@ const std::string ModuleGamesManager::GetStopMessage() const
 			for (uint user : m_GamesData.alive_players)
 				winners_str += App->modNetServer->GetUserFromID(user).first + " ";
 
-			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe comarades standing are: " + winners_str + "! Bye!\n\n\n");
+			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :(\n\n\nThe comrades standing are: " + winners_str + "! Bye!\n\n\n");
 		}
 		case GAME_TYPE::SEXKILLMARRY:
 			return ("\n\n\nOh! User " + GetUserLabel() + " has stopped the game! :O\n\n\nNo more fun :( ... Bye!\n\n\n");
@@ -407,7 +409,7 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 		break;
 	case GAME_COMMANDS::NEXT:
 	{
-		std::string response = "That's not very brave from you ex-comarade >:( " + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
+		std::string response = "That's not very brave from you ex-comrade >:( " + GetUserLabel() + "... Do you know what we do in mother russia with the traitors and cowards...? Yes, we shoot them *shoots* ...";
 		m_GamesData.alive_players.erase(std::find(m_GamesData.alive_players.begin(), m_GamesData.alive_players.end(), m_CurrentUser.second));
 
 		GetNextUserInList();
@@ -418,7 +420,7 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 	case GAME_COMMANDS::SHOOT:
 	{
 		if (m_GamesData.bullet_slot_number == 0)
-			App->modNetServer->SendServerNotification("You must chose a bullet slot first! True comarades play with fire >:(", EntryType::APP_WARN_LOG, user_id);
+			App->modNetServer->SendServerNotification("You must chose a bullet slot first! True comrades play with fire >:(", EntryType::APP_WARN_LOG, user_id);
 		else {
 			std::string last_user = m_CurrentUser.first;
 			std::string response;
@@ -435,7 +437,7 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 			}
 			else {
 				GetNextUserInList();
-				response = "Well played comarade " + last_user + " you don't have your brain in the ground!\nYou hitted slot " + std::to_string(slot_hit);
+				response = "Well played comrade " + last_user + " you don't have your brain in the ground!\nYou hitted slot " + std::to_string(slot_hit);
 				+"\n\n\nWell... game goes on **reloads**\nNext user is " + GetUserLabel();
 
 			}
@@ -465,6 +467,16 @@ void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std
 		}
 		break;
 	} //BULLET_NUM
+
+	case GAME_COMMANDS::HELP:
+	{
+		std::string line1 = "In the Russian Roulette all comrades in the chat will have to shoot themselves to test their luck for the motherland!";
+		std::string line2 = "\nThe first user chooses in which gunslot to put the bullet, from slot 1 to 6, decide it by typing '/rr bullet [number from 1-6]'";
+		std::string line3 = "\nThe other users will have to wait its turn and type '/rr shoot' when they are ready to fire. The last one standing wins!";
+
+		App->modNetServer->SendServerNotification(line1 + line2 + line3, EntryType::APP_INFO_LOG, user_id);
+		break;
+	} // HELP
 
 	}// switch (command)
 }
@@ -575,6 +587,14 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 
 		break;
 	} //MARRY
+	case GAME_COMMANDS::HELP:
+	{
+		std::string line1 = "In KILL/SEX/MARRY a user will have to choose, among 3 proposed users, which one it would kill, with which one it would have sex and to which one it would marry";
+		std::string line2 = "\n** Do so by typing '/ksm ' followed by the action and the user (as: '/ksm sex [user]' or '/ksm kill [user]') **";
+
+		App->modNetServer->SendServerNotification(line1 + line2, EntryType::APP_INFO_LOG, user_id);
+		break;
+	} // HELP
 	}// switch (command)
 }
 
@@ -619,6 +639,15 @@ void ModuleGamesManager::ProcessUnscramble(GAME_COMMANDS command, const std::str
 		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG);
 		break;
 	} //WORD
+
+	case GAME_COMMANDS::HELP:
+	{
+		std::string line1 = "In Unscramble, a user will write a word and the other users will have to write a word with the same letters";
+		std::string line2 = "\n** Do so by typing '/unscramble word [word]' **";
+
+		App->modNetServer->SendServerNotification(line1 + line2, EntryType::APP_INFO_LOG, user_id);
+		break;
+	} // HELP
 	} //switch (command)
 }
 
@@ -665,5 +694,13 @@ void ModuleGamesManager::ProcessChainedWords(GAME_COMMANDS command, const std::s
 		App->modNetServer->SendServerNotification(response, EntryType::APP_INFO_LOG);
 		break;
 	} //WORD
+	case GAME_COMMANDS::HELP:
+	{
+		std::string line1 = "In Chained Words, a user will write a word and the other users will have to write a word with the same  first letter";
+		std::string line2 = "\n** Do so by typing '/chained word [word]' **";
+
+		App->modNetServer->SendServerNotification(line1+line2, EntryType::APP_INFO_LOG, user_id);
+		break;
+	}
 	} //switch (command)
 }
