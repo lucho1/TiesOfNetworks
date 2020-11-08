@@ -32,7 +32,7 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_LOGOUT] = "/logout - Disconnects from chat";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_CHANGE_NICK] = "/nick - Changes your name in the chat, syntax is \"/nick [new_username]\"";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_KICK] = "/kick or /k - Kicks user out of server, syntax is \"/kick [username]\"";
-	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_PLAY] = "/ksm Kill Sex Marry Game!\n/rr Roussian Roulette Game";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_PLAY] = "/ksm start - Start Kill Sex Marry Game!\n/rr start - Start Roussian Roulette Game\n/unscramble start - Start Word Unscramble Game\n/chained start - Start Chained Words Game";
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
