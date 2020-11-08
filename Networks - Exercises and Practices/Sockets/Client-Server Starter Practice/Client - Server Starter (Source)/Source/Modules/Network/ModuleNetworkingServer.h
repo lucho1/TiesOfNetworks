@@ -14,6 +14,8 @@ public:
 	const std::pair<std::string, uint> GetNextUser(uint current_userID);
 	uint GetUsersNumber() const { return m_ConnectedNicknames.size(); }
 
+	const std::unordered_map<std::string, uint>& GetUserNicknames() const { return m_ConnectedNicknames; }
+
 	void SendServerNotification(const std::string& msg, EntryType type, int user_id = -1);
 
 

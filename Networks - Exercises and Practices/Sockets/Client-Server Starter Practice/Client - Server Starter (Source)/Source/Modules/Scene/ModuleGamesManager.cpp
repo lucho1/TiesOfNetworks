@@ -196,32 +196,35 @@ const std::string ModuleGamesManager::GetInitialMessage()
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
 
-			std::string line1 = "\n\n\nIn the Russian Roulette all comarades in the chat will have to shoot themselves to test their luck for the motherland!";
-			std::string line2 = "\n\nThe first user chooses in which gunslot to put the bullet, from slot 1 to 6, decide it by typing '/rr bullet [number from 1-6]'";
-			std::string line3 = "\n\nThe other users will have to wait its turn and type '/rr shoot' when they are ready to fire. The last one standing wins!";
+			std::string line1 = "In the Russian Roulette all comarades in the chat will have to shoot themselves to test their luck for the motherland!";
+			std::string line2 = "\nThe first user chooses in which gunslot to put the bullet, from slot 1 to 6, decide it by typing '/rr bullet [number from 1-6]'";
+			std::string line3 = "\nThe other users will have to wait its turn and type '/rr shoot' when they are ready to fire. The last one standing wins!";
 			
-			return (line1 + line2 + line3 + "\n\n\n** GOOD LUCK! **\n\n" + "Game begins when user " + GetUserLabel() + " decides the bullet slot\n\n");
+			return (line1 + line2 + line3 + "\n** GOOD LUCK! **" + "\nGame begins when user " + GetUserLabel() + " decides the bullet slot");
 		}
 		case GAME_TYPE::SEXKILLMARRY:
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
+			GenerateKSMNames();
 
-			std::string line1 = "\n\n\nIn SEX/KILL/MARRY a user will have to choose, among 3 proposed users, which one it would kill, with which one it would have sex and to which one it would marry";
-			return (line1 + "\n\n\n** Do so by typing '/skm ' followed by the action and the user (as: '/skm s [user]' or '/skm kill [user]') **" + std::string("\n\nAre you ready? User ") + GetUserLabel() + " begins!\n\n\n");
+			std::string line1 = "In KILL/SEX/MARRY a user will have to choose, among 3 proposed users, which one it would kill, with which one it would have sex and to which one it would marry";
+			std::string line2 = "\n** Do so by typing '/ksm ' followed by the action and the user (as: '/ksm sex [user]' or '/ksm kill [user]') **" + std::string("\nAre you ready? User ") + GetUserLabel() + " begins!";
+			std::string line3 = "\nYour names are: \"" + m_GamesData.ksm_names[0] + "\", \"" + m_GamesData.ksm_names[1] + "\", \"" + m_GamesData.ksm_names[2] + "\"";
+			return (line1 + line2 + line3);
 		}
 		case GAME_TYPE::UNSCRAMBLE:
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
 
-			std::string line1 = "\n\n\nIn Unscramble, a user will write a word and the other users will have to write a word with the same letters";
-			return (line1 + "\n\n\n** Do so by typing '/unscramble word [word]' **" + std::string("\n\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!\n\n\n");
+			std::string line1 = "In Unscramble, a user will write a word and the other users will have to write a word with the same letters";
+			return (line1 + "\n** Do so by typing '/unscramble word [word]' **" + std::string("\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!");
 		}
 		case GAME_TYPE::CHAINED_WORDS:
 		{
 			m_GameStatus = GAME_STATUS::WAITING;
 
-			std::string line1 = "\n\n\nIn Chained Words, a user will write a word and the other users will have to write a word with the same  first letter";
-			return (line1 + "\n\n\n** Do so by typing '/chained word [word]' **" + std::string("\n\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!\n\n\n");
+			std::string line1 = "In Chained Words, a user will write a word and the other users will have to write a word with the same  first letter";
+			return (line1 + "\n** Do so by typing '/chained word [word]' **" + std::string("\nAre you ready? User ") + GetUserLabel() + " begins! Choose a word!");
 		}
 	}
 
@@ -233,13 +236,20 @@ const std::string ModuleGamesManager::GetRunningMessage()
 	switch (m_CurrentGame)
 	{
 		case GAME_TYPE::RUSSIAN_ROULETTE:
-			return ("\n\n\nUser " + GetUserLabel() + " your turn! Shoot when you are ready, comarade! Remember Order 227: Not a step back!\n\n");
-		case GAME_TYPE::SEXKILLMARRY:
-			return ("\n\n\nSPICY! User " + GetUserLabel() + " your turn to kill, fuck and get married! What happens in this server stays in this server ;)\n\n");
+			return ("User " + GetUserLabel() + " your turn! Shoot when you are ready, comarade! Remember Order 227: Not a step back!");
+		case GAME_TYPE::SEXKILLMARRY: 
+		{
+			GenerateKSMNames();
+
+			std::string line1 = "SPICY! User " + GetUserLabel() + " your turn to kill, fuck and get married! What happens in this server stays in this server ;)";
+			std::string line2 = "\nYour names are: \"" + m_GamesData.ksm_names[0] + "\", \"" + m_GamesData.ksm_names[1] + "\", \"" + m_GamesData.ksm_names[2] + "\"";
+
+			return (line1 + line2);
+		}
 		case GAME_TYPE::UNSCRAMBLE:
-			return("\n\n\nUser " + GetUserLabel() + " your turn! Write a word with the same letters than '" + m_GamesData.original_word + "'\n\n");
+			return("User " + GetUserLabel() + " your turn! Write a word with the same letters than '" + m_GamesData.original_word + "'");
 		case GAME_TYPE::CHAINED_WORDS:
-			return ("\n\n\nUser " + GetUserLabel() + " your turn! Write a word with the same 1st letter than '" + m_GamesData.original_word + "'\n\n");
+			return ("User " + GetUserLabel() + " your turn! Write a word with the same 1st letter than '" + m_GamesData.original_word + "'");
 	}
 
 	return "NULL";
@@ -344,6 +354,46 @@ void ModuleGamesManager::ArrangeWord()
 		if (std::find(m_GamesData.ordered_word.begin(), m_GamesData.ordered_word.end(), m_GamesData.original_word[i]) == m_GamesData.ordered_word.end())
 			m_GamesData.ordered_word.push_back(m_GamesData.original_word[i]);
 	}
+}
+
+inline void ModuleGamesManager::GenerateKSMNames() {
+	uint nusers = App->modNetServer->GetUsersNumber();
+	const std::unordered_map<std::string, uint>& users = App->modNetServer->GetUserNicknames();
+
+	uint name1, name2, name3;
+	std::string& ksm_name1 = m_GamesData.ksm_names[0];
+	std::string& ksm_name2 = m_GamesData.ksm_names[2];
+	std::string& ksm_name3 = m_GamesData.ksm_names[3];
+
+	do {
+		name1 = rng::GetRandomInt_InRange(0, nusers - 1);
+
+		auto name = users.begin();
+		for (int i = 0; i < name1; ++i)
+			name++;
+
+		ksm_name1 = name->first;
+	} while (ksm_name1 == m_CurrentUser.first);
+
+	do {
+		name2 = rng::GetRandomInt_InRange(0, nusers - 1);
+
+		auto name = users.begin();
+		for (int i = 0; i < name2; ++i)
+			name++;
+
+		ksm_name2 = name->first;
+	} while (ksm_name2 == m_CurrentUser.first || name2 == name1);
+
+	do {
+		name3 = rng::GetRandomInt_InRange(0, nusers - 1);
+
+		auto name = users.begin();
+		for (int i = 0; i < name3; ++i)
+			name++;
+
+		ksm_name3 = name->first;
+	} while (ksm_name3 == m_CurrentUser.first || name3 == name1 || name3 == name2);
 }
 
 void ModuleGamesManager::ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id) {

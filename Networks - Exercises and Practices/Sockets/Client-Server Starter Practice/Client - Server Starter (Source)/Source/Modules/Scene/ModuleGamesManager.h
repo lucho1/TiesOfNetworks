@@ -40,6 +40,7 @@ private:
 	void ArrangeWord();
 
 	// Game Actions
+	inline void GenerateKSMNames();
 	void ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id);
 	void ProcessSexKillMarry(GAME_COMMANDS command, const std::string& args, uint user_id);
 	void ProcessUnscramble(GAME_COMMANDS command, const std::string& args, uint user_id);
@@ -63,6 +64,7 @@ private:
 
 		//SexKillMarry variables
 		bool sex = false, kill = false, marry = false;
+		std::string ksm_names[3];
 		std::string users_answered = "";
 
 		// Unscramble variables
