@@ -481,11 +481,21 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 		break;
 	case GAME_COMMANDS::SEX:
 	{
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+
+		bool is_name = false;
+		for (int i = 0; i < 3 && !is_name; ++i)
+			is_name = user_str == m_GamesData.ksm_names[i];
+
+		if (!is_name) {
+			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.sex = true;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		size_t user_pos = args.find_first_of(' ');
-		std::string user_str = args.substr(0, user_pos);
 		m_GamesData.users_answered += " have Sex with: " + user_str;
 
 		// Make response
@@ -503,11 +513,21 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 	} //SEX
 	case GAME_COMMANDS::KILL:
 	{
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+
+		bool is_name = false;
+		for (int i = 0; i < 3 && !is_name; ++i)
+			is_name = user_str == m_GamesData.ksm_names[i];
+
+		if (!is_name) {
+			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.kill = true;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		size_t user_pos = args.find_first_of(' ');
-		std::string user_str = args.substr(0, user_pos);
 		m_GamesData.users_answered += " Kill: " + user_str;
 
 		// Make response
@@ -525,11 +545,21 @@ void ModuleGamesManager::ProcessSexKillMarry(GAME_COMMANDS command, const std::s
 	} //KILL
 	case GAME_COMMANDS::MARRY:
 	{
+		size_t user_pos = args.find_first_of(' ');
+		std::string user_str = args.substr(0, user_pos);
+
+		bool is_name = false;
+		for (int i = 0; i < 3 && !is_name; ++i)
+			is_name = user_str == m_GamesData.ksm_names[i];
+
+		if (!is_name) {
+			App->modNetServer->SendServerNotification("That is not one of the names!", EntryType::APP_WARN_LOG, user_id);
+			break;
+		}
+
 		m_GamesData.marry = true;
 		m_GameStatus = GAME_STATUS::RUNNING;
 
-		size_t user_pos = args.find_first_of(' ');
-		std::string user_str = args.substr(0, user_pos);
 		m_GamesData.users_answered += " Marry with: " + user_str;
 
 		// Make response
