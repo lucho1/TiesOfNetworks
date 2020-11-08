@@ -18,6 +18,7 @@ bool ModuleNetworkingServer::Start(int port, const char* serverName)
 	// --- ---
 	m_ServerName = serverName;
 	m_ListeningSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	not_timer = std::chrono::steady_clock::now();
 	
 	// If no error, set the class' socket
 	if (m_ListeningSocket != INVALID_SOCKET)
@@ -187,21 +188,83 @@ const std::pair<std::string, uint> ModuleNetworkingServer::GetNextUser(uint curr
 		return { "NULL",  -1 };
 
 	auto it = m_ConnectedNicknames.begin();
-	if (current_userID == 0)
+	if (current_userID == -1)
 		return *it;
 
 	for (it; it != m_ConnectedNicknames.end(); ++it)
 	{
 		if ((*it).second == current_userID)
 		{
-			if (it++ != m_ConnectedNicknames.end())
-				return (*it++);
+			if (++it != m_ConnectedNicknames.end())
+				return (*it);
 			else
 				return *m_ConnectedNicknames.begin();
 		}
 	}
 
 	return { "NULL",  -1 };
+}
+
+void ModuleNetworkingServer::SendServerNotification(const std::string& msg, EntryType type, int user_id) {
+	using namespace std::chrono;
+
+	steady_clock::time_point crr_timer;
+	duration<double> time_span;
+	do {
+		crr_timer = steady_clock::now();
+		time_span = duration_cast<duration<double>>(crr_timer - not_timer);
+
+	} while (time_span.count() < 0.2);
+
+
+	OutputMemoryStream packet;
+
+	if (user_id == -1) { // Send to all clients
+		switch (type) {
+		case APP_ERROR_LOG:
+			packet << SERVER_MESSAGE::SERVER_ERROR;
+			APPCONSOLE_ERROR_LOG(msg.c_str());
+			break;
+		case APP_WARN_LOG:
+			packet << SERVER_MESSAGE::SERVER_WARN;
+			APPCONSOLE_WARN_LOG(msg.c_str());
+			break;
+		case APP_INFO_LOG:
+			packet << SERVER_MESSAGE::SERVER_INFO;
+			APPCONSOLE_INFO_LOG(msg.c_str());
+			break;
+		}
+		packet << msg;
+		for (const auto& client : m_ConnectedSockets)
+			SendPacket(packet, client.second.socket);
+	}
+	else { // Send to a particular client
+		try {
+			const auto& client = m_ConnectedSockets.at(user_id);
+			std::string console_msg = "To <" + client.client_name + ">: " + msg;
+			switch (type) {
+			case APP_ERROR_LOG:
+				packet << SERVER_MESSAGE::SERVER_ERROR;
+				APPCONSOLE_ERROR_LOG(console_msg.c_str());
+				break;
+			case APP_WARN_LOG:
+				packet << SERVER_MESSAGE::SERVER_WARN;
+				APPCONSOLE_WARN_LOG(console_msg.c_str());
+				break;
+			case APP_INFO_LOG:
+				packet << SERVER_MESSAGE::SERVER_INFO;
+				APPCONSOLE_INFO_LOG(console_msg.c_str());
+				break;
+			}
+			packet << msg;
+			SendPacket(packet, client.socket);
+
+		} catch (const std::out_of_range & e) {
+			APPCONSOLE_WARN_LOG("Invalid user id #%d", user_id);
+		}
+	}
+
+	not_timer = steady_clock::now();
 }
 
 
@@ -315,7 +378,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			
 			switch (command) {
 			case CLIENT_COMMANDS::COMMAND_CHANGE_NICK:
-				{
+			{
 				std::string new_username;
 				packet >> new_username;
 				bool n_username = false;
@@ -345,7 +408,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 					APPCONSOLE_INFO_LOG(print.c_str());
 				}
 				break;
-				}
+			} //CHANGE_NICK
 
 			case CLIENT_COMMANDS::COMMAND_KICK:
 			{
@@ -380,6 +443,17 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 				break;
 			} //COMMAND_KICK
+
+			case CLIENT_COMMANDS::COMMAND_PLAY:
+			{
+				GAME_TYPE game;
+				std::string args;
+				
+				packet >> game >> args;
+				App->modGames->ProcessAction(game, s_index, args);
+				
+				break;
+			} //COMMAND_PLAY
 			} //switch (command)
 
 			break;

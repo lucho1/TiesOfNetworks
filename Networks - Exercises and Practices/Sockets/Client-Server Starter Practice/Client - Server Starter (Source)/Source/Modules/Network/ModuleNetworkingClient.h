@@ -49,6 +49,7 @@ private:
 	std::unordered_map<std::string, uint> m_ConnectedUsers;
 	std::unordered_map<std::string, CLIENT_COMMANDS> m_UserCommands;
 	std::unordered_map<CLIENT_COMMANDS, std::string> m_UserCmdDescriptions;
+	std::unordered_map<std::string, GAME_TYPE> m_UserGames;
 
 	std::string reject_message;
 

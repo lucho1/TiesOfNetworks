@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ModuleNetworking.h"
+#include <chrono>
 
 class ModuleNetworkingServer : public ModuleNetworking
 {
@@ -12,7 +13,11 @@ public:
 
 	const std::pair<std::string, uint> GetUserFromID(uint ID);
 	const std::pair<std::string, uint> GetNextUser(uint current_userID);
-	uint GetUsersNumber() const { return m_ConnectedNicknames.size(); }
+	uint GetUsersNumber() const { return m_ConnectedSockets.size(); }
+
+	const std::unordered_map<std::string, uint>& GetUserNicknames() const { return m_ConnectedNicknames; }
+
+	void SendServerNotification(const std::string& msg, EntryType type, int user_id = -1);
 
 
 private:
@@ -49,8 +54,10 @@ private:
 	std::string m_ServerName = "ServerName";
 	std::string m_ServerAddress = "NULL";
 	SOCKET m_ListeningSocket = INVALID_SOCKET;
+
 	std::unordered_map<uint, ConnectedSocket> m_ConnectedSockets;
 	std::unordered_map<std::string, uint> m_ConnectedNicknames;
+	std::chrono::steady_clock::time_point not_timer = std::chrono::steady_clock::now();
 
 
 private:

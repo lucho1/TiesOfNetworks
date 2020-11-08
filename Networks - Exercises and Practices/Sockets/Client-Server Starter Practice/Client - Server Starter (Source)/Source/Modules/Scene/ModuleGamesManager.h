@@ -1,11 +1,11 @@
 #ifndef _MODULEGAMESMANAGER_H_
 #define _MODULEGAMESMANAGER_H_
 
+
 class ModuleGamesManager : public Module
 {
-	enum class GAME_TYPE { NONE = 0, RUSSIAN_ROULETTE, UNSCRAMBLE, SEXKILLMARRY, CHAINED_WORDS };
 	enum class GAME_STATUS { NONE = 0, START, RUNNING, WAITING };
-	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, UNSCRAMBLE_WORD, CHAINED_WORD };
+	enum class GAME_COMMANDS { INVALID_COMMAND = 0, NEXT, BULLET_NUM, SHOOT, SEX, KILL, MARRY, WORD, START, STOP, HELP };
 
 public:
 
@@ -13,32 +13,38 @@ public:
 
 	// Class Public Methods
 	void StartGame(GAME_TYPE gameType, uint first_user);
-	void StopGame();
+	void StopGame(uint user);
 
 	// Getters
 	bool IsGameRunning()				const { return (m_GameStatus == GAME_STATUS::NONE); }
 	uint GetCurrentUserPlaying()		const { return m_CurrentUser.second; }
 	GAME_STATUS GetGameStatus()			const { return m_GameStatus; }
 	GAME_TYPE GetCurrentGameRunning()	const { return m_CurrentGame; }
+	void ProcessAction(GAME_TYPE game_action, uint user_id, const std::string& action);
+
 
 private:
 
 	// Module Methods
 	virtual bool Update() override;
-	virtual bool GUI() override; // For debugging in meantime
 
 	// Class Private Methods
-	void SendServerNotification(const std::string& msg);
 	void GetNextUserInList();
-	void ProcessAction(const std::string& action);
 
 	// Game Run Methods
 	const std::string GetInitialMessage();
 	const std::string GetRunningMessage();
-	const std::string GetStopMessage() const;
+	const std::string GetStopMessage(const std::string& user_name) const;
 	const std::string GetUserLabel() const;
 	bool CompareWords(const std::string& compared_word);
 	void ArrangeWord();
+
+	// Game Actions
+	inline void GenerateKSMNames();
+	void ProcessRussianRoulette(GAME_COMMANDS command, const std::string& args, uint user_id);
+	void ProcessSexKillMarry(GAME_COMMANDS command, const std::string& args, uint user_id);
+	void ProcessUnscramble(GAME_COMMANDS command, const std::string& args, uint user_id);
+	void ProcessChainedWords(GAME_COMMANDS command, const std::string& args, uint user_id);
 
 
 private:
@@ -49,8 +55,6 @@ private:
 	std::unordered_map<std::string, GAME_COMMANDS> m_GameCommands;
 	std::pair<std::string, uint> m_CurrentUser = { "NULL", -1 };
 
-	// Temporal - for Debugging purposes
-	std::vector<std::string> m_GameMessages;
 
 	struct GameData
 	{
@@ -60,6 +64,7 @@ private:
 
 		//SexKillMarry variables
 		bool sex = false, kill = false, marry = false;
+		std::string ksm_names[3];
 		std::string users_answered = "";
 
 		// Unscramble variables

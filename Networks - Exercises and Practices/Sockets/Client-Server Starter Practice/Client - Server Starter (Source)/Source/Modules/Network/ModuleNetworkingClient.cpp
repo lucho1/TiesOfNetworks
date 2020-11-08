@@ -15,6 +15,16 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCommands["kick"] = CLIENT_COMMANDS::COMMAND_KICK;
 	m_UserCommands["k"] = CLIENT_COMMANDS::COMMAND_KICK;
 
+	//Games
+	m_UserCommands["ksm"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["ksm"] = GAME_TYPE::SEXKILLMARRY;
+	m_UserCommands["rr"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["rr"] = GAME_TYPE::RUSSIAN_ROULETTE;
+	m_UserCommands["unscramble"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["unscramble"] = GAME_TYPE::UNSCRAMBLE;
+	m_UserCommands["chained"] = CLIENT_COMMANDS::COMMAND_PLAY;
+	m_UserGames["chained"] = GAME_TYPE::CHAINED_WORDS;
+
 
 	// mTODO Sergi: Add descriptions to commands here
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_HELP] = "/help or /h - Displays help on command(s), syntax is \"/help (command)\"";
@@ -22,6 +32,7 @@ ModuleNetworkingClient::ModuleNetworkingClient() : ModuleNetworking() {
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_LOGOUT] = "/logout - Disconnects from chat";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_CHANGE_NICK] = "/nick - Changes your name in the chat, syntax is \"/nick [new_username]\"";
 	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_KICK] = "/kick or /k - Kicks user out of server, syntax is \"/kick [username]\"";
+	m_UserCmdDescriptions[CLIENT_COMMANDS::COMMAND_PLAY] = "/ksm Kill Sex Marry Game!\n/rr Roussian Roulette Game";
 }
 
 // ------------------ ModuleNetworkingClient public methods ------------------
@@ -75,8 +86,10 @@ bool ModuleNetworkingClient::DrawUI_SendButton() // A bit hardcoded but visually
 }
 
 void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
-	OutputMemoryStream packet;
+	if (buffer.size() == 0) //Nothing to parse, empty message
+		return;
 
+	OutputMemoryStream packet;
 	if (buffer[0] == '/') { 		// Is a command
 		if (buffer.size() == 1)
 			return; //nothing to do here, it's an empty command
@@ -240,6 +253,24 @@ void ModuleNetworkingClient::ParseMessage(const std::string& buffer) {
 
 			break;
 			} //COMMAND_KICK
+
+		case CLIENT_COMMANDS::COMMAND_PLAY:
+			{
+			std::size_t start_pos = buffer.find_first_not_of(' ', pos);
+
+			std::string args;
+			if (start_pos != std::string::npos)
+				args = buffer.substr(start_pos);
+			else
+				args = "";
+
+			GAME_TYPE game = m_UserGames[command];
+			OutputMemoryStream packet;
+			packet << CLIENT_MESSAGE::CLIENT_COMMAND << m_command << game << args;
+			SendPacket(packet, m_Socket);
+
+			break;
+			} //COMMAND_PLAY
 
 		case CLIENT_COMMANDS::COMMAND_INVALID:
 			{
