@@ -158,36 +158,23 @@ extern MouseController Mouse;
 
 
 ////////////////////////////////////////////////////////////////////////
-// LOG
+// CONSOLE_INFO_LOG
 ////////////////////////////////////////////////////////////////////////
+enum EntryType { LOG_INFO, LOG_WARN, LOG_ERROR };
 
-// NOTE(jesus):
-// Use log just like standard printf function.
-// Example: LOG("New user connected %s\n", usernameString);
+void PublicAppLog(int line, const char* msg, EntryType type);
+const char* PrivateAppLog(const char file[], int line, const char* format, ...);
 
-enum { LOG_TYPE_INFO, LOG_TYPE_WARN, LOG_TYPE_ERROR, LOG_TYPE_DEBUG };
-
-struct LogEntry {
-	double time;
-	int type;
-	char message[MAX_LOG_ENTRY_LENGTH];
-};
-
-void log(const char file[], int line, int type, const char* format, ...);
-LogEntry getLogEntry(uint32 entryIndex);
-uint32 getLogEntryCount();
-void clearLogEntries();
-
-#define LOG(format, ...)  log(__FILE__, __LINE__, LOG_TYPE_INFO,  format, __VA_ARGS__)
-#define WLOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_WARN,  format, __VA_ARGS__)
-#define ELOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_ERROR, format, __VA_ARGS__)
-#define DLOG(format, ...) log(__FILE__, __LINE__, LOG_TYPE_DEBUG, format, __VA_ARGS__)
+#define APP_LOG(format, ...)			PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__)
+#define CONSOLE_ERROR_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), LOG_ERROR)
+#define CONSOLE_WARN_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), LOG_WARN)
+#define CONSOLE_INFO_LOG(format, ...)	PublicAppLog(__LINE__, PrivateAppLog(__FILE__, __LINE__, format, __VA_ARGS__), LOG_INFO)
 
 // Assertions
 #ifdef ASSERT
 	#undef ASSERT
 #endif
-#define ASSERT(x, ...) if ((x == false)) { ELOG(__FILE__, __LINE__, "ASSERTION FAILED: ", __VA_ARGS__); __debugbreak(); }
+#define ASSERT(x, ...) if ((x == false)) { CONSOLE_ERROR_LOG(__FILE__, __LINE__, "ASSERTION FAILED: ", __VA_ARGS__); __debugbreak(); }
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -300,6 +287,7 @@ extern RandomNumberGenerator Random;
 // FRAMEWORK HEADERS
 ////////////////////////////////////////////////////////////////////////
 #include "Utilities/Maths.h"
+#include "Utilities/Color.h"
 #include "Utilities/Memory/MemoryStream.h"
 #include "Utilities/Memory/ByteSwap.h"
 

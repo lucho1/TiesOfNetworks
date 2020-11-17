@@ -99,15 +99,15 @@ bool ModuleSound::Init()
 				if (DirectSound->CreateSoundBuffer(&BufferDescription, &PrimaryBuffer, 0) == DS_OK)
 				{
 					if (PrimaryBuffer->SetFormat(&WaveFormat) == DS_OK) // We have finally set the format
-						DLOG("The sound format was set correctly");
+						CONSOLE_INFO_LOG("The sound format was set correctly");
 					else
-						WLOG("ModuleSound::init() Could not set the format of the primary DSound buffer");
+						CONSOLE_WARN_LOG("ModuleSound::init() Could not set the format of the primary DSound buffer");
 				}
 				else
-					WLOG("ModuleSound::init() Could not create the primary DSound buffer");
+					CONSOLE_WARN_LOG("ModuleSound::init() Could not create the primary DSound buffer");
 			}
 			else
-				WLOG("ModuleSound::init() Could not initialize DirectSound cooperative level");
+				CONSOLE_WARN_LOG("ModuleSound::init() Could not initialize DirectSound cooperative level");
 
 			// Create a secondary buffer
 			DSBUFFERDESC BufferDescription = {};
@@ -117,15 +117,15 @@ bool ModuleSound::Init()
 			BufferDescription.lpwfxFormat = &WaveFormat;
 
 			if (DirectSound->CreateSoundBuffer(&BufferDescription, &SoundBuffer, 0) == DS_OK)
-				DLOG("Sound buffer created successfully");
+				CONSOLE_INFO_LOG("Sound buffer created successfully");
 			else
-				WLOG("ModuleSound::init() Could not create the secondary DSound buffer");
+				CONSOLE_WARN_LOG("ModuleSound::init() Could not create the secondary DSound buffer");
 		}
 		else
-			WLOG("ModuleSound::init() Could not create a DirectSound object");
+			CONSOLE_WARN_LOG("ModuleSound::init() Could not create a DirectSound object");
 	}
 	else
-		WLOG("ModuleSound::init() Could not load DirectSound library");
+		CONSOLE_WARN_LOG("ModuleSound::init() Could not load DirectSound library");
 
 	return true;
 }
@@ -345,7 +345,7 @@ AudioClip * ModuleSound::LoadAudioClip(const char * filename)
 		}
 		else
 		{
-			WLOG("Could not load sound file %s", filename);
+			CONSOLE_WARN_LOG("Could not load sound file %s", filename);
 			ASSERT(false, "Couldn't load Sound file!");
 		}
 	}

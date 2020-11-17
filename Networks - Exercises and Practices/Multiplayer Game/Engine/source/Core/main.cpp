@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 					state = MainState::INIT;
 				else
 				{
-					ELOG("Create failed");
+					CONSOLE_ERROR_LOG("Create failed");
 					state = MainState::FAIL;
 				}
 				break;
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 					state = MainState::LOOP;
 				else
 				{
-					ELOG("Start failed");
+					CONSOLE_ERROR_LOG("Start failed");
 					state = MainState::FAIL;
 				}
 				break;
@@ -68,14 +68,14 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					ELOG("CleanUp failed");
+					CONSOLE_ERROR_LOG("CleanUp failed");
 					state = MainState::FAIL;
 				}
 				break;
 
 			case MainState::FAIL:
 
-				ELOG("Application failed :-(");
+				CONSOLE_ERROR_LOG("Application failed :-(");
 				state = MainState::EXIT;
 				break;
 

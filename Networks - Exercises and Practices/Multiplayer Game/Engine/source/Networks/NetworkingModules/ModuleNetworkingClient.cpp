@@ -116,12 +116,12 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 			packet >> m_PlayerId;
 			packet >> m_NetworkId;
 
-			LOG("ModuleNetworkingClient::onPacketReceived() - Welcome from server");
+			CONSOLE_INFO_LOG("ModuleNetworkingClient::onPacketReceived() - Welcome from server");
 			m_State = ClientState::CONNECTED;
 		}
 		else if (message == ServerMessage::UNWELCOME)
 		{
-			WLOG("ModuleNetworkingClient::onPacketReceived() - Unwelcome from server :-(");
+			CONSOLE_WARN_LOG("ModuleNetworkingClient::onPacketReceived() - Unwelcome from server :-(");
 			Disconnect();
 		}
 	}

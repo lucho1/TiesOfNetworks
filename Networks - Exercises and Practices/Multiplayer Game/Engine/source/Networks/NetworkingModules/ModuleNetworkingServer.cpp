@@ -128,7 +128,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 					// TODO(you): World state replication lab session
 				}
 
-				LOG("Message received: hello - from player %s", proxy->name.c_str());
+				CONSOLE_INFO_LOG("Message received: hello - from player %s", proxy->name.c_str());
 			}
 			else
 			{
@@ -137,7 +137,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 				unwelcomePacket << ServerMessage::UNWELCOME;
 				SendPacket(unwelcomePacket, fromAddress);
 
-				WLOG("Message received: UNWELCOMED hello - server is full");
+				CONSOLE_WARN_LOG("Message received: UNWELCOMED hello - server is full");
 			}
 		}
 		else if (message == ClientMessage::INPUT)

@@ -81,7 +81,7 @@ bool ModuleRender::Init()
 	// Direct3D initialization
 	if (!CreateDeviceD3D(hwnd))
 	{
-		ELOG("ModuleRender::init() - CreateDeviceD3D() failed");
+		CONSOLE_ERROR_LOG("ModuleRender::init() - CreateDeviceD3D() failed");
 		CleanupDeviceD3D();
 		return false;
 	}
@@ -100,7 +100,7 @@ bool ModuleRender::Init()
 	//InitData.pSysMem = vertices;
 
 	//if (g_pd3dDevice->CreateBuffer(&desc, &InitData, &g_pVertexBuffer) < 0) {
-	//	ELOG("d3d->CreateBuffer() failed (Vertex Buffer)");
+	//	CONSOLE_ERROR_LOG("d3d->CreateBuffer() failed (Vertex Buffer)");
 	//	return false;
 	//}
 
@@ -112,7 +112,7 @@ bool ModuleRender::Init()
 
 	if (g_pd3dDevice->CreateBuffer(&desc, nullptr, &g_pVertexBuffer) < 0)
 	{
-		ELOG("d3d->CreateBuffer() failed (Vertex Buffer)");
+		CONSOLE_ERROR_LOG("d3d->CreateBuffer() failed (Vertex Buffer)");
 		return false;
 	}
 
@@ -122,7 +122,7 @@ bool ModuleRender::Init()
 
 	if (shaderSourceLength == 0)
 	{
-		ELOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
+		CONSOLE_ERROR_LOG("ModuleRender::init() failed - couldn't load vertex_shader.hlsl");
 		return false;
 	}
 
@@ -131,18 +131,18 @@ bool ModuleRender::Init()
 
 	if (errorBlob)
 	{
-		ELOG("D3DCompile(\"vertex_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
+		CONSOLE_ERROR_LOG("D3DCompile(\"vertex_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		SAFE_RELEASE(errorBlob);
 	}
 
 	if (g_pVertexShaderBlob == NULL)
 	{
-		ELOG("D3DCompile(\"vertex_shader.hlsl\") failed");
+		CONSOLE_ERROR_LOG("D3DCompile(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 	if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
 	{
-		ELOG("d3d->CreateVertexShader(\"vertex_shader.hlsl\") failed");
+		CONSOLE_ERROR_LOG("d3d->CreateVertexShader(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -155,7 +155,7 @@ bool ModuleRender::Init()
 
 	if (g_pd3dDevice->CreateInputLayout(local_layout, 2, g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), &g_pInputLayout) != S_OK)
 	{
-		ELOG("d3d->CreateInputLayout(\"vertex_shader.hlsl\") failed");
+		CONSOLE_ERROR_LOG("d3d->CreateInputLayout(\"vertex_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -171,7 +171,7 @@ bool ModuleRender::Init()
 		
 		if (g_pd3dDevice->CreateBuffer(&desc, NULL, &g_pConstantBuffer) != S_OK)
 		{
-			ELOG("d3d->CreateBuffer() failed (CONSTANT_BUFFER)");
+			CONSOLE_ERROR_LOG("d3d->CreateBuffer() failed (CONSTANT_BUFFER)");
 			return false;
 		}
 	}
@@ -181,26 +181,26 @@ bool ModuleRender::Init()
 	LoadShaderFile("pixel_shader.hlsl", m_ShaderSource, &shaderSourceLength);
 	if (shaderSourceLength == 0)
 	{
-		ELOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
+		CONSOLE_ERROR_LOG("ModuleRender::init() failed - couldn't load pixel_shader.hlsl");
 		return false;
 	}
 
 	D3DCompile(m_ShaderSource, shaderSourceLength, NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, &errorBlob);
 	if (errorBlob)
 	{
-		ELOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
+		CONSOLE_ERROR_LOG("D3DCompile(\"pixel_shader.hlsl\") messages:\n%s", (const char*)errorBlob->GetBufferPointer());
 		errorBlob->Release();
 	}
 	
 	if (g_pPixelShaderBlob == NULL)
 	{
-		ELOG("D3DCompile(\"pixel_shader.hlsl\") failed");
+		CONSOLE_ERROR_LOG("D3DCompile(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
 	
 	if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
 	{
-		ELOG("d3d->CreatePixelShader(\"pixel_shader.hlsl\") failed");
+		CONSOLE_ERROR_LOG("d3d->CreatePixelShader(\"pixel_shader.hlsl\") failed");
 		return false;
 	}
 
@@ -221,7 +221,7 @@ bool ModuleRender::Init()
 		
 		if (g_pd3dDevice->CreateBlendState(&desc, &g_pBlendState) != S_OK)
 		{
-			ELOG("d3d->CreateBlendState() failed");
+			CONSOLE_ERROR_LOG("d3d->CreateBlendState() failed");
 			return false;
 		}
 	}
@@ -236,7 +236,7 @@ bool ModuleRender::Init()
 		
 		if (g_pd3dDevice->CreateRasterizerState(&desc, &g_pRasterizerState) != S_OK)
 		{
-			ELOG("d3d->CreateRasterizerState() failed");
+			CONSOLE_ERROR_LOG("d3d->CreateRasterizerState() failed");
 			return false;
 		}
 	}
@@ -254,7 +254,7 @@ bool ModuleRender::Init()
 		
 		if (g_pd3dDevice->CreateDepthStencilState(&desc, &g_pDepthStencilState) != S_OK)
 		{
-			ELOG("d3d->CreateDepthStencilState() failed");
+			CONSOLE_ERROR_LOG("d3d->CreateDepthStencilState() failed");
 			return false;
 		}
 	}
@@ -285,7 +285,7 @@ bool ModuleRender::Init()
 
 	if (m_WhitePixel == nullptr || m_BlackPixel == nullptr)
 	{
-		ELOG("ModuleRender::init() - Could not create white and black textures");
+		CONSOLE_ERROR_LOG("ModuleRender::init() - Could not create white and black textures");
 		return false;
 	}
 
@@ -573,7 +573,7 @@ void ModuleRender::RenderScene()
 		D3D11_MAPPED_SUBRESOURCE mapped_vertices;
 		if (ctx->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_vertices) != S_OK)
 		{
-			WLOG("d3d->Map() failed (VERTEX BUFFER)");
+			CONSOLE_WARN_LOG("d3d->Map() failed (VERTEX BUFFER)");
 			return;
 		}
 
@@ -618,7 +618,7 @@ void ModuleRender::RenderScene()
 			D3D11_MAPPED_SUBRESOURCE mapped_resource;
 			if (ctx->Map(g_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
 			{
-				WLOG("d3d->Map() failed (CONSTANT BUFFER)");
+				CONSOLE_WARN_LOG("d3d->Map() failed (CONSTANT BUFFER)");
 				return;
 			}
 
@@ -645,7 +645,7 @@ void ModuleRender::RenderScene()
 		D3D11_MAPPED_SUBRESOURCE mapped_vertices;
 		if (ctx->Map(g_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_vertices) != S_OK)
 		{
-			WLOG("d3d->Map() failed (VERTEX BUFFER)");
+			CONSOLE_WARN_LOG("d3d->Map() failed (VERTEX BUFFER)");
 			return;
 		}
 
@@ -683,7 +683,7 @@ void ModuleRender::RenderScene()
 				D3D11_MAPPED_SUBRESOURCE mapped_resource;
 				if (ctx->Map(g_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
 				{
-					WLOG("d3d->Map() failed (CONSTANT BUFFER)");
+					CONSOLE_WARN_LOG("d3d->Map() failed (CONSTANT BUFFER)");
 					return;
 				}
 				
@@ -729,7 +729,7 @@ bool ModuleRender::CreateDeviceD3D(HWND hWnd)
 	
 	if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
 	{
-		ELOG("ModuleRender::CreateDeviceD3D() failed");
+		CONSOLE_ERROR_LOG("ModuleRender::CreateDeviceD3D() failed");
 		return false;
 	}
 

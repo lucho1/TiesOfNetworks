@@ -41,25 +41,17 @@ bool ModuleUI::DrawGUI()
 
 	if (ImGui::BeginTabBar("Tab bar"))
 	{
-		if (ImGui::BeginTabItem("Log"))
+		if (ImGui::BeginTabItem("Console"))
 		{
-			uint32 logEntryCount = getLogEntryCount();
-			for (uint32 entryIndex = 0; entryIndex < logEntryCount; ++entryIndex)
+			// Messages Logging
+			for (auto& msg_pair : m_ChatMessages)
 			{
-				LogEntry entry = getLogEntry(entryIndex);
-				if (entry.type == LOG_TYPE_WARN)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-				else if (entry.type == LOG_TYPE_ERROR)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-				else if (entry.type == LOG_TYPE_DEBUG)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.3f, 1.0f, 1.0f));
-
-				ImGui::TextWrapped("%.4f:\t%s", entry.time, entry.message);
-				if (entry.type == LOG_TYPE_WARN || entry.type == LOG_TYPE_ERROR || entry.type == LOG_TYPE_DEBUG)
-					ImGui::PopStyleColor();
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(msg_pair.second.r, msg_pair.second.g, msg_pair.second.b, msg_pair.second.a));
+				ImGui::TextWrapped("%s", msg_pair.first.c_str());
+				ImGui::PopStyleColor();
 			}
 
-			//ImGui::SetScrollHere(1.0f);
+			ImGui::SetScrollHere(1.0f);
 			ImGui::EndTabItem();
 		}
 

@@ -95,7 +95,7 @@ void ModuleGameObject::Destroy(GameObject * gameObject, float delaySeconds)
 	}
 }
 
-GameObject * Instantiate()
+GameObject* Instantiate()
 {
 	GameObject *result = ModuleGameObject::Instantiate();
 	return result;

@@ -27,7 +27,7 @@ void ModuleNetworking::ReportError(const char* inOperationDesc)
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
 
-	ELOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
+	CONSOLE_ERROR_LOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
 bool ModuleNetworking::CreateSocket()
@@ -250,7 +250,7 @@ void ModuleNetworking::ProcessIncomingPackets()
 				char fromAddressStr[64];
 				inet_ntop(AF_INET, &fromAddress.sin_addr, fromAddressStr, sizeof(fromAddressStr));
 
-				WLOG("ModuleNetworking::processIncomingPackets() - Connection reset from %s:%d", fromAddressStr, ntohs(fromAddress.sin_port));
+				CONSOLE_WARN_LOG("ModuleNetworking::processIncomingPackets() - Connection reset from %s:%d", fromAddressStr, ntohs(fromAddress.sin_port));
 				OnConnectionReset(fromAddress);
 			}
 			else if (error != WSAEWOULDBLOCK)

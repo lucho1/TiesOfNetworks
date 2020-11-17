@@ -164,7 +164,7 @@ bool ModulePlatform::Init()
 
 	if (::RegisterClassEx(&windowClass) == 0)
 	{
-		ELOG("ModuleWindow::init() - RegisterClassEx() failed");
+		CONSOLE_ERROR_LOG("ModuleWindow::init() - RegisterClassEx() failed");
 		return false;
 	}
 
@@ -214,7 +214,7 @@ bool ModulePlatform::Init()
 	}
 	else
 	{
-		ELOG("ModulePlatform::init() - XInput library loading failed");
+		CONSOLE_ERROR_LOG("ModulePlatform::init() - XInput library loading failed");
 		::DestroyWindow(hwnd);
 		::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 		return false;
@@ -250,13 +250,13 @@ bool ModulePlatform::Init()
 	::UpdateWindow(hwnd);
 
 	// Initial information
-	LOG("Press the <F1> key to toggle UI visibility.");
-	LOG("Keyboard/gamepad are mapped to the global Input object.");
-	LOG("Keyboard mappings are : ");
-	LOG(" - A, S, D, W: Directional pad.");
-	LOG(" - Q, E: Left and right shoulder buttons.");
-	LOG(" - ESC, SPACE: Back and start buttons.");
-	LOG(" - Arrows: Action buttons.");
+	CONSOLE_INFO_LOG("Press the <F1> key to toggle UI visibility.");
+	CONSOLE_INFO_LOG("Keyboard/gamepad are mapped to the global Input object.");
+	CONSOLE_INFO_LOG("Keyboard mappings are : ");
+	CONSOLE_INFO_LOG(" - A, S, D, W: Directional pad.");
+	CONSOLE_INFO_LOG(" - Q, E: Left and right shoulder buttons.");
+	CONSOLE_INFO_LOG(" - ESC, SPACE: Back and start buttons.");
+	CONSOLE_INFO_LOG(" - Arrows: Action buttons.");
 
 	return true;
 }

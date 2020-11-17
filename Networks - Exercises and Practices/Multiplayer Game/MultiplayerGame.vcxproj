@@ -255,6 +255,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\source\Core\Application.h" />
+    <ClInclude Include="Engine\source\Utilities\Color.h" />
     <ClInclude Include="Engine\source\Utilities\Memory\ByteSwap.h" />
     <ClInclude Include="Engine\source\Networks\DeliveryManager.h" />
     <ClInclude Include="Engine\source\GameObjects\Behaviours.h" />
