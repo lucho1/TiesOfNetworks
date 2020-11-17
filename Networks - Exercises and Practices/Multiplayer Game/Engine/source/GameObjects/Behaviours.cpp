@@ -42,7 +42,7 @@ void Spaceship::Start()
 void Spaceship::OnInput(const InputController &input)
 {
 	// TODO: Use this to compare floats: std::numeric_limits<float>::epsilon(); + std::abs();
-	if (input.horizontalAxis != 0.0f)
+	if (std::abs(input.horizontalAxis) > std::numeric_limits<float>::epsilon())
 	{
 		const float rotateSpeed = 180.0f;
 		gameObject->angle += input.horizontalAxis * rotateSpeed * Time.deltaTime;
