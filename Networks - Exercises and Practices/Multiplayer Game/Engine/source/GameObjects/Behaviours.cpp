@@ -41,7 +41,6 @@ void Spaceship::Start()
 
 void Spaceship::OnInput(const InputController &input)
 {
-	// TODO: Use this to compare floats: std::numeric_limits<float>::epsilon(); + std::abs();
 	if (std::abs(input.horizontalAxis) > std::numeric_limits<float>::epsilon())
 	{
 		const float rotateSpeed = 180.0f;
