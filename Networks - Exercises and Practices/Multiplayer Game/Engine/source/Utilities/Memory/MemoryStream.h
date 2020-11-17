@@ -153,7 +153,7 @@ public:
 		Read( elementCount );
 		inString.resize(elementCount);
 
-		for (auto &character : inString)
+		for (char &character : inString)
 			Read(character);
 	}
 

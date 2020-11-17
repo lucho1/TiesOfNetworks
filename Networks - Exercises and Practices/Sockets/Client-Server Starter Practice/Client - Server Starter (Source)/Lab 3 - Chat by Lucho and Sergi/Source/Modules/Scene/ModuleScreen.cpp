@@ -1,4 +1,4 @@
-#include "Core/Core.h"
+#include "Core.h"
 
 
 bool ModuleScreen::Init()
@@ -12,6 +12,7 @@ bool ModuleScreen::Init()
 
 	screenLoading->enabled = true;
 	screenBackground->enabled = true;
+
 	return true;
 }
 
@@ -19,7 +20,7 @@ bool ModuleScreen::Update()
 {
 	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		Screen *screen = m_Screens[i];
+		auto screen = m_Screens[i];
 		if (!screen->enabled && screen->m_WasEnabled)
 		{
 			screen->Disable();
@@ -30,7 +31,7 @@ bool ModuleScreen::Update()
 
 	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		Screen *screen = m_Screens[i];
+		auto screen = m_Screens[i];
 		if (screen->enabled && !screen->m_WasEnabled)
 		{
 			screen->Enable();
@@ -40,8 +41,9 @@ bool ModuleScreen::Update()
 
 	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		Screen *screen = m_Screens[i];
+		auto screen = m_Screens[i];
 		bool screenIsFullyEnabled = screen->enabled && screen->m_WasEnabled;
+
 		if (screenIsFullyEnabled && screen->shouldUpdate)
 			screen->Update();
 	}
@@ -49,13 +51,13 @@ bool ModuleScreen::Update()
 	return true;
 }
 
-bool ModuleScreen::DrawGUI()
+bool ModuleScreen::GUI()
 {
 	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		Screen *scene = m_Screens[i];
+		auto scene = m_Screens[i];
 		if (scene->enabled)
-			scene->DrawGUI();
+			scene->GUI();
 	}
 
 	return true;
@@ -65,17 +67,16 @@ bool ModuleScreen::CleanUp()
 {
 	for (int i = 0; i < m_ScreenCount; ++i)
 	{
-		Screen *scene = m_Screens[i];
+		auto scene = m_Screens[i];
 		delete scene;
 	}
-
 	return true;
 }
 
 void ModuleScreen::SwapScreensWithTransition(Screen *oldScene, Screen *newScene)
 {
-	ASSERT(oldScene != nullptr && newScene != nullptr);
-	ASSERT(screenOverlay->enabled == false);
+	ASSERT((oldScene != nullptr && newScene != nullptr), "Scenes passed don't Exist");
+	ASSERT((!screenOverlay->enabled), "Screen Overlay was enabled!");
 
 	screenOverlay->oldScene = oldScene;
 	screenOverlay->newScene = newScene;

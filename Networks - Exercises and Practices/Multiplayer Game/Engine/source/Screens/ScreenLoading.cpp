@@ -24,7 +24,7 @@ void ScreenLoading::Update()
 	for (int i = 0; i < BAR_COUNT; ++i)
 	{
 		float progressRatio = (float)i / (float)BAR_COUNT;
-		auto gameObject = m_LoadingBars[i];
+		GameObject *gameObject = m_LoadingBars[i];
 		gameObject->sprite->color.a = 1.0f - FractionalPart(((float)Time.time + progressRatio * ROUND_TIME)/ ROUND_TIME);
 	}
 

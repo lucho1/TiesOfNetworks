@@ -1,16 +1,17 @@
-#include "Core/Core.h"
+#include "Core.h"
 
 
 // Data
-const char *windowClassStr = "Networks and Online Games";
-const char *windowTitleStr = "Networks and Online Games";
-HINSTANCE instance = NULL;                           // Application instance
-HWND hwnd = NULL;                                    // Window handle
-WNDCLASSEX windowClass = {};                         // Window class
+const char *windowClassStr = "Networks and Online Games -- by Lucho Suaya & Sergi Parra";
+const char *windowTitleStr = "Networks and Online Games -- by Lucho Suaya & Sergi Parra";
+HINSTANCE m_AppInstance = NULL;									// Application instance
+HWND hwnd = NULL;											// Window handle
+WNDCLASSEX m_WindowClass = {};								// Window class
 
-static InputController GamepadInput;
-static InputController KeyboardInput;
-static bool IsFocused = false;
+static InputController m_GamepadInput;
+static InputController m_KeyboardInput;
+
+static bool m_IsFocused = false;
 
 
 // XInputGetState
@@ -32,6 +33,7 @@ X_INPUT_SET_STATE(XInputSetStateStub)
 }
 static x_input_set_state *XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
+
 
 static LONGLONG GlobalPerfCountFrequency;
 static LARGE_INTEGER StartTime;
@@ -74,13 +76,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_KILLFOCUS:
 			Input = {};
-			GamepadInput = {};
-			KeyboardInput = {};
-			IsFocused = false;
+			m_GamepadInput = {};
+			m_KeyboardInput = {};
+			m_IsFocused = false;
 			return 0;
 
 		case WM_SETFOCUS:
-			IsFocused = true;
+			m_IsFocused = true;
 			return 0;
 
 		case WM_SYSCOMMAND:
@@ -100,17 +102,17 @@ static void Win32ProcessKeyboardButton(ButtonState *NewState, bool IsDown)
 {
 	// Maybe control half transition counts?
 	if (IsDown)
-		*NewState = PRESS;
+		*NewState = Press;
 	else
-		*NewState = RELEASE;
+		*NewState = Release;
 }
 
 static void Win32ProcessMouseButton(ButtonState *NewState, bool IsDown)
 {
-	if (*NewState == IDLE && IsDown)
-		*NewState = PRESS;
-	else if (*NewState == PRESSED && !IsDown)
-		*NewState = RELEASE;
+	if (*NewState == Idle && IsDown)
+		*NewState = Press;
+	else if (*NewState == Pressed && !IsDown)
+		*NewState = Release;
 }
 
 static void Win32ProcessGamepadButton(ButtonState *NewState, XINPUT_GAMEPAD *pad, int button_flag)
@@ -118,17 +120,17 @@ static void Win32ProcessGamepadButton(ButtonState *NewState, XINPUT_GAMEPAD *pad
 	bool IsPressed = pad->wButtons & button_flag;
 	if (IsPressed)
 	{
-		if (*NewState == IDLE)
-			*NewState = PRESS;
+		if (*NewState == Idle)
+			*NewState = Press;
 		else
-			*NewState = PRESSED;
+			*NewState = Pressed;
 	}
 	else
 	{
-		if (*NewState == PRESSED || *NewState == PRESS)
-			*NewState = RELEASE;
+		if (*NewState == Pressed || *NewState == Press)
+			*NewState = Release;
 		else
-			*NewState = IDLE;
+			*NewState = Idle;
 	}
 }
 
@@ -153,25 +155,24 @@ static float Win32ProcessGamepadThumb(SHORT value, SHORT deadZoneThreshold)
 bool ModulePlatform::Init()
 {
 	// Get the application instance handle
-	instance = ::GetModuleHandle("");
+	m_AppInstance = ::GetModuleHandle("");
 
 	// Create window class
-	windowClass.cbSize = sizeof(WNDCLASSEX);
-	windowClass.lpszClassName = _T(windowClassStr);
-	windowClass.hInstance = instance;
-	windowClass.lpfnWndProc = WndProc;
-	windowClass.style = CS_OWNDC;
-
-	if (::RegisterClassEx(&windowClass) == 0)
+	m_WindowClass.cbSize = sizeof(WNDCLASSEX);
+	m_WindowClass.lpszClassName = _T(windowClassStr);
+	m_WindowClass.hInstance = m_AppInstance;
+	m_WindowClass.lpfnWndProc = WndProc;
+	m_WindowClass.style = CS_OWNDC;
+	if (::RegisterClassEx(&m_WindowClass) == 0)
 	{
-		CONSOLE_ERROR_LOG("ModuleWindow::init() - RegisterClassEx() failed");
+		APP_LOG("ModuleWindow::init() - RegisterClassEx() failed");
 		return false;
 	}
 
 	// Create application window
 	hwnd = ::CreateWindowEx(
 		0,
-		windowClass.lpszClassName,
+		m_WindowClass.lpszClassName,
 		_T(windowTitleStr),
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
@@ -180,50 +181,39 @@ bool ModulePlatform::Init()
 		768, //CW_USEDEFAULT,
 		NULL,
 		NULL,
-		windowClass.hInstance,
+		m_WindowClass.hInstance,
 		NULL);
-
-#if 0
-	// Place the window on top of all others
-	RECT windowRect;
-	::GetWindowRect(hwnd, &windowRect);
-	::SetWindowPos(
-		hwnd,
-		HWND_TOPMOST,
-		windowRect.left,
-		windowRect.top,
-		windowRect.right - windowRect.left,
-		windowRect.bottom - windowRect.top,
-		0);
-#endif
 
 	// Init XInput
 	HMODULE XInputLibrary = LoadLibraryA("xinput1_4.dll");
+
 	if (!XInputLibrary)
 		XInputLibrary = LoadLibraryA("xinput9_1_0.dll");
-
 	if (!XInputLibrary)
 		XInputLibrary = LoadLibraryA("xinput1_3.dll");
 
 	if (XInputLibrary)
 	{
 		XInputGetState = (x_input_get_state *)GetProcAddress(XInputLibrary, "XInputGetState");
-		if (!XInputGetState) { XInputGetState = XInputGetStateStub; }
+		if (!XInputGetState)
+			XInputGetState = XInputGetStateStub;
+
 		XInputSetState = (x_input_set_state *)GetProcAddress(XInputLibrary, "XInputSetState");
-		if (!XInputSetState) { XInputSetState = XInputSetStateStub; }
+		if (!XInputSetState)
+			XInputSetState = XInputSetStateStub;
 	}
 	else
 	{
-		CONSOLE_ERROR_LOG("ModulePlatform::init() - XInput library loading failed");
+		APP_LOG("ModuleWindow::init() - XInput library loading failed");
 		::DestroyWindow(hwnd);
-		::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+		::UnregisterClass(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
 		return false;
 	}
 
 	// Initialize button states
 	Input = {};
-	GamepadInput = {};
-	KeyboardInput = {};
+	m_GamepadInput = {};
+	m_KeyboardInput = {};
 
 	// Is this query reliable?
 	int MonitorRefreshHz = 60;
@@ -248,15 +238,6 @@ bool ModulePlatform::Init()
 	// Show the window
 	::ShowWindow(hwnd, SW_SHOWDEFAULT);
 	::UpdateWindow(hwnd);
-
-	// Initial information
-	CONSOLE_INFO_LOG("Press the <F1> key to toggle UI visibility.");
-	CONSOLE_INFO_LOG("Keyboard/gamepad are mapped to the global Input object.");
-	CONSOLE_INFO_LOG("Keyboard mappings are : ");
-	CONSOLE_INFO_LOG(" - A, S, D, W: Directional pad.");
-	CONSOLE_INFO_LOG(" - Q, E: Left and right shoulder buttons.");
-	CONSOLE_INFO_LOG(" - ESC, SPACE: Back and start buttons.");
-	CONSOLE_INFO_LOG(" - Arrows: Action buttons.");
 
 	return true;
 }
@@ -288,6 +269,7 @@ bool ModulePlatform::PreUpdate()
 		{
 			GotMessage = ::PeekMessage(&msg, 0, LastMessage, Skip - 1, PM_REMOVE);
 			LastMessage = Skip + 1;
+
 			if (GotMessage)
 				break;
 		}
@@ -298,25 +280,23 @@ bool ModulePlatform::PreUpdate()
 		switch (msg.message)
 		{
 			case WM_QUIT:
-				
-				App->AppExit();
+				App->ExitApp();
 				return false;
-
+			
 			case WM_SYSKEYDOWN:
 			case WM_SYSKEYUP:
 			case WM_KEYDOWN:
 			case WM_KEYUP:
-				
 				if (ImGui::GetIO().WantCaptureKeyboard == false)
 				{
 					unsigned int VKCode = (unsigned int)msg.wParam;
-
+			
 					bool AltKeyWasDown = (msg.lParam & (1 << 29));
 					bool ShiftKeyWasDown = (GetKeyState(VK_SHIFT) & (1 << 15));
-
+			
 					bool WasDown = ((msg.lParam & (1UL << 30)) != 0);
 					bool IsDown = ((msg.lParam & (1UL << 31)) == 0);
-
+			
 					if (WasDown != IsDown)
 					{
 						if (VKCode == 'Q')
@@ -335,15 +315,11 @@ bool ModulePlatform::PreUpdate()
 							Win32ProcessKeyboardButton(&KeyboardInput.back, IsDown);
 						else if (VKCode == VK_RETURN)
 							Win32ProcessKeyboardButton(&KeyboardInput.start, IsDown);
-						else if (VKCode == VK_F1 && IsDown)
-							App->modUI->Enable(!App->modUI->IsEnabled());
-						else if (VKCode == VK_F4 && IsDown)
-							return false; // Finish the application
 					}
 				}
 				::TranslateMessage(&msg);
 				break;
-
+			
 			default:;
 		}
 
@@ -364,7 +340,7 @@ bool ModulePlatform::PreUpdate()
 	Time.time += (double)Time.deltaTime;
 	StartTime = EndTime;
 
-	if (IsFocused)
+	if (m_IsFocused)
 	{
 		// Keyboard
 		KeyboardInput.horizontalAxis = ((GetKeyState('D') & (1 << 15)) ? 1.0f : 0.0f) - ((GetKeyState('A') & (1 << 15)) ? 1.0f : 0.0f);
@@ -374,10 +350,8 @@ bool ModulePlatform::PreUpdate()
 		POINT mousePosition;
 		GetCursorPos(&mousePosition);
 		ScreenToClient(hwnd, &mousePosition);
-
 		Mouse.x = (int16)mousePosition.x;
 		Mouse.y = (int16)mousePosition.y;
-
 		Win32ProcessMouseButton(&Mouse.buttons[0], GetKeyState(VK_LBUTTON) & (1 << 15));
 		Win32ProcessMouseButton(&Mouse.buttons[1], GetKeyState(VK_MBUTTON) & (1 << 15));
 		Win32ProcessMouseButton(&Mouse.buttons[2], GetKeyState(VK_RBUTTON) & (1 << 15));
@@ -385,9 +359,6 @@ bool ModulePlatform::PreUpdate()
 		Win32ProcessMouseButton(&Mouse.buttons[4], GetKeyState(VK_XBUTTON2) & (1 << 15));
 
 		// Input gamepads
-		// XInput has a serious bug here. If there is no controller plugged
-		// XInputGetState() stalls for several milliseconds before returning. We should
-		// make sure we only try to get the state of connected devices.
 		XINPUT_STATE controllerState;
 		if (XInputGetState(0, &controllerState) == ERROR_SUCCESS)
 		{
@@ -404,7 +375,6 @@ bool ModulePlatform::PreUpdate()
 
 			GamepadInput.horizontalAxis = Win32ProcessGamepadThumb(pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
 			GamepadInput.verticalAxis = Win32ProcessGamepadThumb(pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-
 			if (GamepadInput.verticalAxis == 0.0f && GamepadInput.horizontalAxis == 0.0f)
 			{
 				GamepadInput.verticalAxis += Win32IsGamepadButtonPressed(pad, XINPUT_GAMEPAD_DPAD_UP) ? 1.0f : 0.0f;
@@ -415,8 +385,8 @@ bool ModulePlatform::PreUpdate()
 
 			Input = GamepadInput;
 		}
-		else // NOTE(jesus): No controller was found
-			Input = KeyboardInput;
+		else
+			Input = KeyboardInput; // NOTE(jesus): No controller was found
 	}
 
 	return true;
@@ -427,18 +397,18 @@ bool ModulePlatform::PostUpdate()
 	// Update buttons state
 	for (ButtonState &buttonState : Input.buttons)
 	{
-		if (buttonState == PRESS)
-			buttonState = PRESSED;
-		else if (buttonState == RELEASE)
-			buttonState = IDLE;
+		if (buttonState == Press)
+			buttonState = Pressed;
+		else if (buttonState == Release)
+			buttonState = Idle;
 	}
 
 	for (ButtonState &buttonState : Mouse.buttons)
 	{
-		if (buttonState == PRESS)
-			buttonState = PRESSED;
-		else if (buttonState == RELEASE)
-			buttonState = IDLE;
+		if (buttonState == Press)
+			buttonState = Pressed;
+		else if (buttonState == Release)
+			buttonState = Idle;
 	}
 
 	return true;
@@ -447,6 +417,7 @@ bool ModulePlatform::PostUpdate()
 bool ModulePlatform::CleanUp()
 {
 	::DestroyWindow(hwnd);
-	::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+	::UnregisterClass(m_WindowClass.lpszClassName, m_WindowClass.hInstance);
+
 	return true;
 }

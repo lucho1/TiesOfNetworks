@@ -44,10 +44,10 @@ bool ModuleUI::DrawGUI()
 		if (ImGui::BeginTabItem("Console"))
 		{
 			// Messages Logging
-			for (auto& msg_pair : m_ChatMessages)
+			for (auto& it_msg_pair : m_ChatMessages)
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(msg_pair.second.r, msg_pair.second.g, msg_pair.second.b, msg_pair.second.a));
-				ImGui::TextWrapped("%s", msg_pair.first.c_str());
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(it_msg_pair.second.r, it_msg_pair.second.g, it_msg_pair.second.b, it_msg_pair.second.a));
+				ImGui::TextWrapped("%s", it_msg_pair.first.c_str());
 				ImGui::PopStyleColor();
 			}
 
