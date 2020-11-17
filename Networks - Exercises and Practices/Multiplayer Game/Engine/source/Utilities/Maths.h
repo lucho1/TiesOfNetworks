@@ -57,14 +57,14 @@ inline vec2 &operator+=(vec2 &a, vec2 b)	{ a = a + b; return a; }
 inline vec2 &operator-=(vec2 &a, vec2 b)	{ a = a - b; return a; }
 inline vec2 &operator*=(vec2 &a, float b)	{ a = a * b; return a; }
 inline vec2 &operator/=(vec2 &a, float b)	{ a = a / b; return a; }
-inline vec2 lerp(vec2 a, vec2 b, float t)	{ vec2 c = a + t * (b - a); return c; }
-inline vec2 floor(vec2 a)					{ return vec2{ floorf(a.x), floorf(a.y) }; }
-inline vec2 ceil(vec2 a)					{ return vec2{ ceilf(a.x), ceilf(a.y) }; }
-inline float dot(vec2 a, vec2 b)			{ return a.x * b.x + a.y * b.y; }
-inline float length2(vec2 a)				{ return dot(a, a); }
-inline float length(vec2 a)					{ return sqrtf(length2(a)); }
-inline vec2 normalize(vec2 a)				{ return a / length(a); }
-inline bool isZero(vec2 a)					{ return dot(a, a) < FLT_EPSILON; }
+inline vec2 Lerp(vec2 a, vec2 b, float t)	{ vec2 c = a + t * (b - a); return c; }
+inline vec2 Floor(vec2 a)					{ return vec2{ floorf(a.x), floorf(a.y) }; }
+inline vec2 Ceil(vec2 a)					{ return vec2{ ceilf(a.x), ceilf(a.y) }; }
+inline float Dot(vec2 a, vec2 b)			{ return a.x * b.x + a.y * b.y; }
+inline float Length2(vec2 a)				{ return Dot(a, a); }
+inline float Length(vec2 a)					{ return sqrtf(Length2(a)); }
+inline vec2 Normalize(vec2 a)				{ return a / Length(a); }
+inline bool IsZero(vec2 a)					{ return Dot(a, a) < FLT_EPSILON; }
 
 inline vec2 DegreesToVec2(float degrees)	{ return { sinf(DegToRad(degrees)), -cosf(DegToRad(degrees)) }; }
 
@@ -94,9 +94,9 @@ inline vec4 operator/(vec4 a, float b)		{ return vec4{ a.x / b, a.y / b, a.z / b
 inline vec4 operator/(float a, vec4 b)		{ return vec4{ a / b.x, a / b.y, a / b.z, a / b.w }; }
 inline vec4 &operator*=(vec4 &a, float b)	{ a = a * b; return a; }
 inline vec4 &operator/=(vec4 &a, float b)	{ a = a / b; return a; }
-inline vec4 lerp(vec4 a, vec4 b, float t)	{ vec4 c = a + t * (b - a); return c; }
-inline float dot(vec4 a, vec4 b)			{ return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
-inline bool isZero(vec4 a)					{ return dot(a, a) < FLT_EPSILON; }
+inline vec4 Lerp(vec4 a, vec4 b, float t)	{ vec4 c = a + t * (b - a); return c; }
+inline float Dot(vec4 a, vec4 b)			{ return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+inline bool IsZero(vec4 a)					{ return Dot(a, a) < FLT_EPSILON; }
 
 
 
@@ -158,10 +158,10 @@ inline mat4 scaling(vec2 scale)
 inline vec4 operator*(const mat4 &a, const vec4 &b)
 {
 	vec4 result;
-	result.x = dot(vec4{ a.v0.x, a.v1.x, a.v2.x, a.v3.x }, b);
-	result.y = dot(vec4{ a.v0.y, a.v1.y, a.v2.y, a.v3.y }, b);
-	result.z = dot(vec4{ a.v0.z, a.v1.z, a.v2.z, a.v3.z }, b);
-	result.w = dot(vec4{ a.v0.w, a.v1.w, a.v2.w, a.v3.w }, b);
+	result.x = Dot(vec4{ a.v0.x, a.v1.x, a.v2.x, a.v3.x }, b);
+	result.y = Dot(vec4{ a.v0.y, a.v1.y, a.v2.y, a.v3.y }, b);
+	result.z = Dot(vec4{ a.v0.z, a.v1.z, a.v2.z, a.v3.z }, b);
+	result.w = Dot(vec4{ a.v0.w, a.v1.w, a.v2.w, a.v3.w }, b);
 	return result;
 }
 

@@ -52,10 +52,10 @@ void ScreenGame::Update()
 			vec2 camPos = App->modRender->cameraPosition;
 			vec2 bgSize = spaceTopLeft->sprite->texture->size;
 
-			spaceTopLeft->position = bgSize * floor(camPos / bgSize);
-			spaceTopRight->position = bgSize * (floor(camPos / bgSize) + vec2{ 1.0f, 0.0f });
-			spaceBottomLeft->position = bgSize * (floor(camPos / bgSize) + vec2{ 0.0f, 1.0f });
-			spaceBottomRight->position = bgSize * (floor(camPos / bgSize) + vec2{ 1.0f, 1.0f });;
+			spaceTopLeft->position = bgSize * Floor(camPos / bgSize);
+			spaceTopRight->position = bgSize * (Floor(camPos / bgSize) + vec2{ 1.0f, 0.0f });
+			spaceBottomLeft->position = bgSize * (Floor(camPos / bgSize) + vec2{ 0.0f, 1.0f });
+			spaceBottomRight->position = bgSize * (Floor(camPos / bgSize) + vec2{ 1.0f, 1.0f });;
 		}
 	}
 }

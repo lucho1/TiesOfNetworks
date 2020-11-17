@@ -6,14 +6,14 @@ static bool CollisionTestOverSeparatingAxis(
 	vec2 b1, vec2 b2, vec2 b3, vec2 b4, // Points in box b
 	vec2 axis)                          // Separating axis test
 {
-	float pa1 = dot(a1, axis);
-	float pa2 = dot(a2, axis);
-	float pa3 = dot(a3, axis);
-	float pa4 = dot(a4, axis);
-	float pb1 = dot(b1, axis);
-	float pb2 = dot(b2, axis);
-	float pb3 = dot(b3, axis);
-	float pb4 = dot(b4, axis);
+	float pa1 = Dot(a1, axis);
+	float pa2 = Dot(a2, axis);
+	float pa3 = Dot(a3, axis);
+	float pa4 = Dot(a4, axis);
+	float pb1 = Dot(b1, axis);
+	float pb2 = Dot(b2, axis);
+	float pb3 = Dot(b3, axis);
+	float pb4 = Dot(b4, axis);
 	float maxa = max(pa1, max(pa2, max(pa3, pa4)));
 	float mina = min(pa1, min(pa2, min(pa3, pa4)));
 	float maxb = max(pb1, max(pb2, max(pb3, pb4)));
@@ -105,7 +105,7 @@ bool ModuleCollision::Update()
 				// Precompute collision data and store it into activeColliders
 				Sprite *sprite = go->sprite;
 				ASSERT(sprite != nullptr, "Sprite was Nullptr!");
-				vec2 size = isZero(go->size) ? (sprite->texture ? sprite->texture->size : vec2{ 100.0f, 100.0f }) : go->size;
+				vec2 size = IsZero(go->size) ? (sprite->texture ? sprite->texture->size : vec2{ 100.0f, 100.0f }) : go->size;
 
 				mat4 aWorldMatrix =
 					translation(go->position) *
