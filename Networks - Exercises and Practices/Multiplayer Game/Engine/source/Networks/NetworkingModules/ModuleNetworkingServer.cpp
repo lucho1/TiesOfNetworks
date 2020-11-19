@@ -195,6 +195,7 @@ void ModuleNetworkingServer::OnUpdate()
 			if (clientProxy.connected)
 			{
 				// TODO(you): UDP virtual connection lab session
+				
 
 				// Don't let the client proxy point to a destroyed game object
 				if (!IsValid(clientProxy.gameObject))

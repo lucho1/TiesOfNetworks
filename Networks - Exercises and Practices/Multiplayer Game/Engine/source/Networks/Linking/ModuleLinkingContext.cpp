@@ -16,7 +16,7 @@ void ModuleLinkingContext::RegisterNetworkGameObject(GameObject *gameObject)
 		}
 	}
 
-	ASSERT(false, "Increase MAX_NETWORKED_OBJECTS if necessary");
+	ASSERT(false, "MAX Networked Objects reached. Increase MAX_NETWORKED_OBJECTS");
 }
 
 void ModuleLinkingContext::RegisterNetworkGameObjectWithNetworkId(GameObject * gameObject, uint32 networkId)

@@ -7,6 +7,7 @@ public:
 
 	virtual bool IsServer() const	{ return false; }
 	virtual bool IsClient() const	{ return false; }
+
 	bool IsConnected() const		{ return m_Socket != INVALID_SOCKET; }
 	void Disconnect()				{ Enable(false); }
 	
