@@ -181,8 +181,10 @@ void ModuleNetworkingClient::OnUpdate()
 			SendPacket(packet, m_ServerAddress);
 		}
 
-		if (Time.time - m_LastPingReceived >= DISCONNECT_TIMEOUT_SECONDS)
+		if (Time.time - m_LastPingReceived >= DISCONNECT_TIMEOUT_SECONDS) {
+			CONSOLE_ERROR_LOG("Server Error: Connection Timeout");
 			Disconnect();
+		}
 
 		// Process more inputs if there's space
 		if (m_InputDataBack - m_InputDataFront < ArrayCount(m_InputData))

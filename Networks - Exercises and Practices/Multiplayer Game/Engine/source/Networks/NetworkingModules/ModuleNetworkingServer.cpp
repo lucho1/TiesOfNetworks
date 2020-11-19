@@ -208,8 +208,9 @@ void ModuleNetworkingServer::OnUpdate()
 			if (clientProxy.connected)
 			{
 				if (Time.time - clientProxy.lastPing >= DISCONNECT_TIMEOUT_SECONDS) {
-					DestroyClientProxy(&clientProxy);
+					CONSOLE_WARN_LOG("Warning: Player \"%s\" disconnected, connection timeout", clientProxy.name.c_str());
 					clientProxy.connected = false;
+					DestroyClientProxy(&clientProxy);
 					continue;
 				}
 
