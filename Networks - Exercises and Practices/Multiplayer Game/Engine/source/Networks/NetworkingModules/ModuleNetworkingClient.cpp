@@ -46,6 +46,8 @@ void ModuleNetworkingClient::OnStart()
 	m_InputDataBack = 0;
 	m_SecondsSinceLastHello = 9999.0f;
 	m_SecondsSinceLastInputDelivery = 0.0f;
+	m_LastPingSent = 0.0f;
+	m_LastPingReceived = 0.0f;
 }
 
 void ModuleNetworkingClient::OnGUI()
@@ -118,6 +120,7 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 
 			CONSOLE_INFO_LOG("ModuleNetworkingClient::onPacketReceived() - Welcome from server");
 			m_State = ClientState::CONNECTED;
+			m_LastPingReceived = Time.time;
 		}
 		else if (message == ServerMessage::UNWELCOME)
 		{
@@ -127,6 +130,15 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 	}
 	else if (m_State == ClientState::CONNECTED)
 	{
+		switch (message) {
+		case ServerMessage::PING:
+		{
+			m_LastPingReceived = Time.time;
+			break;
+		} //ServerMessage::PING
+		default:
+			break;
+		} //switch (message)
 		// TODO(you): World state replication lab session
 		// TODO(you): Reliability on top of UDP lab session
 	}
@@ -158,6 +170,19 @@ void ModuleNetworkingClient::OnUpdate()
 	else if (m_State == ClientState::CONNECTED)
 	{
 		// TODO(you): UDP virtual connection lab session
+
+		if (Time.time - m_LastPingSent >= PING_INTERVAL_SECONDS) {
+			m_LastPingSent = Time.time;
+
+			OutputMemoryStream packet;
+			packet << PROTOCOL_ID;
+			packet << ClientMessage::PING;
+
+			SendPacket(packet, m_ServerAddress);
+		}
+
+		if (Time.time - m_LastPingReceived >= DISCONNECT_TIMEOUT_SECONDS)
+			Disconnect();
 
 		// Process more inputs if there's space
 		if (m_InputDataBack - m_InputDataFront < ArrayCount(m_InputData))

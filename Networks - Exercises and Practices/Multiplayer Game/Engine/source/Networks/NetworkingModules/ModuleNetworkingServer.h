@@ -81,6 +81,7 @@ private:
 		GameObject *gameObject = nullptr;
 
 		// TODO(you): UDP virtual connection lab session
+		float lastPing = 0.0f;
 		// TODO(you): World state replication lab session
 		// TODO(you): Reliability on top of UDP lab session
 
@@ -89,6 +90,7 @@ private:
 	};
 
 	ClientProxy m_ClientProxies[MAX_CLIENTS];
+	float m_LastPingSent = 0.0f;
 
 private:
 

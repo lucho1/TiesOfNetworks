@@ -62,10 +62,10 @@ private:
 	float m_InputDeliveryIntervalSeconds = 0.05f;
 	float m_SecondsSinceLastInputDelivery = 0.0f;
 
-
 	// Virtual connection
 	// TODO(you): UDP virtual connection lab session
-
+	float m_LastPingSent = 0.0f;
+	float m_LastPingReceived = 0.0f;
 
 	// Replication
 	// TODO(you): World state replication lab session
