@@ -223,6 +223,9 @@ void ModuleNetworkingServer::OnUpdate()
 					clientProxy.gameObject = nullptr;
 
 				// TODO(you): World state replication lab session
+				// Here call the Replication::Create() -- with an assigned netID
+				// Then send to client
+
 				// TODO(you): Reliability on top of UDP lab session
 			}
 		}
