@@ -2,27 +2,29 @@
 #define _REPLICATION_MANAGERSERVER_H_
 
 // TODO(you): World state replication lab session
-enum class ReplicationAction { NONE = -1, CREATE, UPDATE, DESTROY };
-
-struct ReplicationCommand
-{
-	ReplicationAction action;
-	uint32 netID;
-};
 
 class ReplicationManagerServer
 {
 public:
 
-	void Create(uint32 networkID);
-	void Update(uint32 networkID);
-	void Destroy(uint32 networkID);
+	inline void Create(uint32 networkID) {
+		SetAction(networkID, REPLICATION_ACTION::CREATE);
+	}
+	inline void Update(uint32 networkID) {
+		SetAction(networkID, REPLICATION_ACTION::UPDATE);
+	}
+	inline void Destroy(uint32 networkID) {
+		SetAction(networkID, REPLICATION_ACTION::DESTROY);
+	}
 
 	void Write(OutputMemoryStream& packet);
 
 private:
+	void SetAction(uint32 networkID, REPLICATION_ACTION action);
 
-	std::unordered_map<uint32, ReplicationCommand> m_ReplicationMap;
+private:
+
+	std::vector<ReplicationCommand> m_ReplicationCommands;
 };
 
 #endif //_REPLICATION_MANAGERSERVER_H_

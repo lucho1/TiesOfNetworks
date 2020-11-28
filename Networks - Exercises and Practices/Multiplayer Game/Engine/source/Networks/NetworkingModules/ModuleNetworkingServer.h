@@ -83,6 +83,7 @@ private:
 		// TODO(you): UDP virtual connection lab session
 		float lastPing = 0.0f;
 		// TODO(you): World state replication lab session
+		ReplicationManagerServer repServer;
 		// TODO(you): Reliability on top of UDP lab session
 
 		uint32 nextExpectedInputSequenceNumber = 0;
@@ -91,6 +92,7 @@ private:
 
 	ClientProxy m_ClientProxies[MAX_CLIENTS];
 	float m_LastPingSent = 0.0f;
+	float m_LastRepSent = 0.0f;
 
 private:
 

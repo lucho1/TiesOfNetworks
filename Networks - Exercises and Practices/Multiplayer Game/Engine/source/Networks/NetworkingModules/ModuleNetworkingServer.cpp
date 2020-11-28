@@ -124,6 +124,8 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 					for (uint16 i = 0; i < networkGameObjectsCount; ++i) {
 						GameObject* gameObject = networkGameObjects[i];
 						// TODO(you): World state replication lab session
+						if (gameObject != proxy->gameObject)
+							proxy->repServer.Create(gameObject->networkId);
 					}
 
 					CONSOLE_INFO_LOG("Message received: hello - from player %s", proxy->name.c_str());
@@ -196,12 +198,17 @@ void ModuleNetworkingServer::OnUpdate()
 		}
 
 		bool should_ping = Time.time - m_LastPingSent >= PING_INTERVAL_SECONDS;
+		bool should_rep = Time.time - m_LastRepSent >= REPLICATION_INTERVAL_SECONDS;
+
 		OutputMemoryStream ping_packet;
 		ping_packet << PROTOCOL_ID;
 		ping_packet << ServerMessage::PING;
 
 		if (should_ping)
 			m_LastPingSent = Time.time;
+
+		if (should_rep)
+			m_LastRepSent = Time.time;
 
 		for (ClientProxy &clientProxy : m_ClientProxies)
 		{
@@ -223,8 +230,15 @@ void ModuleNetworkingServer::OnUpdate()
 					clientProxy.gameObject = nullptr;
 
 				// TODO(you): World state replication lab session
-				// Here call the Replication::Create() -- with an assigned netID
+				// Here call the Replication::Write()
 				// Then send to client
+				if (should_rep) {
+					OutputMemoryStream rep_packet;
+					rep_packet << PROTOCOL_ID << ServerMessage::REPLICATION;
+					clientProxy.repServer.Write(rep_packet);
+
+					SendPacket(rep_packet, clientProxy.address);
+				}
 
 				// TODO(you): Reliability on top of UDP lab session
 			}
@@ -345,6 +359,7 @@ GameObject * ModuleNetworkingServer::InstantiateNetworkObject()
 		if (m_ClientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			m_ClientProxies[i].repServer.Create(gameObject->networkId);
 		}
 	}
 
@@ -353,12 +368,13 @@ GameObject * ModuleNetworkingServer::InstantiateNetworkObject()
 
 void ModuleNetworkingServer::UpdateNetworkObject(GameObject * gameObject)
 {
-	// Notify all client proxies' replication manager to destroy the object remotely
+	// Notify all client proxies' replication manager to update the object remotely
 	for (int i = 0; i < MAX_CLIENTS; ++i)
 	{
 		if (m_ClientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			m_ClientProxies[i].repServer.Update(gameObject->networkId);
 		}
 	}
 }
@@ -371,6 +387,7 @@ void ModuleNetworkingServer::DestroyNetworkObject(GameObject * gameObject)
 		if (m_ClientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			m_ClientProxies[i].repServer.Destroy(gameObject->networkId);
 		}
 	}
 

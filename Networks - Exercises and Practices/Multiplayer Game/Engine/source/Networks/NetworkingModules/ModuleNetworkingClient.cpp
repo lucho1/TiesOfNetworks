@@ -136,10 +136,15 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 			m_LastPingReceived = Time.time;
 			break;
 		} //ServerMessage::PING
+		case ServerMessage::REPLICATION:
+		{
+			// TODO(you): World state replication lab session
+			m_RepManager.Read(packet);
+			break;
+		} //ServerMessage::REPLICATION
 		default:
 			break;
 		} //switch (message)
-		// TODO(you): World state replication lab session
 		// TODO(you): Reliability on top of UDP lab session
 	}
 }
