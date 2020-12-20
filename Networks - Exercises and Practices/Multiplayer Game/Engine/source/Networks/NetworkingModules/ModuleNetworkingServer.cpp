@@ -173,6 +173,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 								proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
 
 								m_LastSequenceNumProcessed = inputData.sequenceNumber;
+								CONSOLE_WARN_LOG("Input Processed: %i", inputData.sequenceNumber);
 							}
 						}
 
@@ -255,10 +256,13 @@ void ModuleNetworkingServer::OnUpdate()
 				// TODO(you): World state replication lab session
 				// Here call the Replication::Write()
 				// Then send to client
-				if (should_rep) {
+				if (should_rep)
+				{
 					OutputMemoryStream rep_packet;
 					rep_packet << PROTOCOL_ID << ServerMessage::REPLICATION;
 					clientProxy.repServer.Write(rep_packet);
+
+					//rep_packet << m_LastSequenceNumProcessed;
 
 					SendPacket(rep_packet, clientProxy.address);
 				}

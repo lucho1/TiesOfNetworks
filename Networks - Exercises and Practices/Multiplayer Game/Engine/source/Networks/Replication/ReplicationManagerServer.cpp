@@ -24,6 +24,8 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 
 				if(go != nullptr)
 					packet << go->position << go->size << go->angle << go->tag;
+				else
+					packet << vec2() << vec2() << 0.0f << uint32();
 				
 				break;
 			}
@@ -34,6 +36,8 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 				
 				if (go != nullptr)
 					packet << go->position << go->size << go->angle << go->tag;
+				else
+					packet << vec2() << vec2() << 0.0f << uint32();
 
 				break;
 			}
