@@ -96,6 +96,9 @@ void ModuleNetworkingClient::OnGUI()
 
 			ImGui::Text("Input:");
 			ImGui::InputFloat("Delivery interval (s)", &m_InputDeliveryIntervalSeconds, 0.01f, 0.1f, 4);
+			ImGui::Text("Input Data Front: %i", m_InputDataFront);
+			ImGui::Text("Input Data Back: %i", m_InputDataBack);
+			ImGui::Text("Last Received Input SeqNum: %i", m_LastReceivedInputNum);
 		}
 	}
 }
@@ -130,21 +133,28 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 	}
 	else if (m_State == ClientState::CONNECTED)
 	{
-		switch (message) {
-		case ServerMessage::PING:
+		switch (message)
 		{
-			m_LastPingReceived = Time.time;
-			break;
-		} //ServerMessage::PING
-		case ServerMessage::REPLICATION:
-		{
-			// TODO(you): World state replication lab session
-			m_RepManager.Read(packet);
-			break;
-		} //ServerMessage::REPLICATION
-		default:
-			break;
-		} //switch (message)
+			case ServerMessage::PING:
+			{
+				m_LastPingReceived = Time.time;
+				break;
+			}
+			case ServerMessage::REPLICATION:
+			{
+				// TODO(you): World state replication lab session
+				m_RepManager.Read(packet);
+				break;
+			}
+			case ServerMessage::INPUT_RECEIVED:
+			{
+				packet >> m_LastReceivedInputNum;
+				//m_InputDataFront = m_InputDataBack;
+				m_InputDataFront = m_LastReceivedInputNum;
+			}
+			default:
+				break;
+		}
 		// TODO(you): Reliability on top of UDP lab session
 	}
 }
@@ -227,7 +237,7 @@ void ModuleNetworkingClient::OnUpdate()
 			}
 
 			// Clear the queue
-			m_InputDataFront = m_InputDataBack;
+			//m_InputDataFront = m_InputDataBack;
 			SendPacket(packet, m_ServerAddress);
 		}
 

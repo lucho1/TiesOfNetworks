@@ -21,7 +21,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			case REPLICATION_ACTION::CREATE:
 			{
 				GameObject* go = App->modLinkingContext->GetNetworkGameObject(it.net_id);
-				packet << go->position << go->size << go->angle << go->tag;
+
+				if(go != nullptr)
+					packet << go->position << go->size << go->angle << go->tag;
 				
 				break;
 			}
@@ -29,7 +31,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			case REPLICATION_ACTION::UPDATE:
 			{
 				GameObject* go = App->modLinkingContext->GetNetworkGameObject(it.net_id);
-				packet << go->position << go->size << go->angle << go->tag;
+				
+				if (go != nullptr)
+					packet << go->position << go->size << go->angle << go->tag;
 
 				break;
 			}

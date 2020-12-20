@@ -29,10 +29,14 @@ void ModuleNetworkingServer::OnGUI()
 {
 	if (ImGui::CollapsingHeader("ModuleNetworkingServer", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		ImGui::Text(" - Last Input SeqNum Processed: %i", m_LastSequenceNumProcessed);
+		
+		ImGui::NewLine();
 		ImGui::Text("Connection checking info:");
 		ImGui::Text(" - Ping interval (s): %f", PING_INTERVAL_SECONDS);
 		ImGui::Text(" - Disconnection timeout (s): %f", DISCONNECT_TIMEOUT_SECONDS);
 		ImGui::Separator();
+		ImGui::NewLine();
 
 		if (m_State == ServerState::LISTENING)
 		{
@@ -68,7 +72,8 @@ void ModuleNetworkingServer::OnGUI()
 
 void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, const sockaddr_in &fromAddress)
 {
-	if (m_State == ServerState::LISTENING) {
+	if (m_State == ServerState::LISTENING)
+	{
 		uint32 protoId;
 		packet >> protoId;
 		if (protoId != PROTOCOL_ID) return;
@@ -77,103 +82,121 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 		ClientMessage message;
 		packet >> message;
 
-		switch (message) {
-
-		case ClientMessage::HELLO: 
+		switch (message)
 		{
-				if (proxy == nullptr) {
-					proxy = CreateClientProxy();
-					if (proxy != nullptr) {
-						std::string playerName;
-						uint8 spaceshipType;
-						packet >> playerName;
-						packet >> spaceshipType;
+			case ClientMessage::HELLO: 
+			{
+					if (proxy == nullptr)
+					{
+						proxy = CreateClientProxy();
+						if (proxy != nullptr) {
+							std::string playerName;
+							uint8 spaceshipType;
+							packet >> playerName;
+							packet >> spaceshipType;
 
-						proxy->address.sin_family = fromAddress.sin_family;
-						proxy->address.sin_addr.S_un.S_addr = fromAddress.sin_addr.S_un.S_addr;
-						proxy->address.sin_port = fromAddress.sin_port;
-						proxy->connected = true;
-						proxy->name = playerName;
-						proxy->clientId = m_NextClientId++;
-						proxy->lastPing = Time.time;
+							proxy->address.sin_family = fromAddress.sin_family;
+							proxy->address.sin_addr.S_un.S_addr = fromAddress.sin_addr.S_un.S_addr;
+							proxy->address.sin_port = fromAddress.sin_port;
+							proxy->connected = true;
+							proxy->name = playerName;
+							proxy->clientId = m_NextClientId++;
+							proxy->lastPing = Time.time;
 
-						// Create new network object
-						vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f };
-						float initialAngle = 360.0f * Random.next();
-						proxy->gameObject = SpawnPlayer(spaceshipType, initialPosition, initialAngle);
-					}
-					else {
-						// NOTE(jesus): Server is full...
-					}
-				}
-
-				if (proxy != nullptr) {
-					// Send welcome to the new player
-					OutputMemoryStream welcomePacket;
-					welcomePacket << PROTOCOL_ID;
-					welcomePacket << ServerMessage::WELCOME;
-					welcomePacket << proxy->clientId;
-					welcomePacket << proxy->gameObject->networkId;
-					SendPacket(welcomePacket, fromAddress);
-
-					// Send all network objects to the new player
-					uint16 networkGameObjectsCount;
-					GameObject* networkGameObjects[MAX_NETWORK_OBJECTS];
-					App->modLinkingContext->GetNetworkGameObjects(networkGameObjects, &networkGameObjectsCount);
-
-					for (uint16 i = 0; i < networkGameObjectsCount; ++i) {
-						GameObject* gameObject = networkGameObjects[i];
-						// TODO(you): World state replication lab session
-						if (gameObject != proxy->gameObject)
-							proxy->repServer.Create(gameObject->networkId);
-					}
-
-					CONSOLE_INFO_LOG("Message received: hello - from player %s", proxy->name.c_str());
-				}
-				else {
-					OutputMemoryStream unwelcomePacket;
-					unwelcomePacket << PROTOCOL_ID;
-					unwelcomePacket << ServerMessage::UNWELCOME;
-					SendPacket(unwelcomePacket, fromAddress);
-
-					CONSOLE_WARN_LOG("Message received: UNWELCOMED hello - server is full");
-				}
-				break;
-		} // ClientMessage::HELO
-		case ClientMessage::INPUT: 
-		{
-				// Process the input packet and update the corresponding game object
-				if (proxy != nullptr && IsValid(proxy->gameObject)) {
-					// TODO(you): Reliability on top of UDP lab session
-					// Read input data
-					while (packet.RemainingByteCount() > 0) {
-						InputPacketData inputData;
-						packet >> inputData.sequenceNumber;
-						packet >> inputData.horizontalAxis;
-						packet >> inputData.verticalAxis;
-						packet >> inputData.buttonBits;
-
-						if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber) {
-							proxy->gamepad.horizontalAxis = inputData.horizontalAxis;
-							proxy->gamepad.verticalAxis = inputData.verticalAxis;
-							UnpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
-
-							proxy->gameObject->behaviour->OnInput(proxy->gamepad);
-							proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
+							// Create new network object
+							vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f };
+							float initialAngle = 360.0f * Random.next();
+							proxy->gameObject = SpawnPlayer(spaceshipType, initialPosition, initialAngle);
 						}
+							// NOTE(jesus): Else, if Server is full...
 					}
-				}
-				break;
-		} // ClientMessage::INPUT
 
-		// TODO(you): UDP virtual connection lab session
-		case ClientMessage::PING:
-		{
-			if (proxy == nullptr)
+					if (proxy != nullptr)
+					{
+						// Send welcome to the new player
+						OutputMemoryStream welcomePacket;
+						welcomePacket << PROTOCOL_ID;
+						welcomePacket << ServerMessage::WELCOME;
+						welcomePacket << proxy->clientId;
+						welcomePacket << proxy->gameObject->networkId;
+						SendPacket(welcomePacket, fromAddress);
+
+						// Send all network objects to the new player
+						uint16 networkGameObjectsCount;
+						GameObject* networkGameObjects[MAX_NETWORK_OBJECTS];
+						App->modLinkingContext->GetNetworkGameObjects(networkGameObjects, &networkGameObjectsCount);
+
+						for (uint16 i = 0; i < networkGameObjectsCount; ++i) {
+							GameObject* gameObject = networkGameObjects[i];
+							// TODO(you): World state replication lab session
+							if (gameObject != proxy->gameObject)
+								proxy->repServer.Create(gameObject->networkId);
+						}
+
+						CONSOLE_INFO_LOG("Message received: hello - from player %s", proxy->name.c_str());
+					}
+					else
+					{
+						OutputMemoryStream unwelcomePacket;
+						unwelcomePacket << PROTOCOL_ID;
+						unwelcomePacket << ServerMessage::UNWELCOME;
+						SendPacket(unwelcomePacket, fromAddress);
+
+						CONSOLE_WARN_LOG("Message received: UNWELCOMED hello - server is full");
+					}
+					break;
+			}
+			case ClientMessage::INPUT: 
+			{
+					// Process the input packet and update the corresponding game object
+					if (proxy != nullptr && IsValid(proxy->gameObject))
+					{
+						// TODO(you): Reliability on top of UDP lab session
+						// Read input data
+						m_LastSequenceNumProcessed = -1;
+						
+						while (packet.RemainingByteCount() > 0)
+						{
+							InputPacketData inputData;
+							packet >> inputData.sequenceNumber;
+							packet >> inputData.horizontalAxis;
+							packet >> inputData.verticalAxis;
+							packet >> inputData.buttonBits;
+
+							if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber)
+							{
+								proxy->gamepad.horizontalAxis = inputData.horizontalAxis;
+								proxy->gamepad.verticalAxis = inputData.verticalAxis;
+								UnpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
+
+								proxy->gameObject->behaviour->OnInput(proxy->gamepad);
+								proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
+
+								m_LastSequenceNumProcessed = inputData.sequenceNumber;
+							}
+						}
+
+						if (m_LastSequenceNumProcessed != -1)
+						{
+							OutputMemoryStream sequenceNumberPacket;
+							sequenceNumberPacket << PROTOCOL_ID;
+							sequenceNumberPacket << ServerMessage::INPUT_RECEIVED;
+							sequenceNumberPacket << m_LastSequenceNumProcessed;
+							SendPacket(sequenceNumberPacket, fromAddress);
+						}
+
+					}
+					break;
+			}
+
+			// TODO(you): UDP virtual connection lab session
+			case ClientMessage::PING:
+			{
+				if (proxy == nullptr)
+					break;
+				proxy->lastPing = Time.time;
 				break;
-			proxy->lastPing = Time.time;
-			break;
-		} //ClientMessage::PING
+			}
 		
 		} //switch (message)
 	}

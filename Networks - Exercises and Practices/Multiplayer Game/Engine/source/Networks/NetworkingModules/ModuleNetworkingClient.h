@@ -59,6 +59,8 @@ private:
 	uint32 m_InputDataFront = 0;
 	uint32 m_InputDataBack = 0;
 
+	uint32 m_LastReceivedInputNum = -1;
+
 	float m_InputDeliveryIntervalSeconds = 0.05f;
 	float m_SecondsSinceLastInputDelivery = 0.0f;
 
