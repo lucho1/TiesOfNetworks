@@ -14,7 +14,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 	for (auto& it : m_ReplicationCommands)
 	{
 		packet << it.net_id;
-		packet << it.action;
 
 		switch (it.action)
 		{
@@ -22,11 +21,12 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			{
 				GameObject* go = App->modLinkingContext->GetNetworkGameObject(it.net_id);
 
-				if(go != nullptr)
+				if (go) {
+					packet << it.action;
 					packet << go->position << go->size << go->angle << go->tag;
+				}
 				else
-					packet << vec2() << vec2() << 0.0f << uint32();
-				
+					packet << REPLICATION_ACTION::NONE;	//Sergi: If we don't have a GO ourselves we don't want to create one on clients		
 				break;
 			}
 
@@ -34,11 +34,18 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			{
 				GameObject* go = App->modLinkingContext->GetNetworkGameObject(it.net_id);
 				
-				if (go != nullptr)
+				if (go) {
+					packet << it.action;
 					packet << go->position << go->size << go->angle << go->tag;
+				}
 				else
-					packet << vec2() << vec2() << 0.0f << uint32();
+					packet << REPLICATION_ACTION::NONE;
 
+				break;
+			}
+			default:
+			{
+				packet << it.action;
 				break;
 			}
 		}
