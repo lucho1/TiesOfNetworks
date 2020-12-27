@@ -24,13 +24,49 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet) {
 			App->modLinkingContext->RegisterNetworkGameObjectWithNetworkId(go, net_id);
 			packet >> go->position >> go->size >> go->angle >> go->tag;
 
+			//Behaviour
+			BehaviourType behaviour_type;
+			packet >> behaviour_type;
+			go->behaviour = App->modBehaviour->AddBehaviour(behaviour_type, go);
+
+			//Tex
+			if (!go->sprite)
+				go->sprite = App->modRender->AddSprite(go);
+			
+			// GO Tex
+			std::string tex_name;
+			packet >> tex_name;
+
+			if (tex_name == "spacecraft1.png")
+				go->sprite->texture = App->modResources->spacecraft1;
+
+			else if (tex_name == "spacecraft2.png")
+				go->sprite->texture = App->modResources->spacecraft2;
+
+			else if (tex_name == "spacecraft3.png")
+				go->sprite->texture = App->modResources->spacecraft3;
+
+			else if (tex_name == "laser.png")
+				go->sprite->texture = App->modResources->laser;
+
+			else if (tex_name == "explosion1.png") {
+				go->sprite->texture = App->modResources->explosion1;
+				go->animation = App->modRender->AddAnimation(go);
+				go->animation->clip = App->modResources->explosionClip;
+				App->modSound->PlayAudioClip(App->modResources->audioClipExplosion);
+			}
+
+			packet >> go->sprite->color >> go->sprite->order >> go->sprite->pivot;
+
 			break;
 		} //REPLICATION_ACTION::CREATE
 		case REPLICATION_ACTION::UPDATE:
 		{
 			GameObject* go = App->modLinkingContext->GetNetworkGameObject(net_id);
 			packet >> go->position >> go->size >> go->angle >> go->tag;
-
+			
+			if (go->behaviour)
+				go->behaviour->Read(packet);
 			break;
 		} //REPLICATION_ACTION::UPDATE
 		case REPLICATION_ACTION::DESTROY:

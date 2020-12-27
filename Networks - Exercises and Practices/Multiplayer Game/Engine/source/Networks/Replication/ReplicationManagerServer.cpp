@@ -23,7 +23,15 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 
 				if (go) {
 					packet << it.action;
+					// GO Info
 					packet << go->position << go->size << go->angle << go->tag;
+					// GO Behaviour
+					if (go->behaviour)
+						packet << go->behaviour->Type();
+					else
+						packet << BehaviourType::NONE;
+					// GO Tex
+					packet << std::string(go->sprite->texture->filename) << go->sprite->color << go->sprite->order << go->sprite->pivot;
 				}
 				else
 					packet << REPLICATION_ACTION::NONE;	//Sergi: If we don't have a GO ourselves we don't want to create one on clients		
@@ -37,6 +45,8 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 				if (go) {
 					packet << it.action;
 					packet << go->position << go->size << go->angle << go->tag;
+					if (go->behaviour)
+						go->behaviour->Write(packet);
 				}
 				else
 					packet << REPLICATION_ACTION::NONE;

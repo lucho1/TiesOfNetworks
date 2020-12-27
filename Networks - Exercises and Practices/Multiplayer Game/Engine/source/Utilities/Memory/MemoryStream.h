@@ -79,6 +79,14 @@ public:
 		Write(inVec2.y);
 	}
 
+	//Write for vec4
+	void Write(const vec4& inVec4) {
+		Write(inVec4.coords[0]);
+		Write(inVec4.coords[1]);
+		Write(inVec4.coords[2]);
+		Write(inVec4.coords[3]);
+	}
+
 	// Generic operator <<
 	template< typename T >
 	OutputMemoryStream &operator<<(const T &data)
@@ -168,6 +176,15 @@ public:
 	{
 		Read(outVec2.x);
 		Read(outVec2.y);
+	}
+
+	//Read for vec4
+	void Read(vec4& outVec4) const 		
+	{
+		Read(outVec4.coords[0]);
+		Read(outVec4.coords[1]);
+		Read(outVec4.coords[2]);
+		Read(outVec4.coords[3]);
 	}
 
 	// Generic operator >>
