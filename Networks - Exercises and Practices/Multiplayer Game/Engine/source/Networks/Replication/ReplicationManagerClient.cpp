@@ -14,7 +14,13 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet) {
 		switch (rep_action) {
 		case REPLICATION_ACTION::CREATE:
 		{
-			GameObject* go = Instantiate();
+			GameObject* go = App->modLinkingContext->GetNetworkGameObject(net_id, false);
+			if (go) {
+				App->modLinkingContext->UnregisterNetworkGameObject(go);
+				Destroy(go);
+				go = nullptr;
+			}
+			go = Instantiate();
 			App->modLinkingContext->RegisterNetworkGameObjectWithNetworkId(go, net_id);
 			packet >> go->position >> go->size >> go->angle >> go->tag;
 
@@ -29,9 +35,11 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet) {
 		} //REPLICATION_ACTION::UPDATE
 		case REPLICATION_ACTION::DESTROY:
 		{
-			GameObject* go = App->modLinkingContext->GetNetworkGameObject(net_id);
-			App->modLinkingContext->UnregisterNetworkGameObject(go);
-			Destroy(go);
+			GameObject* go = App->modLinkingContext->GetNetworkGameObject(net_id, false);
+			if (go) {
+				App->modLinkingContext->UnregisterNetworkGameObject(go);
+				Destroy(go);
+			}
 
 			break;
 		} //REPLICATION_ACTION::DESTROY
