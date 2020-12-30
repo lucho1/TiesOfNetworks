@@ -65,7 +65,6 @@ private:
 	uint16 m_ListenPort = 0;
 
 	// TODO(you): UDP virtual connection lab session
-	uint32 m_LastSequenceNumProcessed = -1;
 
 private:
 
@@ -85,6 +84,7 @@ private:
 		// TODO(you): World state replication lab session
 		ReplicationManagerServer repServer;
 		// TODO(you): Reliability on top of UDP lab session
+		uint32 m_LastSequenceNumProcessed = 0;
 
 		uint32 nextExpectedInputSequenceNumber = 0;
 		InputController gamepad;

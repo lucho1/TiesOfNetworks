@@ -143,18 +143,11 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 			case ServerMessage::REPLICATION:
 			{
 				// TODO(you): World state replication lab session
-				m_RepManager.Read(packet);
-
-				//packet >> m_LastReceivedInputNum;
-				//m_InputDataFront = m_InputDataBack;
-				//m_InputDataFront = m_LastReceivedInputNum;
-				break;
-			}
-			case ServerMessage::INPUT_RECEIVED:
-			{
 				packet >> m_LastReceivedInputNum;
-				//m_InputDataFront = m_InputDataBack;
 				m_InputDataFront = m_LastReceivedInputNum;
+				
+				m_RepManager.Read(packet);
+				break;
 			}
 			default:
 				break;
@@ -241,7 +234,6 @@ void ModuleNetworkingClient::OnUpdate()
 			}
 
 			// Clear the queue
-			//m_InputDataFront = m_InputDataBack;
 			SendPacket(packet, m_ServerAddress);
 		}
 

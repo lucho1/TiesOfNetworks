@@ -28,9 +28,7 @@ void ModuleNetworkingServer::OnStart()
 void ModuleNetworkingServer::OnGUI()
 {
 	if (ImGui::CollapsingHeader("ModuleNetworkingServer", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		ImGui::Text(" - Last Input SeqNum Processed: %i", m_LastSequenceNumProcessed);
-		
+	{		
 		ImGui::NewLine();
 		ImGui::Text("Connection checking info:");
 		ImGui::Text(" - Ping interval (s): %f", PING_INTERVAL_SECONDS);
@@ -152,9 +150,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 					if (proxy != nullptr && IsValid(proxy->gameObject))
 					{
 						// TODO(you): Reliability on top of UDP lab session
-						// Read input data
-						m_LastSequenceNumProcessed = -1;
-						
+						// Read input data						
 						while (packet.RemainingByteCount() > 0)
 						{
 							InputPacketData inputData;
@@ -172,20 +168,10 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 								proxy->gameObject->behaviour->OnInput(proxy->gamepad);
 								proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
 
-								m_LastSequenceNumProcessed = inputData.sequenceNumber;
+								proxy->m_LastSequenceNumProcessed = inputData.sequenceNumber;
 								CONSOLE_WARN_LOG("Input Processed: %i", inputData.sequenceNumber);
 							}
 						}
-
-						if (m_LastSequenceNumProcessed != -1)
-						{
-							OutputMemoryStream sequenceNumberPacket;
-							sequenceNumberPacket << PROTOCOL_ID;
-							sequenceNumberPacket << ServerMessage::INPUT_RECEIVED;
-							sequenceNumberPacket << m_LastSequenceNumProcessed;
-							SendPacket(sequenceNumberPacket, fromAddress);
-						}
-
 					}
 					break;
 			}
@@ -254,20 +240,18 @@ void ModuleNetworkingServer::OnUpdate()
 					clientProxy.gameObject = nullptr;
 
 				// TODO(you): World state replication lab session
+				// TODO(you): Reliability on top of UDP lab session
 				// Here call the Replication::Write()
 				// Then send to client
 				if (should_rep)
 				{
 					OutputMemoryStream rep_packet;
 					rep_packet << PROTOCOL_ID << ServerMessage::REPLICATION;
+					rep_packet << clientProxy.m_LastSequenceNumProcessed;
+					
 					clientProxy.repServer.Write(rep_packet);
-
-					//rep_packet << m_LastSequenceNumProcessed;
-
 					SendPacket(rep_packet, clientProxy.address);
 				}
-
-				// TODO(you): Reliability on top of UDP lab session
 			}
 		}
 	}
