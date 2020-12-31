@@ -10,7 +10,7 @@ As more spaceships you destroy, more points you'll get, and you will climb posit
 
 ## Controls
 You can control your ship with the gamepad, by moving the left joystick to rotate, pressing the A to accelerate and the B to shoot.
-You can also control it with the keyboard, with WASD to rotate, down-arrow to accelerate and spacebar to shoot.
+You can also control it with the keyboard, with WASD to rotate, down-arrow to accelerate and left-arrow to shoot.
 
 
 ## Features

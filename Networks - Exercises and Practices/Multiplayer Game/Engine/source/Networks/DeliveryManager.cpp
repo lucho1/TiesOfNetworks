@@ -3,19 +3,21 @@
 
 // TODO(you): Reliability on top of UDP lab session
 
-DeliveryMessage* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
+Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
 {
-	++m_NextSeqNumOut;
-	packet << m_NextSeqNumOut;
+	++m_NextSeqNumSent;
+	packet << m_NextSeqNumSent;
 
-	DeliveryMessage delivery;
-	delivery.sequenceNumber = m_NextSeqNumOut;
+	Delivery delivery;
+	delivery.sequenceNumber = m_NextSeqNumSent;
 	delivery.dispatchTime = Time.time;
+
+	delivery.deliveryDelegate = new DeliveryDelegate();
+	m_ServerPendingDeliveries.push_back(delivery);
 
 	// TODO (lucho): we should register notif. callbacks into the delivery
 	// objects. Basically onSuccess/onFailure (lambdas?)
 
-	m_PendingDeliveries.push_back(delivery);
 
 	return &delivery;
 }
@@ -25,36 +27,76 @@ bool DeliveryManager::ProcessSequenceNumber(const InputMemoryStream& packet)
 	// TODO (lucho): Here we should check if the seq. num. arrives in order
 	// then, if it does (otherwise gets discarded), we shall add the seq. num. to a
 	// list of pending acknowledgements
+	uint32 seq_num = 0;
+	packet >> seq_num;
 
-	// if not discarded, deserialize & process packet
+	if (seq_num >= m_NextSeqNumExpected)
+	{
+		m_NextSeqNumExpected = seq_num + 1;
+		m_ClientPendingAcks.push_back(seq_num);
+		return true;
+	}
+
+
+	// if not discarded, deserialize & process packet normally
 	// at the end of frame, or after interval, send a packet with all the acknowledged
 	// sequence numbers from all received packets (WritePendingSequenceNumbers)
 	return false;
 }
 
-bool DeliveryManager::HasPendingSequenceNumbers() const
-{
-	return false;
-}
-
 void DeliveryManager::WritePendingSequenceNumbers(OutputMemoryStream& packet)
 {
+	bool processAcks = m_ClientPendingAcks.size() > 0;
+	packet << processAcks;
+
+	if (processAcks)
+	{
+		packet.Write(m_ClientPendingAcks);
+		m_ClientPendingAcks.clear();
+	}
 }
 
 void DeliveryManager::ProcessAckdSequenceNumbers(const InputMemoryStream& packet)
 {
 	// TODO (lucho): For each seq. num., find the packet delivery info., then
-	// invoke its callbacks success/failure as needed and remove delivery
+	// invoke its callbacks success/failure as needed and remove delivery	
+	std::vector<uint32> pendingAcks;
+	packet.Read(pendingAcks);
 
-	// Each frame, we check for pending deliveries for timeout (ProcessTimedOutPackets)
+	for (uint i = 0; i < pendingAcks.size(); ++i)
+	{
+		auto it = m_ServerPendingDeliveries.begin();
+		while (it != m_ServerPendingDeliveries.end())
+		{
+			if (pendingAcks[i] == it->sequenceNumber)
+			{
+				it->deliveryDelegate->onDeliverySuccess(this);
+				delete it->deliveryDelegate;
+				it = m_ServerPendingDeliveries.erase(it);
+				break;
+			}
+			else
+				++it;
+		}
+	}
+
 }
 
 void DeliveryManager::ProcessTimedOutPackets()
 {
 	// TODO (lucho): For each delivery timed out, we shall call onFailure()
 	// and remove the delivery
-}
-
-void DeliveryManager::ClearDeliveries()
-{
+	// (Each frame, we check for pending deliveries for timeout (ProcessTimedOutPackets))
+	auto it = m_ServerPendingDeliveries.begin();
+	while (it != m_ServerPendingDeliveries.end())
+	{
+		if (Time.time - it->dispatchTime > PACKET_DELIVERY_TIMEOUT_SECONDS)
+		{
+			it->deliveryDelegate->onDeliveryFailure(this);
+			delete it->deliveryDelegate;
+			it = m_ServerPendingDeliveries.erase(it);
+		}
+		else
+			++it;
+	}
 }

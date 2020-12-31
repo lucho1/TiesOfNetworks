@@ -10,12 +10,12 @@ public:
 	DeliveryDelegate() {}
 	~DeliveryDelegate() = default;
 
-	virtual void onDeliverySuccess(DeliveryManager* deliveryManager) = 0;
-	virtual void onDeliveryFailure(DeliveryManager* deliveryManager) = 0;
+	virtual void onDeliverySuccess(DeliveryManager* deliveryManager) {};
+	virtual void onDeliveryFailure(DeliveryManager* deliveryManager) {};
 };
 
 
-struct DeliveryMessage
+struct Delivery
 {
 	uint32 sequenceNumber = 0;
 	double dispatchTime = 0.0;
@@ -31,30 +31,27 @@ public:
 	~DeliveryManager() = default;
 
 	// To write a seq. num. into a packet (senders)
-	DeliveryMessage* WriteSequenceNumber(OutputMemoryStream& packet);
+	Delivery* WriteSequenceNumber(OutputMemoryStream& packet);
 
 	// To process a seq. num. from a packet (receivers)
 	bool ProcessSequenceNumber(const InputMemoryStream& packet);
 
 	// To write acknowledged seq. nums. into a packet (receivers)
-	bool HasPendingSequenceNumbers() const;
 	void WritePendingSequenceNumbers(OutputMemoryStream& packet);
 
 	// To process acknowledged seq. nums. from a packet (senders)
 	void ProcessAckdSequenceNumbers(const InputMemoryStream& packet);
 	void ProcessTimedOutPackets();
 
-	void ClearDeliveries();
-
 private:
 
 	// Sender
-	uint32 m_NextSeqNumOut = -1;
-	std::vector<DeliveryMessage> m_PendingDeliveries;
+	uint32 m_NextSeqNumSent = 0;
+	std::vector<Delivery> m_ServerPendingDeliveries;
 
 	// Receiver
-	uint32 m_NextSeqNumExpected = -1;
-	std::vector<uint32> m_PendingSequenceNums;
+	uint32 m_NextSeqNumExpected = 1;
+	std::vector<uint32> m_ClientPendingAcks;
 };
 
 #endif //_DELIVERYMANAGER_H_

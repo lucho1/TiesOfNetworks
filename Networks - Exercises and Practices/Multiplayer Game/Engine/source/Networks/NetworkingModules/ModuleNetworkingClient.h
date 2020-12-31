@@ -76,7 +76,7 @@ private:
 
 	// Delivery manager
 	// TODO(you): Reliability on top of UDP lab session
-
+	DeliveryManager m_DelManager;
 
 	// Latency management
 	// TODO(you): Latency management lab session

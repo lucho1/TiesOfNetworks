@@ -181,6 +181,12 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 			{
 				if (proxy == nullptr)
 					break;
+
+				bool processAcks = false;
+				packet >> processAcks;
+				if (processAcks)
+					proxy->delManager.ProcessAckdSequenceNumbers(packet);				
+
 				proxy->lastPing = Time.time;
 				break;
 			}
@@ -247,11 +253,14 @@ void ModuleNetworkingServer::OnUpdate()
 				{
 					OutputMemoryStream rep_packet;
 					rep_packet << PROTOCOL_ID << ServerMessage::REPLICATION;
+					clientProxy.delManager.WriteSequenceNumber(rep_packet);
 					rep_packet << clientProxy.m_LastSequenceNumProcessed;
 					
 					clientProxy.repServer.Write(rep_packet);
 					SendPacket(rep_packet, clientProxy.address);
 				}
+
+				clientProxy.delManager.ProcessTimedOutPackets();
 			}
 		}
 	}

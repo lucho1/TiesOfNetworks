@@ -143,10 +143,12 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 			case ServerMessage::REPLICATION:
 			{
 				// TODO(you): World state replication lab session
-				packet >> m_LastReceivedInputNum;
-				m_InputDataFront = m_LastReceivedInputNum;
-				
-				m_RepManager.Read(packet);
+				if (m_DelManager.ProcessSequenceNumber(packet))
+				{
+					packet >> m_LastReceivedInputNum;
+					m_InputDataFront = m_LastReceivedInputNum;
+					m_RepManager.Read(packet);
+				}
 				break;
 			}
 			default:
@@ -190,6 +192,7 @@ void ModuleNetworkingClient::OnUpdate()
 			packet << PROTOCOL_ID;
 			packet << ClientMessage::PING;
 
+			m_DelManager.WritePendingSequenceNumbers(packet);
 			SendPacket(packet, m_ServerAddress);
 		}
 
