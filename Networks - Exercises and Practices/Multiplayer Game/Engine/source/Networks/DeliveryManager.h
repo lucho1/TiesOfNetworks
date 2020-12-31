@@ -2,7 +2,6 @@
 #define _DELIVERYMANAGER_H_
 
 // TODO(you): Reliability on top of UDP lab session
-class DeliveryManager;
 class DeliveryDelegate
 {
 public:
@@ -10,8 +9,19 @@ public:
 	DeliveryDelegate() {}
 	~DeliveryDelegate() = default;
 
-	virtual void onDeliverySuccess(DeliveryManager* deliveryManager) {};
-	virtual void onDeliveryFailure(DeliveryManager* deliveryManager) {};
+	virtual void onDeliverySuccess(uint32 sequenceNumber) {};
+	virtual void onDeliveryFailure(uint32 sequenceNumber) {};
+};
+
+class ReplicationManagerServer;
+class ServerDelegate : public DeliveryDelegate {
+private:
+	ReplicationManagerServer* replicationManager = nullptr;
+
+public:
+	ServerDelegate(ReplicationManagerServer* replicationManager);
+	void onDeliverySuccess(uint32 sequenceNumber) override;
+	void onDeliveryFailure(uint32 sequenceNumber) override;
 };
 
 
@@ -20,6 +30,7 @@ struct Delivery
 	uint32 sequenceNumber = 0;
 	double dispatchTime = 0.0;
 	DeliveryDelegate* deliveryDelegate = nullptr;
+	bool createdDelegate = false;
 };
 
 
@@ -31,7 +42,7 @@ public:
 	~DeliveryManager() = default;
 
 	// To write a seq. num. into a packet (senders)
-	Delivery* WriteSequenceNumber(OutputMemoryStream& packet);
+	Delivery* WriteSequenceNumber(OutputMemoryStream& packet, DeliveryDelegate* delegate = nullptr);
 
 	// To process a seq. num. from a packet (receivers)
 	bool ProcessSequenceNumber(const InputMemoryStream& packet);
