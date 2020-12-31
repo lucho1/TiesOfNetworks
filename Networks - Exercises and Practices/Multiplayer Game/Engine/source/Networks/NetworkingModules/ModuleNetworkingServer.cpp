@@ -371,8 +371,44 @@ GameObject * ModuleNetworkingServer::SpawnPlayer(uint8 spaceshipType, vec2 initi
 	Spaceship * spaceshipBehaviour = App->modBehaviour->AddSpaceship(gameObject);
 	gameObject->behaviour = spaceshipBehaviour;
 	gameObject->behaviour->isServer = true;
-
 	return gameObject;
+}
+
+void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, uint8 spaceshipType, vec2 initialPosition, float initialAngle)
+{
+	// Create a new game object with the player properties
+	GameObject* gameObject = NetworkInstantiate();
+	gameObject->position = initialPosition;
+	gameObject->size = { 100, 100 };
+	gameObject->angle = initialAngle;
+
+	// Create sprite
+	gameObject->sprite = App->modRender->AddSprite(gameObject);
+	gameObject->sprite->order = 5;
+
+	if (spaceshipType == 0)
+		gameObject->sprite->texture = App->modResources->spacecraft1;
+	else if (spaceshipType == 1)
+		gameObject->sprite->texture = App->modResources->spacecraft2;
+	else
+		gameObject->sprite->texture = App->modResources->spacecraft3;
+
+	// Create collider
+	gameObject->collider = App->modCollision->AddCollider(ColliderType::PLAYER, gameObject);
+	gameObject->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
+
+	// Create behaviour
+	Spaceship* spaceshipBehaviour = App->modBehaviour->AddSpaceship(gameObject);
+	gameObject->behaviour = spaceshipBehaviour;
+	gameObject->behaviour->isServer = true;
+
+	for (ClientProxy& p : m_ClientProxies)
+	{
+		if (p.connected && p.gameObject == prev_GO)
+		{
+			p.gameObject = gameObject;
+		}
+	}
 }
 
 void ModuleNetworkingServer::AddScorePlayer(uint32 tag) {

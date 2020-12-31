@@ -103,6 +103,7 @@ void Spaceship::OnCollisionTriggered(Collider &c1, Collider &c2)
 	{
 		if (isServer)
 		{
+			uint32 laserTag = c2.gameObject->tag; // Just in case the tag is destroyed with the laser on next line
 			NetworkDestroy(c2.gameObject); // Destroy the laser
 		
 			if (hitPoints > 0)
@@ -115,11 +116,12 @@ void Spaceship::OnCollisionTriggered(Collider &c1, Collider &c2)
 			vec2 position = gameObject->position + 50.0f * vec2{Random.next() - 0.5f, Random.next() - 0.5f};
 			if (hitPoints <= 0)
 			{
-				App->modNetServer->AddScorePlayer(c2.gameObject->tag);
+				App->modNetServer->AddScorePlayer(laserTag);
 
 				// Centered big explosion
 				size = 250.0f + 100.0f * Random.next();
 				position = gameObject->position;
+				App->modNetServer->RespawnPlayer(gameObject, (uint8)BehaviourType::SPACESHIP, { 0.0f, 0.0f }, 0.0f);
 				NetworkDestroy(gameObject);
 			}
 
