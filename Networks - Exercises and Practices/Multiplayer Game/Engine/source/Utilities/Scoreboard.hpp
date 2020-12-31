@@ -19,6 +19,10 @@ public:
 	};
 
 public:
+	Scoreboard() {
+		_capacity = 0;
+	}
+
 	Scoreboard(unsigned int size) {
 		_capacity = size;
 		_size = 0;
@@ -35,6 +39,35 @@ public:
 
 	unsigned int Size() const{
 		return _size;
+	}
+
+	void SetCapacity(unsigned int capacity) {
+		if (capacity == _capacity)
+			return;
+
+		std::string* new_names_array = new std::string[capacity];
+		unsigned int* new_score_array = new unsigned int[capacity];
+
+		if (_names) {
+			if (_size <= capacity)
+				memcpy(new_names_array, _names, sizeof(std::string) * _size);
+			else
+				memcpy(new_names_array, _names, sizeof(std::string) * capacity);
+			delete[] _names;
+		}
+		if (_score) {
+			if (_size <= capacity)
+				memcpy(new_score_array, _score, sizeof(unsigned int) * _size);
+			else
+				memcpy(new_score_array, _score, sizeof(unsigned int) * capacity);
+			delete[] _score;
+		}
+
+		_names = new_names_array;
+		_score = new_score_array;
+		_capacity = capacity;
+		if (_size > _capacity)
+			_size = _capacity;
 	}
 
 	void Reserve(unsigned int size) {
@@ -100,6 +133,12 @@ public:
 
 	void Clear() {
 		_size = 0;
+	}
+
+	const ScoreboardMember operator[](unsigned int position) const {
+		assert(position < _size, "Position out of bounds of scorboard.");
+		ScoreboardMember ret(_names[position], _score[position]);
+		return ret;
 	}
 
 	ScoreboardMember operator[](unsigned int position) {

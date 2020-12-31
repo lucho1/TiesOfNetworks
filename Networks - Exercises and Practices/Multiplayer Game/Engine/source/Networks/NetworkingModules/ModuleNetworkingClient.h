@@ -47,6 +47,8 @@ private:
 	uint32 m_PlayerId = 0;
 	uint32 m_NetworkId = 0;
 
+	uint32 m_Score = 0;
+
 
 	// Connecting stage
 	float m_SecondsSinceLastHello = 0.0f;

@@ -78,6 +78,7 @@ private:
 		uint32 clientId;
 		std::string name;
 		GameObject *gameObject = nullptr;
+		uint32 score = 0;
 
 		// TODO(you): UDP virtual connection lab session
 		float lastPing = 0.0f;

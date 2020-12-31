@@ -147,6 +147,8 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 				{
 					packet >> m_LastReceivedInputNum;
 					m_InputDataFront = m_LastReceivedInputNum;
+
+					packet >> m_Score >> player_scoreboard;
 					m_RepManager.Read(packet);
 				}
 				break;

@@ -54,6 +54,9 @@ protected:
 
 	SOCKET m_Socket = INVALID_SOCKET;
 
+	// Scoreboard
+	Scoreboard player_scoreboard;
+
 private:
 
 	uint32 m_SentPacketsCount = 0;

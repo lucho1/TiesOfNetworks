@@ -87,6 +87,16 @@ public:
 		Write(inVec4.coords[3]);
 	}
 
+	//Write for scoreboard
+	void Write(const Scoreboard& inScoreboard) {
+		Write(inScoreboard.Capacity());
+		Write(inScoreboard.Size());
+		for (int i = 0; i < inScoreboard.Size(); ++i) {
+			Write(inScoreboard[i].name);
+			Write(inScoreboard[i].score);
+		}
+	}
+
 	// Generic operator <<
 	template< typename T >
 	OutputMemoryStream &operator<<(const T &data)
@@ -185,6 +195,20 @@ public:
 		Read(outVec4.coords[1]);
 		Read(outVec4.coords[2]);
 		Read(outVec4.coords[3]);
+	}
+
+	//Read for scoreboard
+	void Read(Scoreboard& outScoreboard) const {
+		unsigned int capacity, size;
+		Read(capacity);
+		Read(size);
+		outScoreboard.SetCapacity(capacity);
+		outScoreboard.Reserve(size);
+
+		for (int i = 0; i < size; ++i) {
+			Read(outScoreboard[i].name);
+			Read(outScoreboard[i].score);
+		}
 	}
 
 	// Generic operator >>

@@ -289,6 +289,7 @@ extern RandomNumberGenerator Random;
 ////////////////////////////////////////////////////////////////////////
 #include "Utilities/Maths.h"
 #include "Utilities/Color.h"
+#include "Utilities/Scoreboard.hpp"
 #include "Utilities/Memory/MemoryStream.h"
 #include "Utilities/Memory/ByteSwap.h"
 

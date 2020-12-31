@@ -227,6 +227,13 @@ void ModuleNetworkingServer::OnUpdate()
 		if (should_rep)
 			m_LastRepSent = Time.time;
 
+		// Update scoreboard
+		player_scoreboard.Clear();
+		for (ClientProxy& clientProxy : m_ClientProxies) {
+			if (clientProxy.connected)
+				player_scoreboard.TryAdd(clientProxy.score, clientProxy.name);
+		}
+
 		for (ClientProxy &clientProxy : m_ClientProxies)
 		{
 			if (clientProxy.connected)
@@ -257,6 +264,8 @@ void ModuleNetworkingServer::OnUpdate()
 					clientProxy.delManager.WriteSequenceNumber(rep_packet, clientProxy.serverDelegate);
 					rep_packet << clientProxy.m_LastSequenceNumProcessed;
 					
+					rep_packet << clientProxy.score;
+					rep_packet << player_scoreboard;
 					clientProxy.repServer.Write(rep_packet);
 					SendPacket(rep_packet, clientProxy.address);
 				}

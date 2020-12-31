@@ -102,6 +102,8 @@ bool ModuleNetworking::Init()
 		return false;
 	}
 
+	player_scoreboard.SetCapacity(5);
+
 	SimulatedRealWorldConditions_Init();
 	return true;
 }
