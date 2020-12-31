@@ -89,7 +89,7 @@ public:
 			return;
 		}
 
-		if (score < _score[_size - 1]) {
+		if (score <= _score[_size - 1]) {
 			if (_size == _capacity)
 				return;
 			else {
@@ -102,7 +102,7 @@ public:
 
 		unsigned int left, right;
 		left = 0;
-		right = _size;
+		right = _size - 1;
 
 		while (right - left > 1) {
 			unsigned int middle = left + (right - left) / 2;
