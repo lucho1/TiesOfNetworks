@@ -39,6 +39,22 @@ bool ModuleGameObject::Update()
 		}
 	}
 
+	// Position & Rotation Interpolation
+	if (App->modNetClient->IsEnabled() && App->modNetClient->enable_interpolation)
+	{
+		for (auto& object : GameObjects)
+		{
+			if (object.networkId != App->modNetClient->GetNetID())
+			{
+				object.InterpolationTime += Time.deltaTime;
+
+				float t = ClampValue(object.InterpolationTime / REPLICATION_INTERVAL_SECONDS);
+				object.angle = Lerp(object.prev_angle, object.next_angle, t);
+				object.position = Lerp(object.prev_position, object.next_position, t);
+			}
+		}
+	}
+
 	return true;
 }
 

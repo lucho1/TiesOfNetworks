@@ -6,9 +6,14 @@ struct GameObject
 	uint32 id;
 
 	// Transform component
-	vec2 position = vec2{ 0.0f, 0.0f };
 	vec2 size = vec2{ 0.0f, 0.0f }; // NOTE(jesus): If equals 0, it takes the size of the texture
+	
+	vec2 position = vec2{ 0.0f, 0.0f };
+	vec2 prev_position = vec2{ 0.0f, 0.0f }, next_position = vec2{ 0.0f, 0.0f };
+	
 	float angle = 0.0f;
+	float prev_angle = 0.0f, next_angle = 0.0f;
+	float InterpolationTime = 0.0f;
 
 	// Render component
 	Sprite* sprite = nullptr;

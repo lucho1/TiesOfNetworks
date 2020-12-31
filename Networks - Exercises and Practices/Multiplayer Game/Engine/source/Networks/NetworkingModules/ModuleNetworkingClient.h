@@ -11,6 +11,10 @@ public:
 	void SetServerAddress(const char *serverAddress, uint16 serverPort);
 	void SetPlayerInfo(const char *playerName, uint8 spaceshipType);
 
+	inline const uint32 GetNetID() const { return m_NetworkId; }
+
+	bool enable_interpolation = false;
+
 
 private:
 

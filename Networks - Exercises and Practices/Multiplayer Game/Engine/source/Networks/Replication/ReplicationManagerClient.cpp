@@ -63,8 +63,21 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet) {
 		case REPLICATION_ACTION::UPDATE:
 		{
 			GameObject* go = App->modLinkingContext->GetNetworkGameObject(net_id);
-			packet >> go->position >> go->size >> go->angle >> go->tag;
+			go->prev_position = go->position;
+			go->prev_angle = go->angle;
 			
+			if(App->modNetClient->enable_interpolation)
+				packet >> go->next_position >> go->size >> go->next_angle >> go->tag;
+			else
+				packet >> go->position >> go->size >> go->angle >> go->tag;
+
+			if (net_id != App->modNetClient->GetNetID() && App->modNetClient->enable_interpolation)
+			{
+				go->InterpolationTime = 0.0f;
+				go->position = go->prev_position;
+				go->angle = go->prev_angle;
+			}
+
 			if (go->behaviour)
 				go->behaviour->Read(packet);
 			break;

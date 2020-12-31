@@ -71,7 +71,7 @@ public:
 	}
 
 	void Reserve(unsigned int size) {
-		assert(size < _capacity, "Reserved size cannot be bigger than capacity!");
+		assert(size <= _capacity, "Reserved size cannot be bigger than capacity!");
 		_size = size;
 	}
 

@@ -99,6 +99,24 @@ void ModuleNetworkingClient::OnGUI()
 			ImGui::Text("Input Data Front: %i", m_InputDataFront);
 			ImGui::Text("Input Data Back: %i", m_InputDataBack);
 			ImGui::Text("Last Received Input SeqNum: %i", m_LastReceivedInputNum);
+
+			ImGui::NewLine(); ImGui::Separator();
+			ImGui::Checkbox("Interpolation (Buggy!)", &enable_interpolation);
+
+
+			ImGui::Begin("--- SCOREBOARD ---");
+			for (uint i = 0; i < 5 && i < player_scoreboard.Size(); ++i)
+			{
+				ImGui::Text("%i. %s", i + 1, player_scoreboard[i].name.c_str());
+				ImGui::SameLine();
+				ImGui::Text("		-	%i", player_scoreboard[i].score);
+			}
+
+			ImGui::NewLine(); ImGui::Separator();
+			ImGui::Text("%s (you) - %i", m_PlayerName.c_str(), m_Score);
+
+			//ImGui::Text("1. ");
+			ImGui::End();
 		}
 	}
 }
