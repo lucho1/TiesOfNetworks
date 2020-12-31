@@ -272,6 +272,7 @@
     <ClInclude Include="Engine\source\Networks\Replication\ReplicationManagerClient.h" />
     <ClInclude Include="Engine\source\Networks\Replication\ReplicationManagerServer.h" />
     <ClInclude Include="Engine\source\Screens\Screen.h" />
+    <ClInclude Include="Engine\source\Utilities\Scoreboard.hpp" />
     <ClInclude Include="Engine\vendor\imgui\imconfig.h" />
     <ClInclude Include="Engine\vendor\imgui\imgui.h" />
     <ClInclude Include="Engine\vendor\imgui\imgui_impl_dx11.h" />
