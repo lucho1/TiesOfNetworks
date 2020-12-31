@@ -28,7 +28,7 @@ You can also control it with the keyboard, with WASD to rotate, down-arrow to ac
 
 - REDUNDANCY - by Lucho, Completed (NO KNOWN BUGS) - To reduce packets loss, the server sends sends notifications to the clients on the next replication packet, for the inputs data packets received so the clients can send these packets until knowing which was the last processed by server.
 
-- DELIVERY MANAGER - by Lucho with some help from Sergi, Completed (NO KNOWN BUGS) - Delivery Notification system for the Server to store the Deliveries sent to client and the client to pass, on each PING, a list with the sequence numbers processed of the mentioned deliveries, so the server can re-send any delivery that failed to arrive (or discard it)
+- DELIVERY MANAGER - by Lucho with help from Sergi, Completed (NO KNOWN BUGS) - Delivery Notification system for the Server to store the Deliveries sent to client and the client to pass, on each PING, a list with the sequence numbers processed of the mentioned deliveries, so the server can re-send any delivery that failed to arrive (or discard it)
 
 - CLIENT SIDE PREDICTION - by Lucho and Sergi together, Completed (NO KNOWN BUGS) - Client now predicts the players input to make the input feel more instantaneous (by applying it when sending it to the server). The world state replication acts as a kind of server reconciliation, so it matches the current input states for the players (in this case, the position of the spaceship) both in the client and the server.
 
