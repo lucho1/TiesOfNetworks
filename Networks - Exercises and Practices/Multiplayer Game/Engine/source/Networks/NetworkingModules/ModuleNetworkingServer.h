@@ -13,7 +13,7 @@ public:
 
 	// Spawning network objects
 	GameObject* SpawnPlayer(uint8 spaceshipType, vec2 initialPosition, float initialAngle);
-	void RespawnPlayer(GameObject* prev_GO, uint8 spaceshipType, vec2 initialPosition, float initialAngle);
+	void RespawnPlayer(GameObject* prev_GO, vec2 initialPosition, float initialAngle);
 	void AddScorePlayer(uint32 networkId);
 
 
@@ -81,6 +81,7 @@ private:
 		std::string name;
 		GameObject *gameObject = nullptr;
 		uint32 score = 0;
+		uint32 spaceship_type = 0;
 
 		// TODO(you): UDP virtual connection lab session
 		float lastPing = 0.0f;

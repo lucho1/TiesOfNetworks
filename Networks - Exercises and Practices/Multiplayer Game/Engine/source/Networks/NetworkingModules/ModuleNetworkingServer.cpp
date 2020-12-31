@@ -105,6 +105,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 							vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f };
 							float initialAngle = 360.0f * Random.next();
 							proxy->gameObject = SpawnPlayer(spaceshipType, initialPosition, initialAngle);
+							proxy->spaceship_type = spaceshipType;
 						}
 							// NOTE(jesus): Else, if Server is full...
 					}
@@ -374,7 +375,7 @@ GameObject * ModuleNetworkingServer::SpawnPlayer(uint8 spaceshipType, vec2 initi
 	return gameObject;
 }
 
-void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, uint8 spaceshipType, vec2 initialPosition, float initialAngle)
+void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, vec2 initialPosition, float initialAngle)
 {
 	// Create a new game object with the player properties
 	GameObject* gameObject = NetworkInstantiate();
@@ -385,13 +386,6 @@ void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, uint8 spaceshipT
 	// Create sprite
 	gameObject->sprite = App->modRender->AddSprite(gameObject);
 	gameObject->sprite->order = 5;
-
-	if (spaceshipType == 0)
-		gameObject->sprite->texture = App->modResources->spacecraft1;
-	else if (spaceshipType == 1)
-		gameObject->sprite->texture = App->modResources->spacecraft2;
-	else
-		gameObject->sprite->texture = App->modResources->spacecraft3;
 
 	// Create collider
 	gameObject->collider = App->modCollision->AddCollider(ColliderType::PLAYER, gameObject);
@@ -406,7 +400,17 @@ void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, uint8 spaceshipT
 	{
 		if (p.connected && p.gameObject == prev_GO)
 		{
+			if (p.spaceship_type == 0)
+				gameObject->sprite->texture = App->modResources->spacecraft1;
+			else if (p.spaceship_type == 1)
+				gameObject->sprite->texture = App->modResources->spacecraft2;
+			else
+				gameObject->sprite->texture = App->modResources->spacecraft3;
+
 			p.gameObject = gameObject;
+			OutputMemoryStream packet;
+			packet << PROTOCOL_ID << ServerMessage::RESPAWN << p.gameObject->networkId;
+			SendPacket(packet, p.address);
 		}
 	}
 }

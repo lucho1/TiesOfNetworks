@@ -121,7 +121,7 @@ void Spaceship::OnCollisionTriggered(Collider &c1, Collider &c2)
 				// Centered big explosion
 				size = 250.0f + 100.0f * Random.next();
 				position = gameObject->position;
-				App->modNetServer->RespawnPlayer(gameObject, (uint8)BehaviourType::SPACESHIP, { 0.0f, 0.0f }, 0.0f);
+				App->modNetServer->RespawnPlayer(gameObject, { 0.0f, 0.0f }, 0.0f);
 				NetworkDestroy(gameObject);
 			}
 

@@ -13,6 +13,7 @@ enum class ServerMessage : uint8
 	WELCOME,
 	UNWELCOME,
 	PING,
+	RESPAWN,
 	REPLICATION // NOTE(jesus): Use this message type in the virtual connection lab session
 };
 

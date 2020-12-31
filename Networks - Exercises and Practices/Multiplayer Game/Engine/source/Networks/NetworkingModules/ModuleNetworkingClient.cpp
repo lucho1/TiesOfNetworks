@@ -171,6 +171,11 @@ void ModuleNetworkingClient::OnPacketReceived(const InputMemoryStream &packet, c
 				}
 				break;
 			}
+			case ServerMessage::RESPAWN:
+			{
+				packet >> m_NetworkId;
+				break;
+			}
 			default:
 				break;
 		}
