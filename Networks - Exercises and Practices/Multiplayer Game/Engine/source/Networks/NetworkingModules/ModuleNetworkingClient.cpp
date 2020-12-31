@@ -212,6 +212,10 @@ void ModuleNetworkingClient::OnUpdate()
 			inputPacketData.horizontalAxis = Input.horizontalAxis;
 			inputPacketData.verticalAxis = Input.verticalAxis;
 			inputPacketData.buttonBits = PackInputControllerButtons(Input);
+
+			GameObject* player = App->modLinkingContext->GetNetworkGameObject(m_NetworkId);
+			if (player)
+				player->behaviour->OnInput(Input);
 		}
 
 		m_SecondsSinceLastInputDelivery += Time.deltaTime;
