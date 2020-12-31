@@ -9,7 +9,7 @@ void ReplicationManagerServer::SetAction(uint32 networkID, REPLICATION_ACTION ac
 	m_ReplicationCommands.push_back(cmd);
 }
 
-void ReplicationManagerServer::Write(OutputMemoryStream& packet)
+void ReplicationManagerServer::Write(OutputMemoryStream& packet, uint32 sequence_number)
 {
 	for (auto& it : m_ReplicationCommands)
 	{
@@ -61,5 +61,24 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 		}
 	}
 
+	if (sequence_number != 0)
+		m_SentReplications[sequence_number] = m_ReplicationCommands;
+
 	m_ReplicationCommands.clear();
+}
+
+void ReplicationManagerServer::ResendReplication(uint32 sequence_number) {
+	if (m_SentReplications.find(sequence_number) == m_SentReplications.end())
+		return;
+
+	for (auto it : m_SentReplications[sequence_number])
+		SetAction(it.net_id, it.action);
+}
+
+void ReplicationManagerServer::DiscardReplication(uint32 sequence_number) {
+	auto it = m_SentReplications.find(sequence_number);
+	if (it != m_SentReplications.end())
+		m_SentReplications.erase(it);
+
+
 }
