@@ -1,9 +1,10 @@
 #include "Core/Core.h"
 #include "DeliveryManager.h"
+#include "Replication/ReplicationManagerServer.h"
 
 // TODO(you): Reliability on top of UDP lab session
 
-Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
+Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet, DeliveryDelegate* delegate)
 {
 	++m_NextSeqNumSent;
 	packet << m_NextSeqNumSent;
@@ -12,7 +13,12 @@ Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
 	delivery.sequenceNumber = m_NextSeqNumSent;
 	delivery.dispatchTime = Time.time;
 
-	delivery.deliveryDelegate = new DeliveryDelegate();
+	if (delegate)
+		delivery.deliveryDelegate = delegate;
+	else {
+		delivery.deliveryDelegate = new DeliveryDelegate();
+		delivery.createdDelegate = true;
+	}
 	m_ServerPendingDeliveries.push_back(delivery);
 
 	// TODO (lucho): we should register notif. callbacks into the delivery
@@ -70,8 +76,9 @@ void DeliveryManager::ProcessAckdSequenceNumbers(const InputMemoryStream& packet
 		{
 			if (pendingAcks[i] == it->sequenceNumber)
 			{
-				it->deliveryDelegate->onDeliverySuccess(this);
-				delete it->deliveryDelegate;
+				it->deliveryDelegate->onDeliverySuccess(it->sequenceNumber);
+				if (it->createdDelegate)
+					delete it->deliveryDelegate;
 				it = m_ServerPendingDeliveries.erase(it);
 				break;
 			}
@@ -92,11 +99,24 @@ void DeliveryManager::ProcessTimedOutPackets()
 	{
 		if (Time.time - it->dispatchTime > PACKET_DELIVERY_TIMEOUT_SECONDS)
 		{
-			it->deliveryDelegate->onDeliveryFailure(this);
-			delete it->deliveryDelegate;
+			it->deliveryDelegate->onDeliveryFailure(it->sequenceNumber);
+			if (it->createdDelegate)
+				delete it->deliveryDelegate;
 			it = m_ServerPendingDeliveries.erase(it);
 		}
 		else
 			++it;
 	}
+}
+
+ServerDelegate::ServerDelegate(ReplicationManagerServer* replicationManager) : DeliveryDelegate(){
+	this->replicationManager = replicationManager;
+}
+
+void ServerDelegate::onDeliverySuccess(uint32 sequenceNumber) {
+	replicationManager->DiscardReplication(sequenceNumber);
+}
+
+void ServerDelegate::onDeliveryFailure(uint32 sequenceNumber) {
+	replicationManager->ResendReplication(sequenceNumber);
 }

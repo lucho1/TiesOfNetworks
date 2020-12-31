@@ -1,6 +1,5 @@
 #include "ModuleNetworkingServer.h"
 
-
 // --- ModuleNetworking virtual methods ---
 void ModuleNetworkingServer::OnStart()
 {
@@ -100,6 +99,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 							proxy->name = playerName;
 							proxy->clientId = m_NextClientId++;
 							proxy->lastPing = Time.time;
+							proxy->serverDelegate = new ServerDelegate(&proxy->repServer);
 
 							// Create new network object
 							vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f };
@@ -150,6 +150,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 					if (proxy != nullptr && IsValid(proxy->gameObject))
 					{
 						// TODO(you): Reliability on top of UDP lab session
+						// TODO(you): Reliability on top of UDP lab session
 						// Read input data						
 						while (packet.RemainingByteCount() > 0)
 						{
@@ -169,7 +170,7 @@ void ModuleNetworkingServer::OnPacketReceived(const InputMemoryStream &packet, c
 								proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
 
 								proxy->m_LastSequenceNumProcessed = inputData.sequenceNumber;
-								CONSOLE_WARN_LOG("Input Processed: %i", inputData.sequenceNumber);
+								//CONSOLE_WARN_LOG("Input Processed: %i", inputData.sequenceNumber);
 							}
 						}
 					}
@@ -253,7 +254,7 @@ void ModuleNetworkingServer::OnUpdate()
 				{
 					OutputMemoryStream rep_packet;
 					rep_packet << PROTOCOL_ID << ServerMessage::REPLICATION;
-					clientProxy.delManager.WriteSequenceNumber(rep_packet);
+					clientProxy.delManager.WriteSequenceNumber(rep_packet, clientProxy.serverDelegate);
 					rep_packet << clientProxy.m_LastSequenceNumProcessed;
 					
 					clientProxy.repServer.Write(rep_packet);
@@ -321,6 +322,9 @@ ModuleNetworkingServer::ClientProxy * ModuleNetworkingServer::GetClientProxy(con
 
 void ModuleNetworkingServer::DestroyClientProxy(ClientProxy* clientProxy)
 {
+	// Destroy the server delegate.
+	delete clientProxy->serverDelegate;
+
 	// Destroy the object from all clients
 	if (IsValid(clientProxy->gameObject))
 		DestroyNetworkObject(clientProxy->gameObject);

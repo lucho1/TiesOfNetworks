@@ -68,11 +68,16 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, uint32 sequence
 }
 
 void ReplicationManagerServer::ResendReplication(uint32 sequence_number) {
-	if (m_SentReplications.find(sequence_number) == m_SentReplications.end())
+	auto replication = m_SentReplications.find(sequence_number);
+	if (replication == m_SentReplications.end())
 		return;
 
 	for (auto it : m_SentReplications[sequence_number])
 		SetAction(it.net_id, it.action);
+
+	m_SentReplications.erase(replication);
+
+
 }
 
 void ReplicationManagerServer::DiscardReplication(uint32 sequence_number) {

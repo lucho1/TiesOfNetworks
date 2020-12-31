@@ -86,10 +86,12 @@ private:
 		// TODO(you): Reliability on top of UDP lab session
 		uint32 m_LastSequenceNumProcessed = 0;
 		DeliveryManager delManager;
+		ServerDelegate* serverDelegate = nullptr;
 
 		uint32 nextExpectedInputSequenceNumber = 0;
 		InputController gamepad;
 	};
+
 
 	ClientProxy m_ClientProxies[MAX_CLIENTS];
 	float m_LastPingSent = 0.0f;
