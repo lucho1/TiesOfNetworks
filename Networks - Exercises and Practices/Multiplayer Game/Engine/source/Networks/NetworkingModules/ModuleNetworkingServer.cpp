@@ -375,6 +375,17 @@ GameObject * ModuleNetworkingServer::SpawnPlayer(uint8 spaceshipType, vec2 initi
 	return gameObject;
 }
 
+void ModuleNetworkingServer::AddScorePlayer(uint32 tag) {
+	for (auto proxy : m_ClientProxies){
+		if (!proxy.connected)
+			continue;
+		if (proxy.gameObject && proxy.gameObject->tag == tag) {
+			proxy.score += POINTS_FOR_KILL;
+			break;
+		}
+	}
+}
+
 
 
 // --- Update / destruction ---

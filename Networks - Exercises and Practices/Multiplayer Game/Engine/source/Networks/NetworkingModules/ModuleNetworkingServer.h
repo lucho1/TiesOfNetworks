@@ -13,6 +13,7 @@ public:
 
 	// Spawning network objects
 	GameObject* SpawnPlayer(uint8 spaceshipType, vec2 initialPosition, float initialAngle);
+	void AddScorePlayer(uint32 networkId);
 
 
 private:

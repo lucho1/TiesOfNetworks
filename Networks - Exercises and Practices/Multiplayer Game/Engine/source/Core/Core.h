@@ -31,6 +31,7 @@
 #define MAX_COLLIDERS                       MAX_GAME_OBJECTS
 #define MAX_CLIENTS                                       20
 #define MAX_NETWORK_OBJECTS                              256
+#define POINTS_FOR_KILL									  50
 
 #define SCENE_TRANSITION_TIME_SECONDS                   1.0f
 #define DISCONNECT_TIMEOUT_SECONDS                      5.0f

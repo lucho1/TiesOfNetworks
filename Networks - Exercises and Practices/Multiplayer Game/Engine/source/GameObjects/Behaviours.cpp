@@ -115,6 +115,8 @@ void Spaceship::OnCollisionTriggered(Collider &c1, Collider &c2)
 			vec2 position = gameObject->position + 50.0f * vec2{Random.next() - 0.5f, Random.next() - 0.5f};
 			if (hitPoints <= 0)
 			{
+				App->modNetServer->AddScorePlayer(c2.gameObject->tag);
+
 				// Centered big explosion
 				size = 250.0f + 100.0f * Random.next();
 				position = gameObject->position;
