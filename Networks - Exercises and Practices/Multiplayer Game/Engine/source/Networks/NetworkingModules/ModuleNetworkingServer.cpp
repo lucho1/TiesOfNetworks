@@ -416,7 +416,7 @@ void ModuleNetworkingServer::RespawnPlayer(GameObject* prev_GO, vec2 initialPosi
 }
 
 void ModuleNetworkingServer::AddScorePlayer(uint32 tag) {
-	for (auto proxy : m_ClientProxies){
+	for (ClientProxy& proxy : m_ClientProxies){
 		if (!proxy.connected)
 			continue;
 		if (proxy.gameObject && proxy.gameObject->tag == tag) {
